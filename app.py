@@ -6,7 +6,7 @@ from sqlalchemy import and_
 # 初始化app
 app = Flask(__name__)
 
-app.config.from_file("./mssql_config.json",load=load)
+app.config.from_file("./mssql_config.json", load = load)
 # 连接数据库
 db = SQLAlchemy(app)
 
