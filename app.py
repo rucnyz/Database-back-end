@@ -10,6 +10,7 @@ app.config.from_file("./mssql_config.json",load=load)
 # 连接数据库
 db = SQLAlchemy(app)
 
+
 # SQLALCHEMY_DATABASE_URI
 
 # 用于连接数据的数据库。
