@@ -8,6 +8,7 @@ IF OBJECT_ID('test5', 'U') IS NULL
 CREATE DATABASE test5
             """
 # DB_ID对应数据库 OBJECT_ID对应表
+
 cursor.execute(create_db)
 conn.autocommit(False)  # 指令关闭立即执行，以后还是等待conn.commit()时再统一执行
 
