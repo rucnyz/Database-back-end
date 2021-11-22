@@ -34,8 +34,8 @@ def test():
 def run():
     # cursor = db.engine.execute("select * from dbo.course")
     # ret = cursor.fetchone()
-    return redirect("/test")
+    return "hello"
 
-
-if __name__ == "__main__":
-    app.run(debug = True, port = 5000)
+#
+# if __name__ == "__main__":
+#     app.run(debug = True, port = 5200, host = "0.0.0.0")
