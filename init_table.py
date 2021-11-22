@@ -1,6 +1,6 @@
 import pymssql
 
-conn = pymssql.connect(host='localhost', user="sa", password="20010511Grace")
+conn = pymssql.connect(host = 'localhost', user = "sa", password = "nyz010622")
 cursor = conn.cursor()  # 创建游标
 conn.autocommit(True)  # 指令立即执行，无需等待conn.commit()
 create_db = """
@@ -17,6 +17,10 @@ use = """
 USE OnlineShopping"""
 cursor.execute(use)
 
+use_db = """
+USE OnlineShopping
+            """
+cursor.execute(use_db)
 # 创建表
 # customer  -lsy
 create_customer = """
@@ -29,7 +33,6 @@ CREATE TABLE customer(
 );
 """
 cursor.execute(create_customer)
-
 
 # supplier -lsy
 create_supplier = """
@@ -45,7 +48,6 @@ CREATE TABLE supplier(
 """
 # supplier_name：店铺名; owner：店铺负责人名字 ;
 cursor.execute(create_supplier)
-
 
 # address -nyz
 create_address_supplier = """
@@ -70,7 +72,6 @@ CREATE TABLE address_customer(
 """
 cursor.execute(create_address_customer)
 
-
 # product -hcy
 create_product = """
 IF OBJECT_ID('product', 'U') IS NULL
@@ -85,7 +86,6 @@ CREATE TABLE product(
 );
 """
 cursor.execute(create_product)
-
 
 # order -hcy
 create_orders = """
@@ -109,7 +109,6 @@ CREATE TABLE orders(
 # deliver_address对应的is_customer为false，receive_address对应的is_customer为true
 cursor.execute(create_orders)
 
-
 # cart -nyz
 create_cart = """
 IF OBJECT_ID('cart', 'U') IS NULL
@@ -121,7 +120,6 @@ CREATE TABLE cart(
 );
 """
 cursor.execute(create_cart)
-
 
 # comment -nyz
 create_comment = """
