@@ -1,8 +1,9 @@
 from json import load
 
-from flask import Flask
+from flask import Flask, redirect
 from flask_sqlalchemy import SQLAlchemy
 from flask import request
+
 # 初始化app
 app = Flask(__name__)
 
@@ -21,17 +22,19 @@ db = SQLAlchemy(app)
 # 这需要额外的内存， 如果不必要的可以禁用它。
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 
-@app.route("/test")
+
+@app.route("/test", methods = ['POST', 'GET'])
 def test():
     content = request.json
     print(content)
+    return content
 
 
-@app.route("/")
+@app.route("/", methods = ['GET'])
 def run():
-    cursor = db.engine.execute("select * from master.dbo.sysdatabases")
-    ret = cursor.fetchone()
-    return str(ret)
+    # cursor = db.engine.execute("select * from dbo.course")
+    # ret = cursor.fetchone()
+    return redirect("/test")
 
-
-app.run(debug = True)
+if __name__ == "__main__":
+    app.run(debug = True, port = 5000)
