@@ -4,13 +4,18 @@ conn = pymssql.connect(host='localhost', user="sa", password="20010511Grace")
 cursor = conn.cursor()  # 创建游标
 conn.autocommit(True)  # 指令立即执行，无需等待conn.commit()
 create_db = """
-IF OBJECT_ID('test5', 'U') IS NULL 
-CREATE DATABASE test5
+IF DB_ID('OnlineShopping') IS NULL 
+CREATE DATABASE OnlineShopping
             """
 # DB_ID对应数据库 OBJECT_ID对应表
 
 cursor.execute(create_db)
-conn.autocommit(False)  # 指令关闭立即执行，以后还是等待conn.commit()时再统一执行
+## conn.autocommit(False)  # 指令关闭立即执行，以后还是等待conn.commit()时再统一执行
+
+# use数据库
+use = """
+USE OnlineShopping"""
+cursor.execute(use)
 
 # 创建表
 # customer  -lsy
