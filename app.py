@@ -12,9 +12,8 @@ db = SQLAlchemy(app)
 
 @app.route("/")
 def run():
-    cursor = db.engine.execute("select * from master.dbo.sysdatabases")
+    cursor = db.engine.execute("select * from student")
     ret = cursor.fetchone()
     return str(ret)
-
 
 app.run(debug = True)
