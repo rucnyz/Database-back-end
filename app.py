@@ -1,8 +1,8 @@
-from flask import Flask
 from json import load
-from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import and_
 
+from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
+from flask import request
 # 初始化app
 app = Flask(__name__)
 
@@ -21,8 +21,10 @@ db = SQLAlchemy(app)
 # 这需要额外的内存， 如果不必要的可以禁用它。
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 
-
-# 得到SQLAlchemy对象
+@app.route("/test")
+def test():
+    content = request.json
+    print(content)
 
 
 @app.route("/")
