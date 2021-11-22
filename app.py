@@ -29,9 +29,6 @@ def test():
 
 @app.route("/")
 def run():
-    # 是这一句出问题了，似乎不能在执行的函数内初始化数据库的连接，
-    # 而需要放在外部，注释掉就正常了
-    # db = SQLAlchemy(app, use_native_unicode = 'utf8')
     cursor = db.engine.execute("select * from master.dbo.sysdatabases")
     ret = cursor.fetchone()
     return str(ret)
