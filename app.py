@@ -36,5 +36,6 @@ def run():
     # ret = cursor.fetchone()
     return redirect("/test")
 
+
 if __name__ == "__main__":
     app.run(debug = True, port = 5000)
