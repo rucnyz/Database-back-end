@@ -13,7 +13,7 @@ conn.autocommit(False)  # 指令关闭立即执行，以后还是等待conn.comm
 # 创建表
 # customer  -lsy
 create_customer = """
-IF OBJECT_ID('customer','U') IS NULL
+IF OBJECT_ID('customer', 'U') IS NULL
 CREATE TABLE customer(
     customer_id char(10) PRIMARY KEY,
     customer_name varchar(20) NOT NULL,
@@ -21,15 +21,17 @@ CREATE TABLE customer(
     phone varchar(11) NOT NULL
 );
 """
+cursor.execute(create_customer)
+
 
 # supplier -lsy
 create_supplier = """
-IF OBJECT_ID('supplier','U') IS NULL
+IF OBJECT_ID('supplier', 'U') IS NULL
 CREATE TABLE supplier(
     supplier_id char(10) PRIMARY KEY,
     supplier_password char(10) NOT NULL,
     supplier_name varchar(50) NOT NULL UNIQUE,
-    owner varchar(20) NOT NULL,
+    owner_name varchar(20) NOT NULL,
     owner_id char(18) NOT NULL UNIQUE,
     phone varchar(11) NOT NULL
 );
@@ -75,6 +77,8 @@ CREATE TABLE product(
     discount REAL NOT NULL
 );
 """
+cursor.execute(create_product)
+
 
 # order -hcy
 create_orders = """
@@ -118,7 +122,7 @@ IF OBJECT_ID('comment', 'U') IS NULL
 CREATE TABLE comment(
     comment_id char(10),
     comment varchar(200) NOT NULL,
-    order_id char(10) REFERENCES order,
+    order_id char(10) REFERENCES orders(order_id),
     PRIMARY KEY(comment_id)
 );
 """
