@@ -130,5 +130,5 @@ cursor.execute(create_comment)
 
 # address
 
-conn.commit()  # 提交数据
+conn.autocommit(False)
 conn.close()
