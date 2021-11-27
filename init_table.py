@@ -27,9 +27,8 @@ create_customer = """
 IF OBJECT_ID('customer', 'U') IS NULL
 CREATE TABLE customer(
     customer_id char(10) PRIMARY KEY,
-    customer_name varchar(20) NOT NULL,
-    customer_password char(10) NOT NULL,
-    phone varchar(11) NOT NULL
+    customer_phonenumber varchar(20) NOT NULL,
+    customer_password char(10) NOT NULL
 );
 """
 cursor.execute(create_customer)
@@ -42,21 +41,21 @@ CREATE TABLE supplier(
     supplier_password char(10) NOT NULL,
     supplier_name varchar(50) NOT NULL UNIQUE,
     owner_name varchar(20) NOT NULL,
-    owner_id char(18) NOT NULL UNIQUE,
-    phone varchar(11) NOT NULL
+    owner_id char(18) NOT NULL UNIQUE
 );
 """
 # supplier_name：店铺名; owner：店铺负责人名字 ;
 cursor.execute(create_supplier)
 
 # address -nyz
-create_address_supplier = """
-IF OBJECT_ID('address_supplier', 'U') IS NULL
-CREATE TABLE address_supplier(
+create_info_supplier = """
+IF OBJECT_ID('info_supplier', 'U') IS NULL
+CREATE TABLE info_supplier(
     supplier_id char(10) REFERENCES supplier(supplier_id),
     address_name varchar(200) NOT NULL,
     nickname varchar(20) NOT NULL,
-    PRIMARY KEY(supplier_id, address_name)
+    PRIMARY KEY(supplier_id, address_name),
+    phone varchar(11) NOT NULL
 );
 """
 cursor.execute(create_address_supplier)
@@ -67,6 +66,7 @@ CREATE TABLE address_customer(
     customer_id char(10) REFERENCES customer(customer_id),
     address_name varchar(200) NOT NULL,
     nickname varchar(20) NOT NULL,
+    phone varchar(11) NOT NULL,
     PRIMARY KEY(customer_id, address_name)
 );
 """
@@ -82,7 +82,9 @@ CREATE TABLE product(
     supplier_id CHAR(10) REFERENCES supplier(supplier_id),
     remain INT NOT NULL,
     size VARCHAR(10) NOT NULL,
-    discount REAL NOT NULL
+    discount REAL NOT NULL,
+    category VARCHAR(50) NOT NULL
+    pic_url VARCHAR(500) NOT NULL
 );
 """
 cursor.execute(create_product)
@@ -102,7 +104,8 @@ CREATE TABLE orders(
     receive_address VARCHAR(200),
     FOREIGN KEY(customer_id, deliver_address) REFERENCES address_customer(customer_id, address_name),
     FOREIGN KEY(supplier_id, receive_address) REFERENCES address_supplier(supplier_id, address_name),
-    is_return BIT NOT NULL
+    is_return BIT NOT NULL,
+    comment VARCHAR(200)
 );
 """
 # price_sum = price * quantity * discount
@@ -121,17 +124,17 @@ CREATE TABLE cart(
 """
 cursor.execute(create_cart)
 
-# comment -nyz
-create_comment = """
-IF OBJECT_ID('comment', 'U') IS NULL
-CREATE TABLE comment(
-    comment_id char(10),
-    comment varchar(200) NOT NULL,
-    order_id char(10) REFERENCES orders(order_id),
-    PRIMARY KEY(comment_id)
-);
-"""
-cursor.execute(create_comment)
+# # comment -nyz 删掉了 合到订单表里
+# create_comment = """
+# IF OBJECT_ID('comment', 'U') IS NULL
+# CREATE TABLE comment(
+#     comment_id char(10),
+#     comment varchar(200) NOT NULL,
+#     order_id char(10) REFERENCES orders(order_id),
+#     PRIMARY KEY(comment_id)
+# );
+# """
+# cursor.execute(create_comment)
 
 # address
 
