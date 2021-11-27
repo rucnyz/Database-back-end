@@ -24,7 +24,6 @@ db = SQLAlchemy(app)
 # 这需要额外的内存， 如果不必要的可以禁用它。
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 
-<<<<<<< Updated upstream
 
 def run_sql(T_sql):  # 把T_sql放到sql server中运行
     cursor = db.engine.execute(T_sql)
@@ -39,9 +38,6 @@ def wrap(d, status_code, version=0.1):
 
 
 @app.route("/api/test", methods=['POST'])
-=======
-@app.route("/api/test", methods = ['POST', 'GET'])
->>>>>>> Stashed changes
 def test():
     content = request.json
     print(content)
@@ -327,9 +323,5 @@ def test_run():
     # ret = cursor.fetchone()
     return "hello"
 
-<<<<<<< Updated upstream
 if __name__ == "__main__":
     app.run(debug=True, port=5200, host="0.0.0.0")
-=======
-app.run(debug = True, host="0.0.0.0", port = 5000)
->>>>>>> Stashed changes
