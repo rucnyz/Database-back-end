@@ -60,9 +60,9 @@ CREATE TABLE info_supplier(
 """
 cursor.execute(create_address_supplier)
 
-create_address_customer = """
-IF OBJECT_ID('address_customer', 'U') IS NULL
-CREATE TABLE address_customer(
+create_info_customer = """
+IF OBJECT_ID('info_customer', 'U') IS NULL
+CREATE TABLE info_customer(
     customer_id char(10) REFERENCES customer(customer_id),
     address_name varchar(200) NOT NULL,
     nickname varchar(20) NOT NULL,
@@ -70,7 +70,7 @@ CREATE TABLE address_customer(
     PRIMARY KEY(customer_id, address_name)
 );
 """
-cursor.execute(create_address_customer)
+cursor.execute(create_info_customer)
 
 # product -hcy
 create_product = """
@@ -89,7 +89,7 @@ CREATE TABLE product(
 """
 cursor.execute(create_product)
 
-# order -hcy
+# order -hcy 订单表
 create_orders = """
 IF OBJECT_ID('orders', 'U') IS NULL
 CREATE TABLE orders(

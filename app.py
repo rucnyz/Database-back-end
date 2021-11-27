@@ -7,7 +7,7 @@ from flask import request
 # 初始化app
 app = Flask(__name__)
 
-app.config.from_file("./mssql_config.json", load = load)
+app.config.from_file("./mssql_config.json", load=load)
 # 连接数据库
 db = SQLAlchemy(app)
 
@@ -21,6 +21,18 @@ db = SQLAlchemy(app)
 # Flask-SQLAlchemy 将会追踪对象的修改并且发送信号。
 # 这需要额外的内存， 如果不必要的可以禁用它。
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
+
+
+def run_sql(T_sql):  # 把T_sql放到sql server中运行
+    cursor = db.engine.execute(T_sql)
+    ret = cursor.fetchall()
+    return ret
+
+
+def wrap(d, status_code, version=0.1):
+    d['version'] = version
+    d['statusCode'] = status_code
+    return dumps(d)
 
 
 @app.route("/api/test", methods=['POST'])
