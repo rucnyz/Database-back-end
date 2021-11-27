@@ -1,11 +1,11 @@
-from json import loads
+from flask import Flask,request
 from json import load
 from json import dumps
-from json import dump
 
-from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
 from flask import request
 from flask_sqlalchemy import SQLAlchemy
+
 
 # 初始化app
 app = Flask(__name__)
@@ -322,7 +322,6 @@ def test_run():
     # cursor = db.engine.execute("select * from dbo.course")
     # ret = cursor.fetchone()
     return "hello"
-
 
 if __name__ == "__main__":
     app.run(debug = True, port = 5200, host = "0.0.0.0")
