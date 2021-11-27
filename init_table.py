@@ -1,6 +1,6 @@
 import pymssql
 
-conn = pymssql.connect(host = 'localhost', user = "sa", password = "nyz010622")
+conn = pymssql.connect(host = 'localhost', user = "sa", password = "Mzf20010805")
 cursor = conn.cursor()  # 创建游标
 conn.autocommit(True)  # 指令立即执行，无需等待conn.commit()
 create_db = """
@@ -58,7 +58,7 @@ CREATE TABLE info_supplier(
     phone varchar(11) NOT NULL
 );
 """
-cursor.execute(create_address_supplier)
+cursor.execute(create_info_supplier)
 
 create_info_customer = """
 IF OBJECT_ID('info_customer', 'U') IS NULL
@@ -83,7 +83,7 @@ CREATE TABLE product(
     remain INT NOT NULL,
     size VARCHAR(10) NOT NULL,
     discount REAL NOT NULL,
-    category VARCHAR(50) NOT NULL
+    category VARCHAR(50) NOT NULL,
     pic_url VARCHAR(500) NOT NULL
 );
 """
