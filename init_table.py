@@ -10,7 +10,7 @@ CREATE DATABASE OnlineShopping
 # DB_ID对应数据库 OBJECT_ID对应表
 
 cursor.execute(create_db)
-## conn.autocommit(False)  # 指令关闭立即执行，以后还是等待conn.commit()时再统一执行
+# conn.autocommit(False)  # 指令关闭立即执行，以后还是等待conn.commit()时再统一执行
 
 # use数据库
 use = """
@@ -48,7 +48,7 @@ CREATE TABLE supplier(
 cursor.execute(create_supplier)
 
 # address -nyz
-create_info_supplier = """
+create_address_supplier = """
 IF OBJECT_ID('info_supplier', 'U') IS NULL
 CREATE TABLE info_supplier(
     supplier_id char(10) REFERENCES supplier(supplier_id),
@@ -83,7 +83,7 @@ CREATE TABLE product(
     remain INT NOT NULL,
     size VARCHAR(10) NOT NULL,
     discount REAL NOT NULL,
-    category VARCHAR(50) NOT NULL
+    category VARCHAR(50) NOT NULL,
     pic_url VARCHAR(500) NOT NULL
 );
 """
@@ -102,8 +102,8 @@ CREATE TABLE orders(
     quantity INT NOT NULL,
     deliver_address VARCHAR(200),
     receive_address VARCHAR(200),
-    FOREIGN KEY(customer_id, deliver_address) REFERENCES address_customer(customer_id, address_name),
-    FOREIGN KEY(supplier_id, receive_address) REFERENCES address_supplier(supplier_id, address_name),
+    FOREIGN KEY(customer_id, deliver_address) REFERENCES info_customer(customer_id, address_name),
+    FOREIGN KEY(supplier_id, receive_address) REFERENCES info_supplier(supplier_id, address_name),
     is_return BIT NOT NULL,
     comment VARCHAR(200)
 );

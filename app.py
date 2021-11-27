@@ -3,14 +3,14 @@ from json import load
 from json import dumps
 from json import dump
 
-from flask import Flask, redirect
-from flask_sqlalchemy import SQLAlchemy
+from flask import Flask
 from flask import request
+from flask_sqlalchemy import SQLAlchemy
 
 # 初始化app
 app = Flask(__name__)
 
-app.config.from_file("./mssql_config.json", load=load)
+app.config.from_file("./mssql_config.json", load = load)
 # 连接数据库
 db = SQLAlchemy(app)
 
@@ -32,13 +32,13 @@ def run_sql(T_sql):  # 把T_sql放到sql server中运行
     return ret
 
 
-def wrap(d, status_code, version=0.1):
+def wrap(d, status_code, version = 0.1):
     d['version'] = version
     d['statusCode'] = status_code
     return dumps(d)
 
 
-@app.route("/api/test", methods=['POST'])
+@app.route("/api/test", methods = ['POST'])
 def test():
     content = request.json
     print(content)
@@ -49,7 +49,7 @@ def test():
 # /api/getHomePage
 # input:base, {"needNumber":xx（数字）}
 # output: base, {{"商品id"：id，"商品图片"：图片url，"商品名称"：名称，"商品价格"：价格},{……},{……}}
-@app.route("/api/getHomePage", methods=['POST', 'GET'])  # zzm
+@app.route("/api/getHomePage", methods = ['POST', 'GET'])  # zzm
 def get_homePage():
     number = request.args['needNumber']
     get_homePage = """
@@ -60,7 +60,7 @@ def get_homePage():
 
     tuple = run_sql(get_homePage)
     column = ["商品ID", "商品图片", "商品名称", "商品价格"]
-    d = [dict(zip(column,tuple[i])) for i in range(len(tuple))]
+    d = [dict(zip(column, tuple[i])) for i in range(len(tuple))]
 
     return dumps(d)
 
@@ -68,8 +68,9 @@ def get_homePage():
 #  /api/getHomePage/category（固定栏）
 # input: base
 # output: base ,{"number":xx（数字）,"分类”:[……, ……,……]}
-@app.route("/api/getHomePageCategory", methods=['POST', 'GET'])  # zzm
+@app.route("/api/getHomePageCategory", methods = ['POST', 'GET'])  # zzm
 def get_homepage_category():
+    # 这是啥语法？？
     get_homepage_category = """
     select p.category UNIQUE
     from product p       
@@ -87,14 +88,14 @@ def get_homepage_category():
 # output:base {"ID":"xxx"}
 # 备注：密码生成方式：用户密码sha256取前20位
 
-@app.route("/api/register", methods=['POST', 'GET'])  # zzm
+@app.route("/api/register", methods = ['POST', 'GET'])  # zzm
 def register():
     phone_number = request.args['phoneNumber']
     password = request.args['password']
-
+    # 这是啥语法？？
     getNum = """
      SELECT COUNT*
-    from cumtomer   
+    from customer   
      """
     tuple = run_sql(getNum)
     customer_id_new = 'C' + tuple[0]
@@ -108,21 +109,22 @@ def register():
     db.engine.execute(register)
     new_cust_info = [{"ID": customer_id_new}]
 
-    return dumps(newCustInfo)
+    return dumps(new_cust_info)
 
 
 # 用户登录。用户提供登录名与密码，与数据库中内容进行匹配验证，返回登录成功与否。
 # /api/login
 # input: base, {"name":"xxx","password:"xxx"}
 # output: base, {"ID":"xxx"}
-@app.route("/api/login", methods=['POST', 'GET'])  # zzm
+@app.route("/api/login", methods = ['POST', 'GET'])  # zzm
 def login():
     name = request.args['name']
     password = request.args['password']
+    # 这列是啥没见过
     login = """
     SELECT customer_id
-    FROM custmer
-    WHERE customer_name = %s AND customer_password = %s
+    FROM customer
+    WHERE customer_phonenumber = %s AND customer_password = %s
     """ % (name, password)
 
     tuple = run_sql(login)
@@ -135,7 +137,7 @@ def login():
 # /api/customer/ID:"xxx"/info
 # input : base, {"ID":"xxx"}
 # output: base, {"nickName":"xxx", "phoneNumber":"xxx","address":list(无则返回空); }
-@app.route("/api/customer/<id>/info", methods=['POST'])  # hcy
+@app.route("/api/customer/<id>/info", methods = ['POST'])  # hcy
 def select_customer_info(id):
     # content = request.json
     select_customer_info = """
@@ -153,7 +155,7 @@ def select_customer_info(id):
 # /api/customer/"id"/address/add
 # input:base,{"ID","nickName","address","phoneNumber"}
 # output: base
-@app.route("/api/customer/<id>/address/add", methods=['POST'])  # hcy
+@app.route("/api/customer/<id>/address/add", methods = ['POST'])  # hcy
 def add_customer_info(id):
     nickname = request.args['nickName']
     address = request.args['address']
@@ -172,7 +174,7 @@ def add_customer_info(id):
 # /api/customer/"id"/address/delete
 # input: base,{"ID","address"}
 # output: base
-@app.route("/api/customer/<id>/address/delete", methods=['POST'])  # hcy
+@app.route("/api/customer/<id>/address/delete", methods = ['POST'])  # hcy
 def delete_customer_info(id):
     address = request.args['address']
     delete_customer_info = """
@@ -187,7 +189,7 @@ def delete_customer_info(id):
 # /api/customer/"id"/address/update
 # input: base, {"ID","nickName","phoneNumber","address"}
 # ouput: base
-@app.route("/api/customer/<id>/address/update", methods=['POST'])  # hcy
+@app.route("/api/customer/<id>/address/update", methods = ['POST'])  # hcy
 def update_customer_info(id):
     nickname = request.args['nickName']
     address = request.args['address']
@@ -205,7 +207,7 @@ def update_customer_info(id):
 # /api/customer/"id"/shoppingCart
 # input: base,"ID"
 # output: base,{"total number", "detail":[{"productID","pic_url",”count“,"productName"},...,{...}]}
-@app.route("/api/customer/<id>/shoppingCart", methods=['POST'])  # hcy
+@app.route("/api/customer/<id>/shoppingCart", methods = ['POST'])  # hcy
 def select_cart(id):
     select_cart = """
     SELECT p.product_id, pic_url, count, product_name
@@ -222,15 +224,11 @@ def select_cart(id):
 # /api/customer/"id"/shoppingCart/add
 # input: base,{"用户ID": "xxx", "商品ID":,"商品数量"}
 # output:base
-@app.route("/api/customer/<id>/shoppingCart", methods=['POST'])  # hcy
+@app.route("/api/customer/<id>/shoppingCart", methods = ['POST'])  # hcy
 # @TODO: IF EXIST
 
-
-
-
-
 # 3. 用户已有订单查询。返回用户已有订单。允许顾客进行退货处理。
-@app.route("/api/customer/<id>/orders", methods=['POST'])  # lsy
+@app.route("/api/customer/<id>/orders", methods = ['POST'])  # lsy
 def get_orders(id):
     content = request.json
     ## 提取信息
@@ -241,13 +239,13 @@ def get_orders(id):
     AND p.product_id = o.product_id;
     """ % id
     tuple = run_sql(get_orders)
-    column = ['orderID','productID', 'productID', 'quantity']
+    column = ['orderID', 'productID', 'productID', 'quantity']
     d = [dict(zip(column, tuple[i])) for i in range(len(tuple))]
     d = {"number": len(tuple), "detail": d}
     return wrap(d, "successful")
 
 
-@app.route("/api/customer/<id>/orders/salesreturn", methods=['POST'])  # lsy
+@app.route("/api/customer/<id>/orders/salesreturn", methods = ['POST'])  # lsy
 def set_is_return(id):  # 设置退货标记
     order_id = request.args["order_id"]
     set_is_return = """
@@ -262,7 +260,7 @@ def set_is_return(id):  # 设置退货标记
 
 # 4. 评价功能：与顾客订单进行绑定。当订单交易完成后，顾客可以选择对商品进行评价，并存储在数据库中。
 # count
-@app.route("/api/comments", methods=['POST'])  # lsy
+@app.route("/api/comments", methods = ['POST'])  # lsy
 def select_comments():  # 查看评价
     product_id = request.args["product_id"]
     select_comments = """
@@ -277,7 +275,7 @@ def select_comments():  # 查看评价
     return wrap(d, "successful")
 
 
-@app.route("/api/comments/add", methods=['POST'])  # lsy
+@app.route("/api/comments/add", methods = ['POST'])  # lsy
 def add_comment():  # 添加评价
     order_id = request.args["order_id"]
     comment = request.args["comment"]
@@ -291,20 +289,21 @@ def add_comment():  # 添加评价
     return wrap(d, "successful")
 
 
-@app.route("/api/comments/delete", methods=['POST'])  # lsy
+@app.route("/api/comments/delete", methods = ['POST'])  # lsy
 def delete_comment():  # 删除评价
     order_id = request.args["order_id"]
+    # 这comment是啥
     delete_comment = """
     UPDATE orders
     SET comment = NULL
     WHERE order_id = %s;
-    """ % comment
+    """ % order_id
     tuple = run_sql(delete_comment)
     d = {}
     return wrap(d, "successful")
 
 
-@app.route("/api/comments/update", methods=['POST'])  # lsy
+@app.route("/api/comments/update", methods = ['POST'])  # lsy
 def update_comment():  # 更新评价
     order_id = request.args["order_id"]
     comment = request.args["comment"]
@@ -318,7 +317,7 @@ def update_comment():  # 更新评价
     return wrap(d, "successful")
 
 
-@app.route("/", methods=['GET'])
+@app.route("/", methods = ['GET'])
 def test_run():
     # cursor = db.engine.execute("select * from dbo.course")
     # ret = cursor.fetchone()
@@ -326,4 +325,4 @@ def test_run():
 
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5200, host="0.0.0.0")
+    app.run(debug = True, port = 5200, host = "0.0.0.0")
