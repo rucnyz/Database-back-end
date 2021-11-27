@@ -1,11 +1,10 @@
-from json import loads
+from flask import Flask,request
 from json import load
 from json import dumps
-from json import dump
 
-from flask import Flask, redirect
 from flask_sqlalchemy import SQLAlchemy
 from flask import request
+
 
 # 初始化app
 app = Flask(__name__)
@@ -108,7 +107,7 @@ def register():
     db.engine.execute(register)
     new_cust_info = [{"ID": customer_id_new}]
 
-    return dumps(newCustInfo)
+    return dumps(new_cust_info)
 
 
 # 用户登录。用户提供登录名与密码，与数据库中内容进行匹配验证，返回登录成功与否。
@@ -298,7 +297,7 @@ def delete_comment():  # 删除评价
     UPDATE orders
     SET comment = NULL
     WHERE order_id = %s;
-    """ % comment
+    """ % order_id
     tuple = run_sql(delete_comment)
     d = {}
     return wrap(d, "successful")
@@ -323,7 +322,6 @@ def test_run():
     # cursor = db.engine.execute("select * from dbo.course")
     # ret = cursor.fetchone()
     return "hello"
-
 
 if __name__ == "__main__":
     app.run(debug=True, port=5200, host="0.0.0.0")
