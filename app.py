@@ -1,4 +1,7 @@
+from json import loads
 from json import load
+from json import dumps
+from json import dump
 
 from flask import Flask, redirect
 from flask_sqlalchemy import SQLAlchemy
@@ -40,6 +43,7 @@ def test():
     content = request.json
     print(content)
     return content
+
 
 # 	a. 此处商品展示仅有缩略图与商品名。
 # /api/getHomePage
