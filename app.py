@@ -1,8 +1,7 @@
-from flask import Flask, request
-from json import load
 from json import dumps
+from json import load
 
-from flask_sqlalchemy import SQLAlchemy
+from flask import Flask
 from flask import request
 from flask_sqlalchemy import SQLAlchemy
 
@@ -71,7 +70,7 @@ def get_homePage():
 def get_homepage_category():
     # 这是啥语法？？
     get_homepage_category = """
-    select p.category UNIQUE
+    select DISTINCT p.category
     from product p       
     """
 
@@ -93,7 +92,7 @@ def register():
     password = request.args['password']
     # 这是啥语法？？
     getNum = """
-     SELECT COUNT*
+     SELECT COUNT(*)
     from customer   
      """
     tuple = run_sql(getNum)
