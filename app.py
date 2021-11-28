@@ -110,17 +110,17 @@ def register():
 
 # 用户登录。用户提供登录名与密码，与数据库中内容进行匹配验证，返回登录成功与否。
 # /api/login
-# input: base, {"name":"xxx","password:"xxx"}
+# input: base, {"phoneNumber":"xxx","password:"xxx"}
 # output: base, {"ID":"xxx"}
 @app.route("/api/login", methods = ['POST', 'GET'])  # zzm
 def login():
-    name = request.args['name']
+    phone_number = request.args['phoneNumber']
     password = request.args['password']
     login = """
     SELECT customer_id
     FROM customer
     WHERE customer_phonenumber = %s AND customer_password = %s
-    """ % (name, password)
+    """ % (phone_number, password)
 
     tuple = run_sql(login)
     cust_ID = [{"ID": tuple[0]}]
