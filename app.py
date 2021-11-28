@@ -234,7 +234,7 @@ def get_orders(id):
     AND p.product_id = o.product_id;
     """ % id
     tuple = run_sql(get_orders)
-    column = ['orderID', 'productID', 'productID', 'quantity']
+    column = ['orderID', 'productID', 'productName', 'quantity']
     d = [dict(zip(column, tuple[i])) for i in range(len(tuple))]
     d = {"number": len(tuple), "detail": d}
     return wrap(d, "successful")
@@ -264,7 +264,7 @@ def select_comments():  # 查看评价
     WHERE product_id = %s ; 
     """ % product_id
     tuple = run_sql(select_comments)
-    column = ['productID', 'ctName', 'quantity']
+    column = ['productID', 'customerName', 'quantity']
     d = [dict(zip(column, tuple[i])) for i in range(len(tuple))]
     d = {"number": len(tuple), "detail": d}
     return wrap(d, "successful")

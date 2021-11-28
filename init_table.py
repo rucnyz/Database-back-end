@@ -48,7 +48,7 @@ CREATE TABLE supplier(
 cursor.execute(create_supplier)
 
 # address -nyz
-create_address_supplier = """
+create_info_supplier = """
 IF OBJECT_ID('info_supplier', 'U') IS NULL
 CREATE TABLE info_supplier(
     supplier_id char(10) REFERENCES supplier(supplier_id),
@@ -58,7 +58,8 @@ CREATE TABLE info_supplier(
     phone varchar(11) NOT NULL
 );
 """
-cursor.execute(create_address_supplier)
+cursor.execute(create_info_supplier)
+
 
 create_info_customer = """
 IF OBJECT_ID('info_customer', 'U') IS NULL
