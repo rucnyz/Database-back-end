@@ -30,7 +30,7 @@ def run_sql(T_sql):  # 把T_sql放到sql server中运行
     return ret
 
 
-def wrap(d, status_code, version = 0.1):
+def wrap(d, status_code, version = "0.1"):
     d['version'] = version
     d['statusCode'] = status_code
     return dumps(d)
@@ -68,7 +68,6 @@ def get_homePage():
 # output: base ,{"number":xx（数字）,"分类”:[……, ……,……]}
 @app.route("/api/getHomePageCategory", methods = ['POST', 'GET'])  # zzm
 def get_homepage_category():
-    # 这是啥语法？？
     get_homepage_category = """
     select DISTINCT p.category
     from product p       
@@ -90,9 +89,8 @@ def get_homepage_category():
 def register():
     phone_number = request.args['phoneNumber']
     password = request.args['password']
-    # 这是啥语法？？
     getNum = """
-     SELECT COUNT(*)
+    SELECT COUNT(*)
     from customer   
      """
     tuple = run_sql(getNum)
@@ -118,7 +116,6 @@ def register():
 def login():
     name = request.args['name']
     password = request.args['password']
-    # 这列是啥没见过
     login = """
     SELECT customer_id
     FROM customer
@@ -290,7 +287,6 @@ def add_comment():  # 添加评价
 @app.route("/api/comments/delete", methods = ['POST'])  # lsy
 def delete_comment():  # 删除评价
     order_id = request.args["order_id"]
-    # 这comment是啥
     delete_comment = """
     UPDATE orders
     SET comment = NULL
