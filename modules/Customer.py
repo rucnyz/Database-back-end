@@ -1,0 +1,183 @@
+from flask import Blueprint,request,current_app
+from flask_sqlalchemy import SQLAlchemy
+from json import dumps
+from utils import run_sql,wrap_json_for_send
+
+customer = Blueprint('customer', __name__)
+
+db = SQLAlchemy()
+
+# 用户注册功能。用户提供个人信息（姓名、电话号），设置昵称，利用手机号注册，设置密码，在数据库中生成会员ID。昵称允许重复。注册成功则跳转登录界面。注册失败反馈。
+# /api/user/register
+# input: base, {"phoneNumber":"xxx", "password": "xxx"}
+# output:base {"ID":"xxx"}
+# 备注：密码生成方式：用户密码sha256取前20位
+
+@customer.route("/register", methods=['POST', 'GET'])  # zzm
+def register():
+    phone_number = request.args['phoneNumber']
+    password = request.args['password']
+
+    getNum = """
+     SELECT COUNT*
+    from cumtomer   
+     """
+    tuple = run_sql(getNum,db)
+    customer_id_new = 'C' + tuple[0]
+
+    register = """
+    INSERT 
+    INTO customer
+    VALUES(%s, %s, %s)
+    """ % (customer_id_new, phone_number, password)
+
+    db.engine.execute(register)
+    new_cust_info = [{"ID": customer_id_new}]
+
+    return dumps(new_cust_info)
+
+
+# 用户登录。用户提供登录名与密码，与数据库中内容进行匹配验证，返回登录成功与否。
+# /api/user/login
+# input: base, {"name":"xxx","password:"xxx"}
+# output: base, {"ID":"xxx"}
+@customer.route("/login", methods=['POST', 'GET'])  # zzm
+def login():
+    name = request.args['name']
+    password = request.args['password']
+    login = """
+    SELECT customer_id
+    FROM custmer
+    WHERE customer_name = %s AND customer_password = %s
+    """ % (name, password)
+
+    tuple = run_sql(login,db)
+    cust_ID = [{"ID": tuple[0]}]
+
+    return dumps(cust_ID)
+
+# 用户个人信息查询
+# /api/customer/ID:"xxx"/info
+# input : base, {"ID":"xxx"}
+# output: base, {"nickName":"xxx", "phoneNumber":"xxx","address":list(无则返回空); }
+@customer.route("/<id>/info", methods=['POST'])  # hcy
+def select_customer_info(id):
+    # content = request.json
+    select_customer_info = """
+    SELECT nickname, phone, address_name
+    FROM info_customer
+    WHERE customer_id = %s
+    """ % id
+    tuple = run_sql(select_customer_info,db)
+    column = ['nickName', 'phoneNumber', 'address']
+    list = [dict(zip(column, tuple[i])) for i in range(len(tuple))]
+    d = {"detail": list}
+    return wrap_json_for_send(d, 'successful')
+
+
+# /api/customer/"id"/address/add
+# input:base,{"ID","nickName","address","phoneNumber"}
+# output: base
+@customer.route("/<id>/address/add", methods=['POST'])  # hcy
+def add_customer_info(id):
+    nickname = request.args['nickName']
+    address = request.args['address']
+    phone_number = request.args['phoneNumber']
+
+    add_customer_info = """
+    INSERT
+    INTO info_customer(customer_id, address_name, nickname, phone)
+    VALUES('%s', '%s', '%s', '%s')
+    """ % (id, nickname, address, phone_number)
+    run_sql(add_customer_info,db)
+
+    return
+
+
+# /api/customer/"id"/address/delete
+# input: base,{"ID","address"}
+# output: base
+@customer.route("/<id>/address/delete", methods=['POST'])  # hcy
+def delete_customer_info(id):
+    address = request.args['address']
+    delete_customer_info = """
+    DELETE
+    FROM info_customer
+    WHERE customer_id = %s, address_name = %s
+    """ % (id, address)
+    run_sql(delete_customer_info,db)
+    return
+
+# /api/customer/"id"/address/update
+# input: base, {"ID","nickName","phoneNumber","address"}
+# ouput: base
+@customer.route("/<id>/address/update", methods=['POST'])  # hcy
+def update_customer_info(id):
+    nickname = request.args['nickName']
+    address = request.args['address']
+    phone_number = request.args['phoneNumber']
+    update_customer_info = """
+    UPDATE info_customer
+    SET address_name = %s, nickname = %s, phone = %s
+    WHERE customer_id = %s
+    """ % (nickname, address, phone_number, id)
+    run_sql(update_customer_info,db)
+    return
+
+# 2. 用户购物车查询
+# /api/customer/"id"/shoppingCart
+# input: base,"ID"
+# output: base,{"total number", "detail":[{"productID","pic_url",”count“,"productName"},...,{...}]}
+@customer.route("/<id>/shoppingCart", methods=['POST'])  # hcy
+def select_cart(id):
+    select_cart = """
+    SELECT p.product_id, pic_url, count, product_name
+    FROM product p, cart c
+    WHERE p.product_id = c.product_id AND c.customer_id = %s
+    """ % id
+    tuple = run_sql(select_cart,db)
+    column = ["productID", "pic_url", "count", "productName"]
+    list = [dict(zip(column, tuple[i])) for i in range(len(tuple))]
+    d = {"total number": len(tuple), "detail": list}
+    return wrap_json_for_send(d, 'successful')
+
+
+# /api/customer/"id"/shoppingCart/add
+# input: base,{"用户ID": "xxx", "商品ID":,"商品数量"}
+# output:base
+@customer.route("/<id>/shoppingCart", methods=['POST'])  # hcy
+# @TODO: IF EXIST
+
+
+
+
+
+# 3. 用户已有订单查询。返回用户已有订单。允许顾客进行退货处理。
+@customer.route("/<id>/orders", methods=['POST'])  # lsy
+def get_orders(id):
+    content = request.json
+    ## 提取信息
+    get_orders = """
+    SELECT order_id, p.product_id, product_name, quantity 
+    FROM product p, orders o
+    WHERE o.customer_id = %s 
+    AND p.product_id = o.product_id;
+    """ % id
+    tuple = run_sql(get_orders,db)
+    column = ['orderID','productID', 'productID', 'quantity']
+    d = [dict(zip(column, tuple[i])) for i in range(len(tuple))]
+    d = {"number": len(tuple), "detail": d}
+    return wrap_json_for_send(d, "successful")
+
+
+@customer.route("/<id>/orders/salesreturn", methods=['POST'])  # lsy
+def set_is_return(id):  # 设置退货标记
+    order_id = request.args["order_id"]
+    set_is_return = """
+    UPDATE orders
+    SET is_return = 1 
+    WHERE order_id = %s ;
+    """ % order_id
+    tuple = run_sql(get_orders,db)
+    d = {}
+    return wrap_json_for_send(d, "successful")
