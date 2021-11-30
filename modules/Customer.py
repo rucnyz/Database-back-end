@@ -1,3 +1,5 @@
+#zzm
+
 from flask import Blueprint,request,current_app
 from flask_sqlalchemy import SQLAlchemy
 from json import dumps
@@ -7,11 +9,7 @@ customer = Blueprint('customer', __name__)
 
 db = SQLAlchemy()
 
-# 用户注册功能。用户提供个人信息（姓名、电话号），设置昵称，利用手机号注册，设置密码，在数据库中生成会员ID。昵称允许重复。注册成功则跳转登录界面。注册失败反馈。
-# /api/user/register
-# input: base, {"phoneNumber":"xxx", "password": "xxx"}
-# output:base {"ID":"xxx"}
-# 备注：密码生成方式：用户密码sha256取前20位
+
 
 @customer.route("/register", methods=['POST', 'GET'])  # zzm
 def register():
@@ -19,8 +17,8 @@ def register():
     password = request.args['password']
 
     getNum = """
-     SELECT COUNT*
-    from cumtomer   
+     SELECT COUNT(*)
+    from customer   
      """
     tuple = run_sql(getNum,db)
     customer_id_new = 'C' + tuple[0]
@@ -39,17 +37,17 @@ def register():
 
 # 用户登录。用户提供登录名与密码，与数据库中内容进行匹配验证，返回登录成功与否。
 # /api/user/login
-# input: base, {"name":"xxx","password:"xxx"}
+# input: base, {"phoneNumber":"xxx","password:"xxx"}
 # output: base, {"ID":"xxx"}
 @customer.route("/login", methods=['POST', 'GET'])  # zzm
 def login():
-    name = request.args['name']
+    phone_number = request.args['phoneNumber']
     password = request.args['password']
     login = """
     SELECT customer_id
     FROM custmer
     WHERE customer_name = %s AND customer_password = %s
-    """ % (name, password)
+    """ % (phone_number, password)
 
     tuple = run_sql(login,db)
     cust_ID = [{"ID": tuple[0]}]
@@ -178,6 +176,41 @@ def set_is_return(id):  # 设置退货标记
     SET is_return = 1 
     WHERE order_id = %s ;
     """ % order_id
-    tuple = run_sql(get_orders,db)
+    tuple = run_sql(set_is_return,db)
     d = {}
     return wrap_json_for_send(d, "successful")
+
+#从购物车里添加新订单。
+#/api/customer/<id>/orders/add
+#input:base,{"supplierID","productID","orderDate","priceSum","quantity","deliverAddress","receiveAddress"}
+#output:base, {"ordersID"}
+#
+@customer.route("/<id>/orders/add", methods=['POST', 'GET'])  # zzm
+def orders_add(id):  # 新订单添加
+    supplier_id = request.args["supplierID"]
+    product_id = request.args["productID"]
+    order_date = request.args["orderDate"]
+    price_sum = request.args["priceSum"]
+    quantity = request.args["quantity"]
+    deliver_address = request.args["deliverAddress"]
+    receive_address = request.args["receiveAddress"]
+
+
+    getNum = """
+     SELECT COUNT(*)
+    from orders  
+     """
+    tuple_tmp = run_sql(getNum, db)
+    order_id_new = 'O' + tuple_tmp[0]#获得新的订单编号
+
+
+    orders_add = """
+    INSERT
+    INTO orders
+    VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) 
+    """ %(order_id_new,id,supplier_id,product_id,order_date,price_sum,quantity,deliver_address, receive_address, 0, "Null" )
+
+    run_sql(orders_add,db)
+    new_order_info = [{"ID": order_id_new}]
+
+    return dumps(new_order_info)

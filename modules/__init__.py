@@ -6,3 +6,5 @@ from .Customer import customer
 from .Customer import db as db_customer
 from .Comment import comment
 from .Comment import db as db_comment
+from .Supplier import supplier
+from .Supplier import db as db_supplier

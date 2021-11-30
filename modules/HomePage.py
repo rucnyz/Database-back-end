@@ -35,8 +35,9 @@ def get_homePage():
 @homepage.route("/getCategory", methods=['POST', 'GET'])  # zzm
 def get_homepage_category():
     get_homepage_category = """
-    select p.category UNIQUE
+    select distinct p.category 
     from product p       
+    
     """
 
     tuple = run_sql(get_homepage_category,db)[0]
