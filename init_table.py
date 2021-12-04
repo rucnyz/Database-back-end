@@ -108,6 +108,23 @@ CREATE TABLE orders(
     comment VARCHAR(200)
 );
 """
+
+# ## 此处我们没有汇总订单表，orders表相当于订单明细表，可以建立汇总订单视图
+# create_view_sum_orders = """
+# IF OBJECT_ID('sum_orders', 'U') IS NULL
+# CREATE VIEW sum_orders
+# AS
+#     SELECT orderdate, supplier_id, customer_id, sum(price_sum) sum_price,
+#     count(*) count, deliver_address, receive_address
+#     FROM orders
+#     GROUP BY orderdate, supplier_id, customer_id, deliver_address, receive_address
+#     ORDER BY orderdate, supplier_id, customer_id
+# );
+# """
+
+
+
+
 # price_sum = price * quantity * discount
 # deliver_address对应的is_customer为false，receive_address对应的is_customer为true
 cursor.execute(create_orders)
