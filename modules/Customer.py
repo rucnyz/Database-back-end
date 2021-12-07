@@ -1,8 +1,10 @@
 # zzm
 
-from flask import Blueprint, request, current_app
-from flask_sqlalchemy import SQLAlchemy
 from json import dumps
+
+from flask import Blueprint, request
+from flask_sqlalchemy import SQLAlchemy
+
 from utils import run_sql, wrap_json_for_send
 
 customer = Blueprint('customer', __name__)
@@ -29,9 +31,9 @@ def register():
     """ % (customer_id_new, phone_number, password)
 
     db.engine.execute(register)
-    new_cust_info = [{"ID": customer_id_new}]
+    new_cust_info = {"ID": customer_id_new}
 
-    return dumps(new_cust_info)
+    return wrap_json_for_send(new_cust_info, "successful")
 
 
 # 用户登录。用户提供登录名与密码，与数据库中内容进行匹配验证，返回登录成功与否。
