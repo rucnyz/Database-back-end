@@ -1,17 +1,18 @@
-from flask import Blueprint,request,current_app
+from flask import Blueprint, request, current_app
 from flask_sqlalchemy import SQLAlchemy
 from json import dumps
-from utils import run_sql,wrap_json_for_send
+from utils import run_sql, wrap_json_for_send
 
 supplier = Blueprint('supplier', __name__)
 db = SQLAlchemy()
+
 
 # 商家进行注册,利用所有人的身份证进行登录
 # /api/supplier/register
 # input:base, { "password", "supplierName", "ownerName", "ownerID"}
 # output: base, {”supplier_id“}
 
-@supplier.route("/register", methods=['POST', 'GET'])  # zzm
+@supplier.route("/register", methods = ['POST', 'GET'])  # zzm
 def register():
     password = request.args['password']
     supplier_name = request.args['supplierName']
@@ -35,13 +36,15 @@ def register():
     new_supp_info = [{"ID": supplier_id_new}]
 
     return dumps(new_supp_info)
+
+
 # 应该为return wrap_json_for_send(new_supp_info, "successful")
 
 # 商家登录。用户提供登录名与密码，与数据库中内容进行匹配验证，返回登录成功与否。
 # /api/supplier/login
 # input: base, {"ownerID":"xxx","password:"xxx"}
 # output: base, {"suppID":"xxx"}
-@supplier.route("/login", methods=['POST', 'GET'])  # zzm
+@supplier.route("/login", methods = ['POST', 'GET'])  # zzm
 def login():
     owner_id = request.args['ownerID']
     password = request.args['password']
@@ -56,6 +59,8 @@ def login():
     supp_ID = [{"ID": tuple[0]}]
 
     return dumps(supp_ID)
+
+
 # 应该为return wrap_json_for_send(supp_ID, "successful")
 
 # 商家界面-lsy
@@ -63,7 +68,7 @@ def login():
 # /api/supplier/"id"/homepage
 # input:
 # output:
-@supplier.route("/<id>/homepage", methods=['POST', 'GET'])  # lsy
+@supplier.route("/<id>/homepage", methods = ['POST', 'GET'])  # lsy
 def get_homepage(id):
     supplier_id = id
     # tuple = run_sql(login, db)
@@ -83,12 +88,13 @@ def get_homepage(id):
     """ % supplier_id
     tuple = run_sql(get_homepage, db)
     column = ["商品ID", "商品名称", "商品价格", "商品图片", "商品销量"]
-    d = [dict(zip(column,tuple[i])) for i in range(len(tuple))]
+    d = [dict(zip(column, tuple[i])) for i in range(len(tuple))]
     return wrap_json_for_send(d, "successful")
+
 
 # 2. 已有订单管理。返回以商品and以日期为组的全部订单。两种排序方式。-以时间为组
 # /api/supplier/"id"/orders
-@supplier.route("/<id>/orders", methods=['POST', 'GET'])  # lsy
+@supplier.route("/<id>/orders", methods = ['POST', 'GET'])  # lsy
 def get_orders(id):
     # tuple = run_sql(login, db)
     # supp_ID = [{"ID": tuple[0]}]
@@ -112,17 +118,18 @@ def get_orders(id):
     #    """ % id
     tuple = run_sql(get_orders, db)
     column = ["下单时间", "顾客名称", "订单总额", "商品数量", "发货地址", "收货地址"]
-    d = [dict(zip(column,tuple[i])) for i in range(len(tuple))]
+    d = [dict(zip(column, tuple[i])) for i in range(len(tuple))]
     return wrap_json_for_send(d, "successful")
+
 
 # 3. 已有订单明细查询管理。返回上一步查到的订单里的全部商品
 # /api/supplier/"id"/orders/items
 # input:base,{"orderdate", "customer_id"}
 # output:base,{"product_id", "product_name","price_sum", "quantity"}
-@supplier.route("/<id>/orders/items", methods=['POST', 'GET'])  # lsy
+@supplier.route("/<id>/orders/items", methods = ['POST', 'GET'])  # lsy
 def get_order_items(id):
     time = request.args['orderdate']
-    customer_id =register.args['customer_id']
+    customer_id = register.args['customer_id']
     get_items = """
     SELECT o.product_id, p.product_name, o.price_sum, o.quantity
     FROM orders o, product p
@@ -131,7 +138,7 @@ def get_order_items(id):
     """ % (id, time, customer_id)
     tuple = run_sql(get_items, db)
     column = ["商品id", "商品名称", "商品总价", "商品数量"]
-    d = [dict(zip(column,tuple[i])) for i in range(len(tuple))]
+    d = [dict(zip(column, tuple[i])) for i in range(len(tuple))]
     return wrap_json_for_send(d, "successful")
 
 
@@ -140,7 +147,7 @@ def get_order_items(id):
 # input:base,{"product_name","price","remain","size","discount","category",pic_url"}
 # output:base,{"product_id"}
 
-@supplier.route("/<id>/homepage", methods=['POST', 'GET'])  # lsy
+@supplier.route("/<id>/homepage", methods = ['POST', 'GET'])  # lsy
 def add_product(id):
     product_name = request.args['product_name']
     price = request.args['price']
@@ -153,7 +160,7 @@ def add_product(id):
     SELECT COUNT(*)
     FROM product  
     """
-    tuple = run_sql(getNum,db)
+    tuple = run_sql(getNum, db)
     product_id_new = 'P' + tuple[0]
     add_product = """
     INSERT 
@@ -164,11 +171,12 @@ def add_product(id):
     d = [{"ID": product_id_new}]
     return wrap_json_for_send(d, "successful")
 
+
 # 5. 删除商品。
 # /api/supplier/"id"/product/delete
 # input:base,{"product_id"}
 # output:base,{""}
-@supplier.route("/<id>/product/delete", methods=['POST', 'GET'])  # lsy
+@supplier.route("/<id>/product/delete", methods = ['POST', 'GET'])  # lsy
 def login(id):
     supplier_id = id
     product_id = request.args['product_id']
@@ -181,11 +189,12 @@ def login(id):
     d = {}
     return wrap_json_for_send(d, "successful")
 
+
 # 6. 修改商品。
 # /api/supplier/"id"/products/update
 # input:base,{"product_id","product_name","price","remain","size","discount","category",pic_url"}
 # output:base,{""}
-@supplier.route("/<id>/products/update", methods=['POST', 'GET'])  # lsy
+@supplier.route("/<id>/products/update", methods = ['POST', 'GET'])  # lsy
 def update_product(id):
     supplier_id = id
     product_id = request.args['product_id']
@@ -200,7 +209,7 @@ def update_product(id):
     UPDATE product
     SET product_name = %s, price = %s, remain = %s, size = %s, discount = %s,category = %s, pic_url = %s
     WHERE product_id = %s AND supplier_id = %s
-    """ % (product_name,price, remain, size, discount, category, pic_url, product_id, supplier_id)
+    """ % (product_name, price, remain, size, discount, category, pic_url, product_id, supplier_id)
     tuple = run_sql(update_product, db)
-    d={}
+    d = {}
     return wrap_json_for_send(d, "successful")
