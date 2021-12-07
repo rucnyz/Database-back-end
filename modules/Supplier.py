@@ -1,6 +1,6 @@
-from flask import Blueprint, request, current_app
+from flask import Blueprint, request
 from flask_sqlalchemy import SQLAlchemy
-from json import dumps
+
 from utils import run_sql, wrap_json_for_send
 
 supplier = Blueprint('supplier', __name__)
@@ -33,9 +33,9 @@ def register():
     """ % (supplier_id_new, password, supplier_name, owner_name, owner_id)
 
     db.engine.execute(register)
-    new_supp_info = [{"ID": supplier_id_new}]
+    new_supp_info = {"ID": supplier_id_new}
 
-    return dumps(new_supp_info)
+    return wrap_json_for_send(new_supp_info, "successful")
 
 
 # 应该为return wrap_json_for_send(new_supp_info, "successful")
@@ -55,10 +55,10 @@ def login():
     
     """ % (owner_id, password)
 
-    tuple = run_sql(login, db)
-    supp_ID = [{"ID": tuple[0]}]
+    t = run_sql(login, db)
+    supp_ID = {"ID": t[0]}
 
-    return dumps(supp_ID)
+    return wrap_json_for_send(supp_ID, "successful")
 
 
 # 应该为return wrap_json_for_send(supp_ID, "successful")
@@ -80,15 +80,15 @@ def get_homepage(id):
         SELECT product.product_id, count(*) sales
         FROM product, orders
         WHERE product.product_id = orders.product_id 
-        GROUP BY product_id
+        GROUP BY orders.product_id
         ) sub
         ON p.product_id = sub.product_id
     WHERE p.supplier_id = %s  AND remain >0 
     ORDER BY p.product_id
     """ % supplier_id
-    tuple = run_sql(get_homepage, db)
+    t = run_sql(get_homepage, db)
     column = ["商品ID", "商品名称", "商品价格", "商品图片", "商品销量"]
-    d = [dict(zip(column, tuple[i])) for i in range(len(tuple))]
+    d = {"detail": [dict(zip(column, t[i])) for i in range(len(t))]}
     return wrap_json_for_send(d, "successful")
 
 
@@ -116,9 +116,9 @@ def get_orders(id):
     #    WHERE supplier_id = %s
     #    GROUP BY orderdate, customer_id, deliver_address, receive_address
     #    """ % id
-    tuple = run_sql(get_orders, db)
+    t = run_sql(get_orders, db)
     column = ["下单时间", "顾客名称", "订单总额", "商品数量", "发货地址", "收货地址"]
-    d = [dict(zip(column, tuple[i])) for i in range(len(tuple))]
+    d = {"detail": [dict(zip(column, t[i])) for i in range(len(t))]}
     return wrap_json_for_send(d, "successful")
 
 
@@ -136,9 +136,9 @@ def get_order_items(id):
     WHERE o.supplier_id = %s AND o.orderdate = %s AND o.customer_id = %s
         AND o.product_id = p.product_id
     """ % (id, time, customer_id)
-    tuple = run_sql(get_items, db)
+    t = run_sql(get_items, db)
     column = ["商品id", "商品名称", "商品总价", "商品数量"]
-    d = [dict(zip(column, tuple[i])) for i in range(len(tuple))]
+    d = {"detail": [dict(zip(column, t[i])) for i in range(len(t))]}
     return wrap_json_for_send(d, "successful")
 
 
@@ -167,8 +167,8 @@ def add_product(id):
     INTO product
     VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s)
     """ % (product_id_new, product_name, price, id, remain, size, discount, category, pic_url)
-    tuple = run_sql(get_homepage, db)
-    d = [{"ID": product_id_new}]
+    t = run_sql(add_product, db)
+    d = {"ID": product_id_new}
     return wrap_json_for_send(d, "successful")
 
 
@@ -185,7 +185,8 @@ def login(id):
     FROM product
     WHERE product_id = %s AND supplier_id = %s
     """ % (product_id, supplier_id)
-    tuple = run_sql(delete_product, db)
+    t = run_sql(delete_product, db)
+    # TODO
     d = {}
     return wrap_json_for_send(d, "successful")
 
@@ -210,6 +211,7 @@ def update_product(id):
     SET product_name = %s, price = %s, remain = %s, size = %s, discount = %s,category = %s, pic_url = %s
     WHERE product_id = %s AND supplier_id = %s
     """ % (product_name, price, remain, size, discount, category, pic_url, product_id, supplier_id)
-    tuple = run_sql(update_product, db)
+    t = run_sql(update_product, db)
+    # TODO
     d = {}
     return wrap_json_for_send(d, "successful")

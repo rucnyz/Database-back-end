@@ -123,8 +123,6 @@ CREATE TABLE orders(
 # """
 
 
-
-
 # price_sum = price * quantity * discount
 # deliver_address对应的is_customer为false，receive_address对应的is_customer为true
 cursor.execute(create_orders)
