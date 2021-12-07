@@ -48,7 +48,7 @@ def login():
     login = """
     SELECT supplier_id
     FROM supplier
-    WHERE supplier = %s AND customer_password = %s
+    WHERE owner_id = %s AND supplier_password = %s
     
     """ % (owner_id, password)
 
@@ -82,7 +82,6 @@ def get_homepage(id):
     ORDER BY p.product_id
     """ % supplier_id
     tuple = run_sql(get_homepage, db)
-    sales =
     column = ["商品ID", "商品名称", "商品价格", "商品图片", "商品销量"]
     d = [dict(zip(column,tuple[i])) for i in range(len(tuple))]
     return wrap_json_for_send(d, "successful")
@@ -126,7 +125,7 @@ def get_order_items(id):
     customer_id =register.args['customer_id']
     get_items = """
     SELECT o.product_id, p.product_name, o.price_sum, o.quantity
-    FROM orders, product
+    FROM orders o, product p
     WHERE o.supplier_id = %s AND o.orderdate = %s AND o.customer_id = %s
         AND o.product_id = p.product_id
     """ % (id, time, customer_id)
