@@ -1,26 +1,26 @@
-import pymssql
+import sys
+sys.path.append(".")
+from utils import run_sql
 
-conn = pymssql.connect(host = 'localhost', user = "sa", password = "Mzf20010805")
-cursor = conn.cursor()  # 创建游标
-conn.autocommit(True)  # 指令立即执行，无需等待conn.commit()
+
 create_db = """
 IF DB_ID('OnlineShopping') IS NULL 
 CREATE DATABASE OnlineShopping
             """
 # DB_ID对应数据库 OBJECT_ID对应表
 
-cursor.execute(create_db)
+# run_sql(create_db)
 # conn.autocommit(False)  # 指令关闭立即执行，以后还是等待conn.commit()时再统一执行
 
 # use数据库
 use = """
 USE OnlineShopping"""
-cursor.execute(use)
+run_sql(use)
 
 use_db = """
 USE OnlineShopping
             """
-cursor.execute(use_db)
+run_sql(use_db)
 # 创建表
 # customer  -lsy
 create_customer = """
@@ -31,7 +31,7 @@ CREATE TABLE customer(
     customer_password char(10) NOT NULL
 );
 """
-cursor.execute(create_customer)
+run_sql(create_customer)
 
 # supplier -lsy
 create_supplier = """
@@ -45,7 +45,7 @@ CREATE TABLE supplier(
 );
 """
 # supplier_name：店铺名; owner：店铺负责人名字 ;
-cursor.execute(create_supplier)
+run_sql(create_supplier)
 
 # address -nyz
 create_info_supplier = """
@@ -58,7 +58,7 @@ CREATE TABLE info_supplier(
     phone varchar(11) NOT NULL
 );
 """
-cursor.execute(create_info_supplier)
+run_sql(create_info_supplier)
 
 create_info_customer = """
 IF OBJECT_ID('info_customer', 'U') IS NULL
@@ -70,7 +70,7 @@ CREATE TABLE info_customer(
     PRIMARY KEY(customer_id, address_name)
 );
 """
-cursor.execute(create_info_customer)
+run_sql(create_info_customer)
 
 # product -hcy
 create_product = """
@@ -87,7 +87,7 @@ CREATE TABLE product(
     pic_url VARCHAR(500) NOT NULL
 );
 """
-cursor.execute(create_product)
+run_sql(create_product)
 
 # order -hcy 订单表
 create_orders = """
@@ -110,7 +110,7 @@ CREATE TABLE orders(
 """
 # price_sum = price * quantity * discount
 # deliver_address对应的is_customer为false，receive_address对应的is_customer为true
-cursor.execute(create_orders)
+run_sql(create_orders)
 
 # cart -nyz
 create_cart = """
@@ -122,7 +122,7 @@ CREATE TABLE cart(
     PRIMARY KEY(customer_id, product_id)
 );
 """
-cursor.execute(create_cart)
+run_sql(create_cart)
 
 # # comment -nyz 删掉了 合到订单表里
 # create_comment = """
@@ -134,9 +134,6 @@ cursor.execute(create_cart)
 #     PRIMARY KEY(comment_id)
 # );
 # """
-# cursor.execute(create_comment)
+# run_sql(create_comment)
 
 # address
-
-conn.autocommit(False)
-conn.close()

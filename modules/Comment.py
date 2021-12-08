@@ -5,7 +5,6 @@ from utils import run_sql,wrap_json_for_send
 
 comment = Blueprint('comment', __name__)
 
-db = SQLAlchemy()
 
 # 4. 评价功能：与顾客订单进行绑定。当订单交易完成后，顾客可以选择对商品进行评价，并存储在数据库中。
 # count
@@ -17,7 +16,7 @@ def select_comments():  # 查看评价
     FROM orders o 
     WHERE product_id = %s ; 
     """ % product_id
-    tuple = run_sql(select_comments,db)
+    tuple = run_sql(select_comments)
     column = ['productID', 'ctName', 'quantity']
     d = [dict(zip(column, tuple[i])) for i in range(len(tuple))]
     d = {"number": len(tuple), "detail": d}
@@ -32,7 +31,7 @@ def add_comment():  # 添加评价
     SET comment = %s
     WHERE order_id = %s;
     """ % (comment, order_id)
-    tuple = run_sql(add_comment,db)
+    tuple = run_sql(add_comment)
     d = {}
     return wrap_json_for_send(d, "successful")
 
@@ -45,7 +44,7 @@ def delete_comment():  # 删除评价
     SET comment = NULL
     WHERE order_id = %s;
     """ % order_id
-    tuple = run_sql(delete_comment,db)
+    tuple = run_sql(delete_comment)
     d = {}
     return wrap_json_for_send(d, "successful")
 
@@ -59,6 +58,6 @@ def update_comment():  # 更新评价
     SET comment = %s
     WHERE order_id = %s;
     """ % (comment, order_id)
-    tuple = run_sql(update_comment,db)
+    tuple = run_sql(update_comment)
     d = {}
     return wrap_json_for_send(d, "successful")
