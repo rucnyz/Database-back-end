@@ -3,7 +3,6 @@ from json import load
 
 from flask_sqlalchemy import SQLAlchemy
 
-from modules import homepage, test, customer, comment, supplier
 from modules import db_test, db_homepage, db_customer, db_comment, db_supplier
 
 # 初始化app
