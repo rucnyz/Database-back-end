@@ -105,13 +105,13 @@ def insert_product():
         INSERT INTO product(product_id, product_name, price, supplier_id, remain, size, discount, category, pic_url)
         values('%s','%s','%u','%s','%u','%s','%f','%s','%s')
         """ % ('P' + str(number + i + 1),  # 编号
-               fake.word(),  # !!!!!!!!!!!!TODO product_name 现在就是随便生成一个词
+               fake.word(),  # TODO product_name 现在就是随便生成一个词
                random.randint(0, 9999999),
                supplier_id[i],
                random.randint(0, 9999999),
                fake.word(ext_word_list=['S', 'M', 'L', 'XL']),  #尺寸SML XL
                round(random.random(), 2),
-               fake.word(),  # !!!!!!!!!!!! TODO category 现在是随便生成一个词
+               fake.word(),  # TODO category 现在是随便生成一个词
                fake.image_url(width=None, height=None))
         cursor.execute(insert_product)
 
