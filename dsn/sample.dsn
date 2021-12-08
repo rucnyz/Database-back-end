@@ -1,0 +1,8 @@
+[ODBC]
+Description = "msodbc config"
+Driver = ODBC Driver 17 for SQL Server
+Server = 127.0.0.1
+UID = uesrname
+PWD = password
+DATABASE = database_name
+MARS_Connection = yes

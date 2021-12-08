@@ -38,7 +38,6 @@ def register():
     return wrap_json_for_send(new_supp_info, "successful")
 
 
-# 应该为return wrap_json_for_send(new_supp_info, "successful")
 
 # 商家登录。用户提供登录名与密码，与数据库中内容进行匹配验证，返回登录成功与否。
 # /api/supplier/login
@@ -177,7 +176,7 @@ def add_product(id):
 # input:base,{"product_id"}
 # output:base,{""}
 @supplier.route("/<id>/product/delete", methods = ['POST', 'GET'])  # lsy
-def login(id):
+def delete_product(id):
     supplier_id = id
     product_id = request.args['product_id']
     delete_product = """
@@ -186,7 +185,6 @@ def login(id):
     WHERE product_id = %s AND supplier_id = %s
     """ % (product_id, supplier_id)
     t = run_sql(delete_product, db)
-    # TODO
     d = {}
     return wrap_json_for_send(d, "successful")
 
@@ -212,6 +210,5 @@ def update_product(id):
     WHERE product_id = %s AND supplier_id = %s
     """ % (product_name, price, remain, size, discount, category, pic_url, product_id, supplier_id)
     t = run_sql(update_product, db)
-    # TODO
     d = {}
     return wrap_json_for_send(d, "successful")
