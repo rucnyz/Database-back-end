@@ -3,7 +3,7 @@ from json import load
 
 from flask_sqlalchemy import SQLAlchemy
 
-from modules import db_test, db_homepage, db_customer, db_comment, db_supplier
+from modules import homepage, test, customer, comment, supplier
 
 # 初始化app
 app = Flask(__name__)
@@ -17,13 +17,6 @@ app.register_blueprint(test, url_prefix='/api/Test')
 app.register_blueprint(customer, url_prefix='/api/customer')
 app.register_blueprint(comment, url_prefix='/api/comment')
 app.register_blueprint(supplier, url_preflix='/api/supplier')
-
-db_test.init_app(app)
-db_homepage.init_app(app)
-db_customer.init_app(app)
-db_comment.init_app(app)
-db_supplier.init_app(app)
-
 
 @app.route("/")
 def home():
