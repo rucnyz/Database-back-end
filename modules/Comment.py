@@ -64,6 +64,5 @@ def update_comment():  # 更新评价
     WHERE order_id = %s;
     """ % (comment, order_id)
     t = run_sql(update_comment, db)
-    # TODO
     d = {}
     return wrap_json_for_send(d, "successful")
