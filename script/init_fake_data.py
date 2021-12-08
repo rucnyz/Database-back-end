@@ -1,14 +1,17 @@
-import pymssql
-from faker import Faker
+import sys
 import random
+from utils import run_sql
+from faker import Faker
+
+
+sys.path.append(".")
 
 fake = Faker(locale='zh_CN')
 
 conn = pymssql.connect(host='localhost', user="sa", password="Mzf20010805")
 cursor = conn.cursor()  # 创建游标
 
-n = 10
-
+n = 50  # 生成的数据数量
 
 def insert_customer():
     get_number = """
