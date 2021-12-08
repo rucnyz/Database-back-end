@@ -3,13 +3,9 @@ import random
 from utils import run_sql
 from faker import Faker
 
-
 sys.path.append(".")
 
 fake = Faker(locale='zh_CN')
-
-conn = pymssql.connect(host='localhost', user="sa", password="Mzf20010805")
-cursor = conn.cursor()  # 创建游标
 
 n = 50  # 生成的数据数量
 
@@ -22,12 +18,13 @@ def insert_customer():
     number = cursor.fetchall()  # 数值型
 
     for i in range(n):
+        password_temp = fake.password(length=10, upper_case=True, lower_case=True)
         insert_customer = """"
         insert into customer(customer_id, customer_phonenumber, customer_password)
         values('%s','%s','%s')
         """ % ('C' + str(number + i + 1),  # 编号
                fake.phone_number(),
-               fake.password(length=10, upper_case=True, lower_case=True))
+               hashlib.sha256(password_temp).hexdigest())
         cursor.execute(insert_customer)
 
 
@@ -39,11 +36,12 @@ def insert_supplier():
     cursor.execute(get_number)
     number = cursor.fetchall()
     for i in range(n):
+        password_temp = fake.password(length=10, upper_case=True, lower_case=True)
         insert_supplier = """"
         insert into info_supplier(supplier_id, supplier_password, supplier_name, owner_name, owner_id)
         values('%s','%s','%s','%s','%s')
         """ % ('S' + str(number + i + 1),
-               fake.password(length=10, upper_case=True, lower_case=True),
+               hashlib.sha256(password_temp).hexdigest(),
                fake.company(),  # supplier_name是店铺名称
                fake.name(),
                fake.ssn(min_age=18, max_age=90))  # owner_id 是店铺主的身份证号
@@ -218,7 +216,6 @@ def insert_fake():
     insert_product()
     insert_cart()
 
-
 insert_fake()  # 执行所有插入
-cursor.close()
-conn.close()
+# cursor.close()
+# conn.close()
