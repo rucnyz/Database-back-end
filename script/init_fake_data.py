@@ -6,14 +6,17 @@ import hashlib
 
 sys.path.append(".")
 
-fake = Faker(locale='zh_CN')
+fake = Faker(locale = 'zh_CN')
 
 n = 50  # 生成的数据数量
+
+
 def hash_password(password):
     sha256 = hashlib.sha256()
     sha256.update(password.encode('utf-8'))
     res = sha256.hexdigest()[:10]
     return res
+
 
 def insert_customer():
     get_number = """
@@ -24,7 +27,7 @@ def insert_customer():
     number = cursor.fetchall()  # 数值型
 
     for i in range(n):
-        password_temp = fake.password(length=10, upper_case=True, lower_case=True)
+        password_temp = fake.password(length = 10, upper_case = True, lower_case = True)
         insert_customer = """"
         insert into customer(customer_id, customer_phonenumber, customer_password)
         values('%s','%s','%s')
@@ -42,7 +45,7 @@ def insert_supplier():
     cursor.execute(get_number)
     number = cursor.fetchall()
     for i in range(n):
-        password_temp = fake.password(length=10, upper_case=True, lower_case=True)
+        password_temp = fake.password(length = 10, upper_case = True, lower_case = True)
         insert_supplier = """"
         insert into info_supplier(supplier_id, supplier_password, supplier_name, owner_name, owner_id)
         values('%s','%s','%s','%s','%s')
@@ -50,7 +53,7 @@ def insert_supplier():
                hash_password(password_temp),
                fake.company(),  # supplier_name是店铺名称
                fake.name(),
-               fake.ssn(min_age=18, max_age=90))  # owner_id 是店铺主的身份证号
+               fake.ssn(min_age = 18, max_age = 90))  # owner_id 是店铺主的身份证号
         cursor.execute(insert_supplier)
 
 
@@ -116,10 +119,10 @@ def insert_product():
                random.randint(0, 9999999),
                supplier_id[i],
                random.randint(0, 9999999),
-               fake.word(ext_word_list=['S', 'M', 'L', 'XL']),  #尺寸SML XL
+               fake.word(ext_word_list = ['S', 'M', 'L', 'XL']),  # 尺寸SML XL
                round(random.random(), 2),
                fake.word(),  # TODO category 现在是随便生成一个词
-               fake.image_url(width=None, height=None))
+               fake.image_url(width = None, height = None))
         cursor.execute(insert_product)
 
 
@@ -133,7 +136,7 @@ def insert_orders():
 
     get_need_sp = """
     SELECT s.supplier_id, p.product_id, p.price*(1-p.discount)
-    FROM product p supplier s, 
+    FROM product p , supplier s
     WHERE s.supplier_id = p.supplier_id
     """
     cursor.execute(get_need_sp)
@@ -176,13 +179,13 @@ def insert_orders():
                customer_id[i],
                supplier_id[i],
                product_id[i],
-               fake.date_this_decade(before_today=True, after_today=False),  # 本年代中的日期
+               fake.date_this_decade(before_today = True, after_today = False),  # 本年代中的日期
                quantity[i],
                quantity[i] * price_unit[i],
                address_s,
                address_c,
                random.randint(0, 1),
-               fake.paragraph(nb_sentences=2)[:100]  # varchar(200)
+               fake.paragraph(nb_sentences = 2)[:100]  # varchar(200)
                )
         cursor.execute(insert_product)
 
@@ -221,6 +224,7 @@ def insert_fake():
     insert_product()
     insert_product()
     insert_cart()
+
 
 insert_fake()  # 执行所有插入
 # cursor.close()

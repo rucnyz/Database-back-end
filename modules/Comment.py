@@ -1,5 +1,4 @@
 from flask import Blueprint, request
-from flask_sqlalchemy import SQLAlchemy
 
 from utils import run_sql, wrap_json_for_send
 

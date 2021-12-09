@@ -23,13 +23,17 @@ class Database:
         return Database.instance_dict[str(cls)]
 
     def __init__(self, dsn_name: str):
+        if os.getcwd().endswith("script"):
+            curpath = os.getcwd() + '/../dsn/'
+        else:
+            curpath = os.getcwd() + '/dsn/'
         pyodbc.pooling = False
-        self.dsn = os.getcwd() + '/dsn/' + dsn_name
+        self.dsn = curpath + dsn_name
         engine_prarm = URL.create(
-            "mssql+pyodbc", query={"odbc_connect": f"FILEDSN={self.dsn}"})
+            "mssql+pyodbc", query = {"odbc_connect": f"FILEDSN={self.dsn}"})
         self.connect_pool = QueuePool(
-            self.__get_connection, pool_size=100, max_overflow=20, pre_ping=True)
-        self.engine = create_engine(engine_prarm, pool=self.connect_pool)
+            self.__get_connection, pool_size = 100, max_overflow = 20, pre_ping = True)
+        self.engine = create_engine(engine_prarm, pool = self.connect_pool)
 
     def __get_connection(self):
         odbc_param = (f"FILEDSN={self.dsn}")
@@ -91,11 +95,11 @@ user_dict = {
 }
 
 
-def run_sql(T_sql: str, param: dict = None, user="sa"):
+def run_sql(T_sql: str, param: dict = None, user = "sa"):
     return user_dict[user].query(T_sql, param)
 
 
-def run_sqls(sqlList: List[dict[str, dict]], user="sa"):
+def run_sqls(sqlList: List[dict[str, dict]], user = "sa"):
     # 注意：此方法如果其中一个查询失败，其他查询不受影响
     # 若返回的key中没有某一语句，则该语句执行失败
     # 开启了autocommit, 本方法效率和run_sql写循环其实是一样的
@@ -108,11 +112,11 @@ def run_sqls(sqlList: List[dict[str, dict]], user="sa"):
     return result
 
 
-def run_trans(sqlList: List[dict[str, dict]], user="sa"):
+def run_trans(sqlList: List[dict[str, dict]], user = "sa"):
     return user_dict[user].trans(sqlList)
 
 
-def get_url(user="sa"):
+def get_url(user = "sa"):
     return user_dict[user].engine.url
 
 
@@ -137,8 +141,8 @@ if __name__ == "__main__":
     #     test = Test(i, "thread-"+str(i), i)
     #     test.start()
     for i in range(10):
-        admin = Database("customer.dsn")
+        admin = Database_admin()
         print(admin)
-        base = Database("sa.dsn")
+        base = Database_sa()
         print(base)
         print("----------------------")

@@ -1,0 +1,5 @@
+/mssql_config.json
+/.idea
+/test
+*.dsn
+^sample.dsn
