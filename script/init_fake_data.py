@@ -2,12 +2,18 @@ import sys
 import random
 from utils import run_sql
 from faker import Faker
+import hashlib
 
 sys.path.append(".")
 
 fake = Faker(locale='zh_CN')
 
 n = 50  # 生成的数据数量
+def hash_password(password):
+    sha256 = hashlib.sha256()
+    sha256.update(password.encode('utf-8'))
+    res = sha256.hexdigest()[:10]
+    return res
 
 def insert_customer():
     get_number = """
@@ -24,7 +30,7 @@ def insert_customer():
         values('%s','%s','%s')
         """ % ('C' + str(number + i + 1),  # 编号
                fake.phone_number(),
-               hashlib.sha256(password_temp).hexdigest())
+               hash_password(password_temp))
         cursor.execute(insert_customer)
 
 
@@ -41,7 +47,7 @@ def insert_supplier():
         insert into info_supplier(supplier_id, supplier_password, supplier_name, owner_name, owner_id)
         values('%s','%s','%s','%s','%s')
         """ % ('S' + str(number + i + 1),
-               hashlib.sha256(password_temp).hexdigest(),
+               hash_password(password_temp),
                fake.company(),  # supplier_name是店铺名称
                fake.name(),
                fake.ssn(min_age=18, max_age=90))  # owner_id 是店铺主的身份证号
