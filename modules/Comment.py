@@ -4,8 +4,6 @@ from utils import run_sql, wrap_json_for_send
 
 comment = Blueprint('comment', __name__)
 
-
-
 # 4. 评价功能：与顾客订单进行绑定。当订单交易完成后，顾客可以选择对商品进行评价，并存储在数据库中。
 # count
 @comment.route("/", methods = ['POST'])  # lsy
@@ -32,7 +30,7 @@ def add_comment():  # 添加评价
     SET comment = %s
     WHERE order_id = %s;
     """ % (comment, order_id)
-    tuple = run_sql(add_comment)
+    t = run_sql(add_comment)
     d = {}
     return wrap_json_for_send(d, "successful")
 
@@ -45,7 +43,7 @@ def delete_comment():  # 删除评价
     SET comment = NULL
     WHERE order_id = %s;
     """ % order_id
-    tuple = run_sql(delete_comment)
+    t = run_sql(delete_comment)
     d = {}
     return wrap_json_for_send(d, "successful")
 
@@ -59,6 +57,6 @@ def update_comment():  # 更新评价
     SET comment = %s
     WHERE order_id = %s;
     """ % (comment, order_id)
-    tuple = run_sql(update_comment)
+    t = run_sql(update_comment)
     d = {}
     return wrap_json_for_send(d, "successful")
