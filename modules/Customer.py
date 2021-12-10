@@ -12,23 +12,23 @@ db = SQLAlchemy()
 
 @customer.route("/register", methods = ['POST', 'GET'])  # zzm
 def register():
-    phone_number = request.args['phoneNumber']
-    password = request.args['password']
+    phone_number = request.json['phoneNumber']
+    password = request.json['password'][:10]
 
     getNum = """
-     SELECT COUNT(*)
+     SELECT COUNT(*) as cnt
     from customer   
      """
-    t = run_sql(getNum, db)
-    customer_id_new = 'C' + t[0]
+    t = run_sql(getNum)
+    customer_id_new = 'C' + str(t['cnt'][0])
 
     register = """
     INSERT 
     INTO customer
-    VALUES(%s, %s, %s)
+    VALUES('%s','%s','%s')
     """ % (customer_id_new, phone_number, password)
 
-    db.engine.execute(register)
+    _ = run_sql(register)
     new_cust_info = {"ID": customer_id_new}
 
     return wrap_json_for_send(new_cust_info, "successful")
@@ -38,18 +38,19 @@ def register():
 # /api/user/login
 # input: base, {"phoneNumber":"xxx","password:"xxx"}
 # output: base, {"ID":"xxx"}
-@customer.route("/login", methods = ['POST', 'GET'])  # zzm
+@customer.route("/login", methods = ['POST', 'GET'])
 def login():
-    phone_number = request.args['phoneNumber']
-    password = request.args['password']
+    phone_number = request.json['phoneNumber']
+    password = request.json['password'][:10]
+    print(password)
     login = """
     SELECT customer_id
     FROM customer
-    WHERE customer_phonenumber = %s AND customer_password = %s
+    WHERE customer_phonenumber='%s' AND customer_password='%s'
     """ % (phone_number, password)
 
-    t = run_sql(login, db)
-    cust_ID = {"ID": t[0]}
+    t = run_sql(login)
+    cust_ID = {"ID": t['customer_id'][0]}
 
     return wrap_json_for_send(cust_ID, "successful")
 
@@ -78,9 +79,9 @@ def select_customer_info(id):
 # output: base
 @customer.route("/<id>/address/add", methods = ['POST'])  # hcy
 def add_customer_info(id):
-    nickname = request.args['nickName']
-    address = request.args['address']
-    phone_number = request.args['phoneNumber']
+    nickname = request.json['nickName']
+    address = request.json['address']
+    phone_number = request.json['phoneNumber']
 
     add_customer_info = """
     INSERT
@@ -97,7 +98,7 @@ def add_customer_info(id):
 # output: base
 @customer.route("/<id>/address/delete", methods = ['POST'])  # hcy
 def delete_customer_info(id):
-    address = request.args['address']
+    address = request.json['address']
     delete_customer_info = """
     DELETE
     FROM info_customer
@@ -113,9 +114,9 @@ def delete_customer_info(id):
 # ouput: base
 @customer.route("/<id>/address/update", methods = ['POST'])  # hcy
 def update_customer_info(id):
-    nickname = request.args['nickName']
-    address = request.args['address']
-    phone_number = request.args['phoneNumber']
+    nickname = request.json['nickName']
+    address = request.json['address']
+    phone_number = request.json['phoneNumber']
     update_customer_info = """
     UPDATE info_customer
     SET address_name = %s, nickname = %s, phone = %s
@@ -170,7 +171,7 @@ def get_orders(id):
 
 @customer.route("/<id>/orders/salesreturn", methods = ['POST'])  # lsy
 def set_is_return(id):  # 设置退货标记
-    order_id = request.args["order_id"]
+    order_id = request.json["order_id"]
     set_is_return = """
     UPDATE orders
     SET is_return = 1 
@@ -188,13 +189,13 @@ def set_is_return(id):  # 设置退货标记
 #
 @customer.route("/<id>/orders/add", methods = ['POST', 'GET'])  # zzm
 def orders_add(id):  # 新订单添加
-    supplier_id = request.args["supplierID"]
-    product_id = request.args["productID"]
-    order_date = request.args["orderDate"]
-    price_sum = request.args["priceSum"]
-    quantity = request.args["quantity"]
-    deliver_address = request.args["deliverAddress"]
-    receive_address = request.args["receiveAddress"]
+    supplier_id = request.json["supplierID"]
+    product_id = request.json["productID"]
+    order_date = request.json["orderDate"]
+    price_sum = request.json["priceSum"]
+    quantity = request.json["quantity"]
+    deliver_address = request.json["deliverAddress"]
+    receive_address = request.json["receiveAddress"]
 
     getNum = """
      SELECT COUNT(*)
