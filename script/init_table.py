@@ -64,7 +64,7 @@ create_info_customer = """
 IF OBJECT_ID('info_customer', 'U') IS NULL
 CREATE TABLE info_customer(
     customer_id char(10) REFERENCES customer(customer_id),
-    address_name varchar(200) NOT NULL, ## 不用把地址拆成省市区，查询的时候直接模糊查"省"即可
+    address_name varchar(200) NOT NULL, -- 不用把地址拆成省市区，查询的时候直接模糊查"省"即可
     nickname varchar(20) NOT NULL,
     phone varchar(11) NOT NULL,
     PRIMARY KEY(customer_id, address_name)
@@ -77,7 +77,7 @@ create_product = """
 IF OBJECT_ID('product', 'U') IS NULL
 CREATE TABLE product(
     product_id CHAR(10) PRIMARY KEY,
-    product_name VARCHAR(100) NOT NULL,
+    product_name VARCHAR(500) NOT NULL,
     price INT NOT NULL,
     supplier_id CHAR(10) REFERENCES supplier(supplier_id),
     remain INT NOT NULL,
@@ -102,8 +102,8 @@ CREATE TABLE orders(
     quantity INT NOT NULL,
     deliver_address VARCHAR(200),
     receive_address VARCHAR(200),
-    FOREIGN KEY(customer_id, deliver_address) REFERENCES info_customer(customer_id, address_name),
-    FOREIGN KEY(supplier_id, receive_address) REFERENCES info_supplier(supplier_id, address_name),
+    FOREIGN KEY(customer_id, receive_address) REFERENCES info_customer(customer_id, address_name),
+    FOREIGN KEY(supplier_id, deliver_address) REFERENCES info_supplier(supplier_id, address_name),
     is_return BIT NOT NULL,
     comment VARCHAR(200)
 );
