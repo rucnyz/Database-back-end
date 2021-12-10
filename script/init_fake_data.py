@@ -5,21 +5,30 @@ from utils import run_sql
 from faker import Faker
 import hashlib
 import pandas as pd
+# 注意
+# 顾客id：C000000051
+# 原始密码：_OmUuV+ZE5
+# hash+截取之后的存储在数据库中：17a21b26d7
+# phone：15204814455
+# 作为前端测试使用
+
 
 sys.path.append(".")
-
-fake = Faker(locale='zh_CN')
-
+Faker.seed(135)
+fake = Faker(locale = 'zh_CN')
 
 n = 50  # 生成的数据数量
+
+
 def hash_password(password):
     sha256 = hashlib.sha256()
     sha256.update(password.encode('utf-8'))
     res = sha256.hexdigest()[:10]
     return res
 
+
 def get_col(sql_list, n):
-    sql_col =[x[n] for x in sql_list]
+    sql_col = [x[n] for x in sql_list]
     return sql_col
 
 
@@ -30,7 +39,7 @@ def insert_customer():
     """
     number = get_col(run_sql(get_number), 0)  # 数值型
     for i in range(n):
-        password_temp = fake.password(length=10, upper_case=True, lower_case=True)
+        password_temp = fake.password(length = 10, upper_case = True, lower_case = True)
 
         insert_customer = """
         insert into customer(customer_id, customer_phonenumber, customer_password)
@@ -49,15 +58,15 @@ def insert_supplier():
 
     number = get_col(run_sql(get_number), 0)
     for i in range(n):
-        password_temp = fake.password(length=10, upper_case=True, lower_case=True)
+        password_temp = fake.password(length = 10, upper_case = True, lower_case = True)
         insert_supplier = """
         insert into supplier(supplier_id, supplier_password, supplier_name, owner_name, owner_id)
         values('%s','%s','%s','%s','%s')
         """ % ('S' + str(number[0] + i + 1).zfill(9),
                hash_password(password_temp),
-               fake.company()+str(i),  # supplier_name是店铺名称
+               fake.company() + str(i),  # supplier_name是店铺名称
                fake.name(),
-               fake.ssn(min_age=18, max_age=90))  # owner_id 是店铺主的身份证号
+               fake.ssn(min_age = 18, max_age = 90))  # owner_id 是店铺主的身份证号
         run_sql(insert_supplier)
 
 
@@ -98,7 +107,7 @@ def insert_info_customer():
 
 
 def insert_product():
-    product_info = pd.read_csv("product_info.csv", encoding="GBK")
+    product_info = pd.read_csv("product_info.csv", encoding = "GBK")
     product_name = product_info[u"商品名称"]
     pic_url = product_info["封面图链接"]
     price = product_info["价格"]
@@ -123,9 +132,9 @@ def insert_product():
                price[i],
                supplier_id[i],
                random.randint(0, 9999),
-               fake.word(ext_word_list=['S', 'M', 'L', 'XL']),  #尺寸SML XL
+               fake.word(ext_word_list = ['S', 'M', 'L', 'XL']),  # 尺寸SML XL
                round(random.random(), 2),
-               fake.word(ext_word_list=['家用电器', '数码设备', '家居', '服装', '配饰', '美妆', '鞋类', '食品', '文娱', '其他']),
+               fake.word(ext_word_list = ['家用电器', '数码设备', '家居', '服装', '配饰', '美妆', '鞋类', '食品', '文娱', '其他']),
                pic_url[i])
         run_sql(insert_product)
 
@@ -162,7 +171,7 @@ def insert_orders():
         FROM  info_customer
         WHERE customer_id = '%s'
         """ % customer_id[i]
-        address_c = random.choice(get_col(run_sql(get_address_c), 0))# 只要一个地址就行
+        address_c = random.choice(get_col(run_sql(get_address_c), 0))  # 只要一个地址就行
 
         get_address_s = """
         SELECT  address_name
@@ -178,13 +187,13 @@ def insert_orders():
                customer_id[i],
                supplier_id[i],
                product_id[i],
-               fake.date_this_decade(before_today=True, after_today=False),  # 本年代中的日期
+               fake.date_this_decade(before_today = True, after_today = False),  # 本年代中的日期
                quantity[i],
                quantity[i] * price_unit[i],
                address_s,
                address_c,
                random.randint(0, 1),
-               fake.paragraph(nb_sentences=2)[:100]  # varchar(200)
+               fake.paragraph(nb_sentences = 2)[:100]  # varchar(200)
                )
         run_sql(insert_orders)
 
@@ -230,6 +239,7 @@ def insert_fake():
     insert_product()
     insert_orders()
     insert_cart()
+
 
 insert_fake()  # 执行所有插入
 # cursor.close()
