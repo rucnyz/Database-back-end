@@ -8,11 +8,11 @@ comment = Blueprint('comment', __name__)
 # count
 @comment.route("/", methods = ['POST'])  # lsy
 def select_comments():  # 查看评价
-    product_id = request.args["product_id"]
+    product_id = request.json["product_id"]
     select_comments = """
     SELECT product_id, customer_id, comment
     FROM orders o 
-    WHERE product_id = %s ; 
+    WHERE product_id = '%s' ; 
     """ % product_id
     tuple = run_sql(select_comments)
     column = ['productID', 'ctName', 'quantity']
@@ -23,12 +23,12 @@ def select_comments():  # 查看评价
 
 @comment.route("/add", methods = ['POST'])  # lsy
 def add_comment():  # 添加评价
-    order_id = request.args["order_id"]
-    comment = request.args["comment"]
+    order_id = request.json["order_id"]
+    comment = request.json["comment"]
     add_comment = """
     UPDATE orders
-    SET comment = %s
-    WHERE order_id = %s;
+    SET comment = '%s'
+    WHERE order_id = '%s';
     """ % (comment, order_id)
     t = run_sql(add_comment)
     d = {}
@@ -37,11 +37,11 @@ def add_comment():  # 添加评价
 
 @comment.route("/delete", methods = ['POST'])  # lsy
 def delete_comment():  # 删除评价
-    order_id = request.args["order_id"]
+    order_id = request.json["order_id"]
     delete_comment = """
     UPDATE orders
     SET comment = NULL
-    WHERE order_id = %s;
+    WHERE order_id = '%s';
     """ % order_id
     t = run_sql(delete_comment)
     d = {}
@@ -50,12 +50,12 @@ def delete_comment():  # 删除评价
 
 @comment.route("/update", methods = ['POST'])  # lsy
 def update_comment():  # 更新评价
-    order_id = request.args["order_id"]
-    comment = request.args["comment"]
+    order_id = request.json["order_id"]
+    comment = request.json["comment"]
     update_comment = """
     UPDATE orders
-    SET comment = %s
-    WHERE order_id = %s;
+    SET comment = '%s'
+    WHERE order_id = '%s';
     """ % (comment, order_id)
     t = run_sql(update_comment)
     d = {}

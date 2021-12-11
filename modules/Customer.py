@@ -159,10 +159,10 @@ def get_orders(id):
     get_orders = """
     SELECT order_id, p.product_id, product_name, quantity 
     FROM product p, orders o
-    WHERE o.customer_id = %s 
+    WHERE o.customer_id = '%s' 
     AND p.product_id = o.product_id;
     """ % id
-    t = run_sql(get_orders, db)
+    t = run_sql(get_orders)
     column = ['orderID', 'productID', 'productID', 'quantity']
     d = [dict(zip(column, t[i])) for i in range(len(t))]
     d = {"number": len(t), "detail": d}
@@ -175,9 +175,9 @@ def set_is_return(id):  # 设置退货标记
     set_is_return = """
     UPDATE orders
     SET is_return = 1 
-    WHERE order_id = %s ;
+    WHERE order_id = '%s' ;
     """ % order_id
-    t = run_sql(set_is_return, db)
+    t = run_sql(set_is_return,)
     d = {}
     return wrap_json_for_send(d, "successful")
 
