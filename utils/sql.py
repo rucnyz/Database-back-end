@@ -1,5 +1,4 @@
 import os
-from typing import List
 import pyodbc
 import threading
 from sqlalchemy.engine import URL
@@ -54,17 +53,17 @@ class Database:
             query_text = text(query_sql)
             query = conn.execute(query_text, query_para)
             try:
-                res = query.all()
+                key = list(query.keys())
+                value = [tuple(x) for x in query.all()]
+                res = [dict(zip(key,x)) for x in value]
             except BaseException as e:
                 res = None
         return res
 
-    def trans(self, sqlList: List[dict[str, dict]]):
-        result = {}
+    def trans(self, sqlDict: dict[str, dict]):
         with self.engine.begin() as conn:
-            for T_sql, param in sqlList:
-                result[T_sql] = conn.execute(T_sql, param)
-        return result
+            for T_sql, param in sqlDict.items():
+               conn.execute(text(T_sql), param)
 
 
 class Database_sa(Database):
@@ -99,28 +98,52 @@ def run_sql(T_sql: str, param: dict = None, user = "sa"):
     return user_dict[user].query(T_sql, param)
 
 
-def run_sqls(sqlList: List[dict[str, dict]], user = "sa"):
+def run_sqls(sqlDict: dict[str, dict], user="sa"):
     # 注意：此方法如果其中一个查询失败，其他查询不受影响
     # 若返回的key中没有某一语句，则该语句执行失败
     # 开启了autocommit, 本方法效率和run_sql写循环其实是一样的
     result = {}
-    for T_sql, param in sqlList:
+    error = {}
+    for T_sql, param in sqlDict.items():
         try:
             result[T_sql] = run_sql(T_sql, param, user)
         except BaseException as e:
-            pass
-    return result
+            error[T_sql] = str(e)
+    return result, error
 
 
-def run_trans(sqlList: List[dict[str, dict]], user = "sa"):
-    return user_dict[user].trans(sqlList)
+def run_trans(sqlDict: dict[str, dict], user="sa"):
+    user_dict[user].trans(sqlDict)
 
 
 def get_url(user = "sa"):
     return user_dict[user].engine.url
 
 
+
 if __name__ == "__main__":
+    sel_customer = """
+        SELECT * FROM customer
+    """
+    sel_supplier="""
+        SELECT * FROM supplier
+    """
+    sel_value = """
+        SELECT * FROM customer WHERE customer_id=:cus_id
+    """
+
+    insert_test = """INSERT
+    INTO customer(customer_id, customer_phonenumber, customer_password)
+    VALUES('C000001000', '123456789123', '4e116d4fa2')"""
+    # print(run_sql(sel_customer))
+    # print(run_sql(sel_value,{"cus_id":"C000000044"}))
+    try:
+        run_trans({insert_test:None,sel_supplier:None})
+    except:
+        print("error")
+    print(run_sql(sel_value,{"cus_id":'C000001000'}))
+    print(run_sql("DELETE FROM customer WHERE customer_id=:cus_id",{"cus_id":"C000001000"}))
+    print(run_sql(sel_value,{"cus_id":'C000001000'}))
     # import time
     # import random
 
@@ -140,9 +163,9 @@ if __name__ == "__main__":
     # for i in range(1000):
     #     test = Test(i, "thread-"+str(i), i)
     #     test.start()
-    for i in range(10):
-        admin = Database_admin()
-        print(admin)
-        base = Database_sa()
-        print(base)
-        print("----------------------")
+    # for i in range(10):
+    #     admin = Database_admin()
+    #     print(admin)
+    #     base = Database_sa()
+    #     print(base)
+    #     print("----------------------")
