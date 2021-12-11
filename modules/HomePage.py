@@ -19,7 +19,7 @@ def show():
 # output: base, {{"商品id"：id，"商品图片"：图片url，"商品名称"：名称，"商品价格"：价格},{……},{……}}
 @homepage.route("/getProduct", methods = ['POST', 'GET'])  # zzm
 def get_homePage():
-    number = request.args['needNumber']
+    number = request.json['needNumber']
     getHomePage = """
     SELECT TOP %s product_id, pic_url, product_name, price 
     FROM product p 

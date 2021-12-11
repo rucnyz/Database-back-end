@@ -28,7 +28,7 @@ def register():
     VALUES('%s','%s','%s')
     """ % (customer_id_new, phone_number, password)
 
-    _ = run_sql(register)
+    customer_id_new = run_sql(register)
     new_cust_info = {"ID": customer_id_new}
 
     return wrap_json_for_send(new_cust_info, "successful")
@@ -223,7 +223,8 @@ def orders_add(id):  # 新订单添加
 # output:base, {"ordersID"}
 #
 @customer.route("/<id>/orders/add_product", methods = ['POST', 'GET'])  # zzm
-def orders_add(id):  # 新订单添加
+def orders_add(id):  # 新订单添加,需要进行库存判定。设置trigger。
+
     supplier_id = request.json["supplierID"]
     product_id = request.json["productID"]
     order_date = request.json["orderDate"]
