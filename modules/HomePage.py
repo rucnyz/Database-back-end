@@ -64,7 +64,34 @@ def return_product_in_category():
     """ % cat
 
     t = run_sql(returnProductInCategory)
-    column = ["id", "goodImg", "goodName", "goodPrice"]
+    column = ["ID", "product_pic", "product_name", "price"]
     d = {"detail": [dict(zip(column, t[i])) for i in range(len(t))]}
 
     return wrap_json_for_send(d, "successful")
+
+# 5. 搜索含某关键词（可限制类别）的商品
+# /api/HomePage/search_product 用于返回特定关键词商品。
+# input: base,{"keywords", ”category“}
+# output: base, {{"product_id":id, "pic_url":图片url, "product_name":名称, "price"：价格},{……},{……}}
+@homepage.route("/search_product", methods = ['POST', 'GET'])  # lsy
+def search_product():
+    cat = request.json['category']
+    keywords = request.json['keywords']
+    search_product = """
+    SELECT product_id, pic_url, product_name, price
+    FROM product p  
+    WHERE product_name LIKE '%s'     
+    """%keywords
+    search_cat_product = """
+    SELECT product_id, pic_url, product_name, price
+    FROM product p  
+    WHERE product_name LIKE '%s' AND category = '%s'
+    """%(keywords, cat)
+    if cat.isspace():
+        t = run_sql(search_product)
+    else:
+        t = run_sql(search_cat_product)
+    column = ["ID", "product_pic", "product_name", "price"]
+    d = {"detail": [dict(zip(column, t[i])) for i in range(len(t))]}
+    return wrap_json_for_send(d, "successful")
+
