@@ -21,7 +21,7 @@ def show():
 def get_homePage():
     number = request.args['needNumber']
     getHomePage = """
-    SELECT TOP ‘%s’ product_id, pic_url, product_name, price 
+    SELECT TOP %s product_id, pic_url, product_name, price 
     FROM product p 
     ORDER BY NewID()
     """ % number
