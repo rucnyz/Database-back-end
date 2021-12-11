@@ -65,9 +65,9 @@ def select_customer_info(id):
     select_customer_info = """
     SELECT nickname, phone, address_name
     FROM info_customer
-    WHERE customer_id = %s
+    WHERE customer_id='%s'
     """ % id
-    tuple = run_sql(select_customer_info, db)
+    tuple = run_sql(select_customer_info)
     column = ['nickName', 'phoneNumber', 'address']
     list = [dict(zip(column, tuple[i])) for i in range(len(tuple))]
     d = {"detail": list}
@@ -88,7 +88,7 @@ def add_customer_info(id):
     INTO info_customer(customer_id, address_name, nickname, phone)
     VALUES('%s', '%s', '%s', '%s')
     """ % (id, nickname, address, phone_number)
-    run_sql(add_customer_info, db)
+    run_sql(add_customer_info)
     d = {}
     return wrap_json_for_send(d, "successful")
 
@@ -102,9 +102,9 @@ def delete_customer_info(id):
     delete_customer_info = """
     DELETE
     FROM info_customer
-    WHERE customer_id = %s, address_name = %s
+    WHERE customer_id='%s', address_name='%s'
     """ % (id, address)
-    run_sql(delete_customer_info, db)
+    run_sql(delete_customer_info)
     d = {}
     return wrap_json_for_send(d, "successful")
 
@@ -119,10 +119,10 @@ def update_customer_info(id):
     phone_number = request.json['phoneNumber']
     update_customer_info = """
     UPDATE info_customer
-    SET address_name = %s, nickname = %s, phone = %s
-    WHERE customer_id = %s
+    SET address_name='%s', nickname='%s', phone='%s'
+    WHERE customer_id='%s'
     """ % (nickname, address, phone_number, id)
-    run_sql(update_customer_info, db)
+    run_sql(update_customer_info)
     d = {}
     return wrap_json_for_send(d, "successful")
 
@@ -136,20 +136,49 @@ def select_cart(id):
     select_cart = """
     SELECT p.product_id, pic_url, count, product_name
     FROM product p, cart c
-    WHERE p.product_id = c.product_id AND c.customer_id = %s
+    WHERE p.product_id = c.product_id AND c.customer_id='%s'
     """ % id
-    t = run_sql(select_cart, db)
+    t = run_sql(select_cart)
     column = ["productID", "pic_url", "count", "productName"]
     data_list = [dict(zip(column, t[i])) for i in range(len(t))]
     d = {"total number": len(t), "detail": data_list}
     return wrap_json_for_send(d, 'successful')
 
 
-# /api/customer/"id"/shoppingCart/add
-# input: base,{"用户ID": "xxx", "商品ID":,"商品数量"}
+# /api/customer/id/shoppingCart/update  仅限更新数量
+# input:base, {"customerID": "xxx", "productID":,"商品数量"}
 # output:base
-@customer.route("/<id>/shoppingCart", methods = ['POST'])  # hcy
-# @TODO: IF EXIST
+# 从购物车进入订单界面，与从顾客界面进入订单相同。
+@customer.route("/<id>/shoppingCart/update", methods = ['POST'])  # hcy
+def update_cart(id):
+    product_id = request.json['productID']
+    count = request.json['count']
+    update_cart = """
+    UPDATE cart
+    SET count=%d
+    WHERE customer_id='%s', product_id='%s'
+    """ % (count, id, product_id)
+    run_sql(update_cart)
+    d = {}
+    return wrap_json_for_send(d, 'successful')
+
+
+# /api/customer/id/shoppingCart/delete  删除购买的这一整个商品
+# input: base,{"customerID": "xxx", "productID":}
+# output: base
+# 下订单后，删除购物车中购买的商品
+@customer.route("/<id>/shoppingCart/delete", methods = ['POST'])  # hcy
+def delete_cart(id):
+    product_id = request.json['productID']
+    delete_cart = """
+    DELETE
+    FROM cart
+    WHERE customer_id='%s', product_id='%s'
+    """ % (id, product_id)
+    run_sql(delete_cart)
+    d = {}
+    return wrap_json_for_send(d, 'successful')
+
 
 # 3. 用户已有订单查询。返回用户已有订单。允许顾客进行退货处理。
 @customer.route("/<id>/orders", methods = ['POST'])  # lsy

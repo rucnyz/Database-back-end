@@ -97,7 +97,7 @@ CREATE TABLE orders(
     customer_id CHAR(10),
     supplier_id CHAR(10),
     product_id CHAR(10) REFERENCES product(product_id),
-    orderdate DATE NOT NULL,
+    orderdate DATETIME NOT NULL,
     price_sum REAL NOT NULL,
     quantity INT NOT NULL,
     deliver_address VARCHAR(200),
