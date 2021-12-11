@@ -20,7 +20,7 @@ def register():
     from customer   
      """
     t = run_sql(getNum)
-    customer_id_new = 'C' + str(t['cnt'][0])
+    customer_id_new = 'C' + str(int(t['cnt'][0])+1)
 
     register = """
     INSERT 
@@ -198,11 +198,11 @@ def orders_add(id):  # 新订单添加
     receive_address = request.json["receiveAddress"]
 
     getNum = """
-     SELECT COUNT(*)
+     SELECT COUNT(*) as cnt
     from orders  
      """
     tuple_tmp = run_sql(getNum, db)
-    order_id_new = 'O' + tuple_tmp[0]  # 获得新的订单编号
+    order_id_new = 'O' + str(int(tuple_tmp['cnt'][0]+1)) # 获得新的订单编号
 
     orders_add = """
     INSERT

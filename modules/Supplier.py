@@ -20,11 +20,11 @@ def register():
     owner_id = request.json['ownerID']
 
     getNum = """
-     SELECT COUNT(*)
+     SELECT COUNT(*) as cnt
     from supplier   
      """
     tuple_tmp = run_sql(getNum, db)
-    supplier_id_new = 'S' + tuple_tmp[0]
+    supplier_id_new = 'S' + str(int(tuple_tmp['cnt'][0])+1)
 
     register = """
     INSERT 
@@ -155,11 +155,11 @@ def add_product(id):
     category = request.json['category']
     pic_url = request.json['pic_url']
     getNum = """
-    SELECT COUNT(*)
+    SELECT COUNT(*) as cnt
     FROM product;
     """
     num = run_sql(getNum)
-    product_id_new = 'P' + num[0]
+    product_id_new = 'P' + str(int(num['cnt'][0])+1)
     add_product = """
     INSERT 
     INTO product
