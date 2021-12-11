@@ -153,23 +153,32 @@ def select_cart(id):
 def add_cart(id):
     product_id = request.json['productID']
     count = request.json['count']
+
     add_cart = """
     CREATE TRIGGER trig_insert
     ON cart AFTER INSERT
     AS
     BEGIN
-        DECLARE @customer_id char(10), @product_id char(10);
-        SELECT @customer_id = customer_id, @product_id = product_id FROM inserted;
+        DECLARE @customer_id char(10), @product_id char(10), @count int;
         IF EXISTS(
         SELECT *
-        FROM cart
-        WHERE customer_id=@customer_id AND product_id=@product_id)
+        FROM product
+        WHERE product_id=@product_id AND remain>=@count
+        )
         
         BEGIN
-            rollback transaction;
-            UPDATE cart
-            SET count=count+@count
-            WHERE customer_id=@customer_id AND product_id=@product_id;
+            SELECT @customer_id = customer_id, @product_id = product_id, @count = count FROM inserted;
+            IF EXISTS(
+            SELECT *
+            FROM cart
+            WHERE customer_id=@customer_id AND product_id=@product_id)
+            
+            BEGIN
+                rollback transaction;
+                UPDATE cart
+                SET count=count+@count
+                WHERE customer_id=@customer_id AND product_id=@product_id;
+            END
         END
     END 
     
@@ -262,13 +271,31 @@ def orders_add(id):  # 新订单添加
     receive_address = request.json["receiveAddress"]
 
     getNum = """
-     SELECT COUNT(*) as cnt
+    SELECT COUNT(*) as cnt
     from orders  
      """
     tuple_tmp = run_sql(getNum)
     order_id_new = 'O' + str(int(tuple_tmp['cnt'][0]+1)) # 获得新的订单编号
 
     orders_add = """
+    CREATE TRIGGER trig_insert
+    ON cart AFTER INSERT
+    AS
+    BEGIN
+        DECLARE @product_id char(10), @quantity int;
+        SELECT @product_id=product_id, @quantity=quantity FROM inserted;
+        
+        IF NOT EXISTS(
+        SELECT *
+        FROM product
+        WHERE product_id=@product_id AND remain>=@quantity
+        )
+            
+        BEGIN
+            rollback transaction
+        END
+    END
+    
     INSERT
     INTO orders
     VALUES('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s') 
@@ -298,13 +325,31 @@ def orders_add(id):  # 新订单添加,需要进行库存判定。设置trigger�
     receive_address = request.json["receiveAddress"]
 
     getNum = """
-     SELECT COUNT(*) as cnt
+    SELECT COUNT(*) as cnt
     from orders  
      """
     tuple_tmp = run_sql(getNum)
     order_id_new = 'O' + str(int(tuple_tmp['cnt'][0]+1)) # 获得新的订单编号
 
     orders_add = """
+    CREATE TRIGGER trig_insert
+    ON cart AFTER INSERT
+    AS
+    BEGIN
+        DECLARE @product_id char(10), @quantity int;
+        SELECT @product_id=product_id, @quantity=quantity FROM inserted;
+        
+        IF NOT EXISTS(
+        SELECT *
+        FROM product
+        WHERE product_id=@product_id AND remain>=@quantity
+        )
+            
+        BEGIN
+            rollback transaction
+        END
+    END
+    
     INSERT
     INTO orders
     VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) 
