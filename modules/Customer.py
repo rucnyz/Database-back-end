@@ -67,7 +67,7 @@ def select_customer_info(id):
     FROM info_customer
     WHERE customer_id = %s
     """ % id
-    tuple = run_sql(select_customer_info, db)
+    tuple = run_sql(select_customer_info)
     column = ['nickName', 'phoneNumber', 'address']
     list = [dict(zip(column, tuple[i])) for i in range(len(tuple))]
     d = {"detail": list}
@@ -88,7 +88,7 @@ def add_customer_info(id):
     INTO info_customer(customer_id, address_name, nickname, phone)
     VALUES('%s', '%s', '%s', '%s')
     """ % (id, nickname, address, phone_number)
-    run_sql(add_customer_info, db)
+    run_sql(add_customer_info)
     d = {}
     return wrap_json_for_send(d, "successful")
 
@@ -104,7 +104,7 @@ def delete_customer_info(id):
     FROM info_customer
     WHERE customer_id = %s, address_name = %s
     """ % (id, address)
-    run_sql(delete_customer_info, db)
+    run_sql(delete_customer_info)
     d = {}
     return wrap_json_for_send(d, "successful")
 
@@ -122,7 +122,7 @@ def update_customer_info(id):
     SET address_name = %s, nickname = %s, phone = %s
     WHERE customer_id = %s
     """ % (nickname, address, phone_number, id)
-    run_sql(update_customer_info, db)
+    run_sql(update_customer_info)
     d = {}
     return wrap_json_for_send(d, "successful")
 
@@ -138,7 +138,7 @@ def select_cart(id):
     FROM product p, cart c
     WHERE p.product_id = c.product_id AND c.customer_id = %s
     """ % id
-    t = run_sql(select_cart, db)
+    t = run_sql(select_cart)
     column = ["productID", "pic_url", "count", "productName"]
     data_list = [dict(zip(column, t[i])) for i in range(len(t))]
     d = {"total number": len(t), "detail": data_list}
@@ -201,7 +201,7 @@ def orders_add(id):  # 新订单添加
      SELECT COUNT(*) as cnt
     from orders  
      """
-    tuple_tmp = run_sql(getNum, db)
+    tuple_tmp = run_sql(getNum)
     order_id_new = 'O' + str(int(tuple_tmp['cnt'][0]+1)) # 获得新的订单编号
 
     orders_add = """
@@ -212,7 +212,7 @@ def orders_add(id):  # 新订单添加
         order_id_new, id, supplier_id, product_id, order_date, price_sum, quantity, deliver_address, receive_address, 0,
         "Null")
 
-    run_sql(orders_add, db)
+    run_sql(orders_add)
     new_order_info = {"ID": order_id_new}
 
     return wrap_json_for_send(new_order_info, "successful")
