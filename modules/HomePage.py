@@ -21,12 +21,12 @@ def show():
 def get_homePage():
     number = request.args['needNumber']
     getHomePage = """
-    SELECT TOP %s product_id, pic_url, product_name, price 
+    SELECT TOP ‘%s’ product_id, pic_url, product_name, price 
     FROM product p 
     ORDER BY NewID()
     """ % number
 
-    t = run_sql(getHomePage, db)
+    t = run_sql(getHomePage)
     column = ["商品ID", "商品图片", "商品名称", "商品价格"]
     d = {"detail": [dict(zip(column, t[i])) for i in range(len(t))]}
 
@@ -39,12 +39,12 @@ def get_homePage():
 @homepage.route("/getCategory", methods = ['POST', 'GET'])  # zzm
 def get_homepage_category():
     getHomepageCategory = """
-    select distinct p.category 
+    select distinct p.category cat
     from product p       
     
     """
 
-    t = run_sql(getHomepageCategory, db)[0]
+    t = run_sql(getHomepageCategory)['cat'][0]
     d = {"number": len(t), "分类": t}
 
     return wrap_json_for_send(d, "successful")
