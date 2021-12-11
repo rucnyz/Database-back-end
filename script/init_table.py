@@ -114,8 +114,7 @@ CREATE TABLE orders(
 # IF OBJECT_ID('sum_orders', 'U') IS NULL
 # CREATE VIEW sum_orders
 # AS
-#     SELECT orderdate, supplier_id, customer_id, sum(price_sum) sum_price,
-#     count(*) count, deliver_address, receive_address
+#     SELECT orderdate, supplier_id, customer_id, sum(price_sum) sum_price, count(*) count, deliver_address, receive_address
 #     FROM orders
 #     GROUP BY orderdate, supplier_id, customer_id, deliver_address, receive_address
 #     ORDER BY orderdate, supplier_id, customer_id

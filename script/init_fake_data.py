@@ -11,7 +11,7 @@ import pandas as pd
 # hash+截取之后的存储在数据库中：17a21b26d7
 # phone：15204814455
 # 作为前端测试使用
-
+Faker.seed(135)
 
 sys.path.append(".")
 Faker.seed(135)
@@ -165,7 +165,7 @@ def insert_orders():
     quantity = [random.randint(0, 9999) for x in range(n)]
 
     for i in range(n):
-        # 先查人对应的地址    
+        # 先查人对应的地址
         get_address_c = """
         SELECT  address_name
         FROM  info_customer
@@ -187,7 +187,7 @@ def insert_orders():
                customer_id[i],
                supplier_id[i],
                product_id[i],
-               fake.date_this_decade(before_today = True, after_today = False),  # 本年代中的日期
+               fake.date_time_this_decade(before_today = True, after_today = False),  # 本年代中的日期
                quantity[i],
                quantity[i] * price_unit[i],
                address_s,

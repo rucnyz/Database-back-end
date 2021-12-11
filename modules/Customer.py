@@ -20,7 +20,7 @@ def register():
     from customer   
      """
     t = run_sql(getNum)
-    customer_id_new = 'C' + str(t['cnt'][0])
+    customer_id_new = 'C' + str(int(t['cnt'][0])+1)
 
     register = """
     INSERT 
@@ -188,10 +188,10 @@ def get_orders(id):
     get_orders = """
     SELECT order_id, p.product_id, product_name, quantity 
     FROM product p, orders o
-    WHERE o.customer_id = %s 
+    WHERE o.customer_id = '%s' 
     AND p.product_id = o.product_id;
     """ % id
-    t = run_sql(get_orders, db)
+    t = run_sql(get_orders)
     column = ['orderID', 'productID', 'productID', 'quantity']
     d = [dict(zip(column, t[i])) for i in range(len(t))]
     d = {"number": len(t), "detail": d}
@@ -204,19 +204,19 @@ def set_is_return(id):  # 设置退货标记
     set_is_return = """
     UPDATE orders
     SET is_return = 1 
-    WHERE order_id = %s ;
+    WHERE order_id = '%s' ;
     """ % order_id
-    t = run_sql(set_is_return, db)
+    t = run_sql(set_is_return,)
     d = {}
     return wrap_json_for_send(d, "successful")
 
 
 # 从购物车里添加新订单。
-# /api/customer/<id>/orders/add
+# /api/customer/<id>/orders/add_cart
 # input:base,{"supplierID","productID","orderDate","priceSum","quantity","deliverAddress","receiveAddress"}
 # output:base, {"ordersID"}
 #
-@customer.route("/<id>/orders/add", methods = ['POST', 'GET'])  # zzm
+@customer.route("/<id>/orders/add_cart", methods = ['POST', 'GET'])  # zzm
 def orders_add(id):  # 新订单添加
     supplier_id = request.json["supplierID"]
     product_id = request.json["productID"]
@@ -227,11 +227,11 @@ def orders_add(id):  # 新订单添加
     receive_address = request.json["receiveAddress"]
 
     getNum = """
-     SELECT COUNT(*)
+     SELECT COUNT(*) as cnt
     from orders  
      """
-    tuple_tmp = run_sql(getNum, db)
-    order_id_new = 'O' + tuple_tmp[0]  # 获得新的订单编号
+    tuple_tmp = run_sql(getNum)
+    order_id_new = 'O' + str(int(tuple_tmp['cnt'][0]+1)) # 获得新的订单编号
 
     orders_add = """
     INSERT
@@ -241,7 +241,42 @@ def orders_add(id):  # 新订单添加
         order_id_new, id, supplier_id, product_id, order_date, price_sum, quantity, deliver_address, receive_address, 0,
         "Null")
 
-    run_sql(orders_add, db)
+    run_sql(orders_add)
+    new_order_info = {"ID": order_id_new}
+
+    return wrap_json_for_send(new_order_info, "successful")
+
+# 从商品界面里添加新订单。除接口外，与购物车添加订单均相同。
+# /api/customer/<id>/orders/add_product
+# input:base,{"supplierID","productID","orderDate","priceSum","quantity","deliverAddress","receiveAddress"}
+# output:base, {"ordersID"}
+#
+@customer.route("/<id>/orders/add_product", methods = ['POST', 'GET'])  # zzm
+def orders_add(id):  # 新订单添加
+    supplier_id = request.json["supplierID"]
+    product_id = request.json["productID"]
+    order_date = request.json["orderDate"]
+    price_sum = request.json["priceSum"]
+    quantity = request.json["quantity"]
+    deliver_address = request.json["deliverAddress"]
+    receive_address = request.json["receiveAddress"]
+
+    getNum = """
+     SELECT COUNT(*) as cnt
+    from orders  
+     """
+    tuple_tmp = run_sql(getNum)
+    order_id_new = 'O' + str(int(tuple_tmp['cnt'][0]+1)) # 获得新的订单编号
+
+    orders_add = """
+    INSERT
+    INTO orders
+    VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) 
+    """ % (
+        order_id_new, id, supplier_id, product_id, order_date, price_sum, quantity, deliver_address, receive_address, 0,
+        "Null")
+
+    run_sql(orders_add)
     new_order_info = {"ID": order_id_new}
 
     return wrap_json_for_send(new_order_info, "successful")
