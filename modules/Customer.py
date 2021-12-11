@@ -57,7 +57,7 @@ def login():
     WHERE customer_phonenumber='%s' AND customer_password='%s'
     """ % (phone_number, password)
 
-    t = run_sql(login)[0].values()[0]
+    t = run_sql(login)[0]
     cust_ID = {"ID": t}
 
     return wrap_json_for_send(cust_ID, "successful")
