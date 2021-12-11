@@ -17,7 +17,7 @@ sys.path.append(".")
 Faker.seed(135)
 fake = Faker(locale = 'zh_CN')
 
-n = 50  # 生成的数据数量
+n = 100  # 生成的数据数量
 
 
 def hash_password(password):
@@ -187,7 +187,7 @@ def insert_orders():
                customer_id[i],
                supplier_id[i],
                product_id[i],
-               fake.date_time_this_decade(before_today = True, after_today = False),  # 本年代中的日期
+               fake.date_time_this_decade(before_now = True, after_now = False),  # 本年代中的日期
                quantity[i],
                quantity[i] * price_unit[i],
                address_s,

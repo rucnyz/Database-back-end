@@ -65,7 +65,7 @@ def select_customer_info(id):
     select_customer_info = """
     SELECT nickname, phone, address_name
     FROM info_customer
-    WHERE customer_id = %s
+    WHERE customer_id='%s'
     """ % id
     tuple = run_sql(select_customer_info)
     column = ['nickName', 'phoneNumber', 'address']
@@ -102,7 +102,7 @@ def delete_customer_info(id):
     delete_customer_info = """
     DELETE
     FROM info_customer
-    WHERE customer_id = %s, address_name = %s
+    WHERE customer_id='%s', address_name='%s'
     """ % (id, address)
     run_sql(delete_customer_info)
     d = {}
@@ -119,8 +119,8 @@ def update_customer_info(id):
     phone_number = request.json['phoneNumber']
     update_customer_info = """
     UPDATE info_customer
-    SET address_name = %s, nickname = %s, phone = %s
-    WHERE customer_id = %s
+    SET address_name='%s', nickname='%s', phone='%s'
+    WHERE customer_id='%s'
     """ % (nickname, address, phone_number, id)
     run_sql(update_customer_info)
     d = {}
@@ -136,7 +136,7 @@ def select_cart(id):
     select_cart = """
     SELECT p.product_id, pic_url, count, product_name
     FROM product p, cart c
-    WHERE p.product_id = c.product_id AND c.customer_id = %s
+    WHERE p.product_id = c.product_id AND c.customer_id='%s'
     """ % id
     t = run_sql(select_cart)
     column = ["productID", "pic_url", "count", "productName"]
@@ -145,11 +145,75 @@ def select_cart(id):
     return wrap_json_for_send(d, 'successful')
 
 
+# 在购物车界面只能增加某件商品的数量(update)，在商品界面才可以向购物车增加新的商品(add)
 # /api/customer/"id"/shoppingCart/add
-# input: base,{"用户ID": "xxx", "商品ID":,"商品数量"}
+# input: base,{"customerID": "xxx", "productID":,"count"}
 # output:base
-@customer.route("/<id>/shoppingCart", methods = ['POST'])  # hcy
-# @TODO: IF EXIST
+@customer.route("/<id>/shoppingCart/add", methods = ['POST'])  # hcy
+def add_cart(id):
+    product_id = request.json['productID']
+    count = request.json['count']
+    add_cart = """
+    CREATE TRIGGER trig_insert
+    ON cart AFTER INSERT
+    AS
+    BEGIN
+        DECLARE @customer_id char(10), @product_id char(10);
+        SELECT @customer_id = customer_id, @product_id = product_id FROM inserted;
+        IF EXISTS(
+        SELECT *
+        FROM cart
+        WHERE customer_id=@customer_id AND product_id=@product_id)
+        
+        BEGIN
+            rollback transaction;
+            UPDATE cart
+            SET count=count+@count
+            WHERE customer_id=@customer_id AND product_id=@product_id;
+        END
+    END 
+    
+    INSERT
+    INTO cart
+    VALUES('%s', '%s', '%s')
+    """ % (id, product_id, count)
+    run_sql(add_cart)
+    d = {}
+    return wrap_json_for_send(d, 'successful')
+
+# /api/customer/id/shoppingCart/update  仅限更新数量
+# input:base, {"customerID": "xxx", "productID":,"count"}
+# output:base
+@customer.route("/<id>/shoppingCart/update", methods = ['POST'])  # hcy
+def update_cart(id):
+    product_id = request.json['productID']
+    count = request.json['count']
+    update_cart = """
+    UPDATE cart
+    SET count=%s
+    WHERE customer_id='%s', product_id='%s'
+    """ % (count, id, product_id)
+    run_sql(update_cart)
+    d = {}
+    return wrap_json_for_send(d, 'successful')
+
+
+# /api/customer/id/shoppingCart/delete  删除购买的这一整个商品
+# input: base,{"customerID": "xxx", "productID":}
+# output: base
+# 下订单后，删除购物车中购买的商品
+@customer.route("/<id>/shoppingCart/delete", methods = ['POST'])  # hcy
+def delete_cart(id):
+    product_id = request.json['productID']
+    delete_cart = """
+    DELETE
+    FROM cart
+    WHERE customer_id='%s', product_id='%s'
+    """ % (id, product_id)
+    run_sql(delete_cart)
+    d = {}
+    return wrap_json_for_send(d, 'successful')
+
 
 # 3. 用户已有订单查询。返回用户已有订单。允许顾客进行退货处理。
 @customer.route("/<id>/orders", methods = ['POST'])  # lsy
@@ -207,7 +271,7 @@ def orders_add(id):  # 新订单添加
     orders_add = """
     INSERT
     INTO orders
-    VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) 
+    VALUES('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s') 
     """ % (
         order_id_new, id, supplier_id, product_id, order_date, price_sum, quantity, deliver_address, receive_address, 0,
         "Null")
@@ -252,3 +316,4 @@ def orders_add(id):  # 新订单添加,需要进行库存判定。设置trigger�
     new_order_info = {"ID": order_id_new}
 
     return wrap_json_for_send(new_order_info, "successful")
+
