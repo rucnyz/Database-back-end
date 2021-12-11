@@ -14,6 +14,8 @@ db = SQLAlchemy()
 def register():
     phone_number = request.json['phoneNumber']
     password = request.json['password'][:10]
+    realName = request.json['realName']
+    nickName = request.json['nickName']
 
     getNum = """
      SELECT COUNT(*) as cnt
@@ -28,7 +30,13 @@ def register():
     VALUES('%s','%s','%s')
     """ % (customer_id_new, phone_number, password)
 
+    register_info = """
+    INSERT 
+    INTO info_customer
+    VALUES('%s','%s','%s','%s')
+    """ % (customer_id_new, "", nickName, phone_number)
     _ = run_sql(register)
+    _ = run_sql(register_info)
     new_cust_info = {"ID": customer_id_new}
 
     return wrap_json_for_send(new_cust_info, "successful")
@@ -180,6 +188,7 @@ def add_cart(id):
     run_sql(add_cart)
     d = {}
     return wrap_json_for_send(d, 'successful')
+
 
 # /api/customer/id/shoppingCart/update  仅限更新数量
 # input:base, {"customerID": "xxx", "productID":,"count"}
