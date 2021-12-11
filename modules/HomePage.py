@@ -48,3 +48,23 @@ def get_homepage_category():
     d = {"number": len(t), "分类": t}
 
     return wrap_json_for_send(d, "successful")
+
+
+#  /api/HomePage/returnProductInCat
+# input: base,{"category":xx}
+# output: base ,{{"商品id"：id，"商品图片"：图片url，"商品名称"：名称，"商品价格"：价格},{……},{……}}
+@homepage.route("/getCategory", methods=['POST', 'GET'])  # zzm
+def return_product_in_category():
+    cat = request.json['category']
+
+    returnProductInCategory = """
+    select product_id, pic_url, product_name, price
+    from product p       
+    where p.category='%s'
+    """ % cat
+
+    t = run_sql(returnProductInCategory)
+    column = ["商品ID", "商品图片", "商品名称", "商品价格"]
+    d = {"detail": [dict(zip(column, t[i])) for i in range(len(t))]}
+
+    return wrap_json_for_send(d, "successful")
