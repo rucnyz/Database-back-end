@@ -144,18 +144,22 @@ def select_cart(id):
     d = {"total number": len(t), "detail": data_list}
     return wrap_json_for_send(d, 'successful')
 
+# 在购物车界面只能增加某件商品的数量(update)，在商品界面才可以向购物车增加新的商品(add)
+# /api/customer/"id"/shoppingCart/add
+# input: base,{"用户ID": "xxx", "商品ID":,"商品数量"}
+# output:base
+
 
 # /api/customer/id/shoppingCart/update  仅限更新数量
 # input:base, {"customerID": "xxx", "productID":,"商品数量"}
 # output:base
-# 从购物车进入订单界面，与从顾客界面进入订单相同。
 @customer.route("/<id>/shoppingCart/update", methods = ['POST'])  # hcy
 def update_cart(id):
     product_id = request.json['productID']
     count = request.json['count']
     update_cart = """
     UPDATE cart
-    SET count=%d
+    SET count=%s
     WHERE customer_id='%s', product_id='%s'
     """ % (count, id, product_id)
     run_sql(update_cart)
@@ -280,3 +284,4 @@ def orders_add(id):  # 新订单添加
     new_order_info = {"ID": order_id_new}
 
     return wrap_json_for_send(new_order_info, "successful")
+
