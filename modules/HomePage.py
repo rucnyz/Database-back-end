@@ -21,6 +21,10 @@ def show():
 def get_homePage():
     number = request.args['needNumber']
     page = request.args['page']
+    getSize = """
+    SELECT count(*) 
+    FROM product
+    """
     getHomePage = """
     SELECT TOP %s product_id, pic_url, product_name, price 
     FROM product p 
@@ -28,8 +32,9 @@ def get_homePage():
     """ % number
 
     t = run_sql(getHomePage)
+    size = run_sql(getSize)
     column = ["id", "goodImg", "goodName", "goodPrice"]
-    d = {"totalSize": 149, "detail": [dict(zip(column, t[i])) for i in range(len(t))]}
+    d = {"totalSize": size[0][''], "detail": [dict(zip(column, t[i].values())) for i in range(len(t))]}
     return wrap_json_for_send(d, "successful")
 
 
@@ -41,10 +46,9 @@ def get_homepage_category():
     getHomepageCategory = """
     select distinct p.category cat
     from product p       
-    
     """
     t = run_sql(getHomepageCategory)
-    t = [i[0] for i in t]
+    t = [i['cat'] for i in t]
     d = {"number": len(t), "category": t}
 
     return wrap_json_for_send(d, "successful")
