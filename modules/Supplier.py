@@ -23,7 +23,7 @@ def register():
      SELECT COUNT(*) as cnt
     from supplier   
      """
-    tuple_tmp = run_sql(getNum, db)
+    tuple_tmp = run_sql(getNum)
     supplier_id_new = 'S' + str(int(tuple_tmp['cnt'][0])+1)
 
     register = """
@@ -53,7 +53,7 @@ def login():
     
     """ % (owner_id, password)
 
-    t = run_sql(login, db)
+    t = run_sql(login)
     supp_ID = {"ID": t[0]}
 
     return wrap_json_for_send(supp_ID, "successful")
@@ -69,7 +69,7 @@ def login():
 @supplier.route("/<id>/homepage", methods=['POST', 'GET'])  # lsy
 def get_homepage(id):
     supplier_id = id
-    # tuple = run_sql(login, db)
+    # tuple = run_sql(login)
     # supp_ID = [{"ID": tuple[0]}]
     get_homepage = """
     SELECT DISTINCT p.product_id, product_name, price, pic_url, ISNULL(sub.sales, 0) sales
