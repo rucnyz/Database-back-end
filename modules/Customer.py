@@ -1,5 +1,3 @@
-
-
 from flask import Blueprint, request
 from flask_sqlalchemy import SQLAlchemy
 
@@ -75,9 +73,9 @@ def select_customer_info(id):
     FROM info_customer
     WHERE customer_id='%s'
     """ % id
-    tuple = run_sql(select_customer_info)
+    t = run_sql(select_customer_info)
     column = ['nickName', 'phoneNumber', 'address']
-    list = [dict(zip(column, tuple[i])) for i in range(len(tuple))]
+    list = [dict(zip(column, t[i].values())) for i in range(len(t))]
     d = {"detail": list}
     return wrap_json_for_send(d, 'successful')
 
@@ -96,7 +94,7 @@ def add_customer_info(id):
     INTO info_customer(customer_id, address_name, nickname, phone)
     VALUES('%s', '%s', '%s', '%s')
     """ % (id, nickname, address, phone_number)
-    run_sql(add_customer_info)
+    _ = run_sql(add_customer_info)
     d = {}
     return wrap_json_for_send(d, "successful")
 
@@ -112,7 +110,7 @@ def delete_customer_info(id):
     FROM info_customer
     WHERE customer_id='%s', address_name='%s'
     """ % (id, address)
-    run_sql(delete_customer_info)
+    _ = run_sql(delete_customer_info)
     d = {}
     return wrap_json_for_send(d, "successful")
 
@@ -130,7 +128,7 @@ def update_customer_info(id):
     SET address_name='%s', nickname='%s', phone='%s'
     WHERE customer_id='%s'
     """ % (nickname, address, phone_number, id)
-    run_sql(update_customer_info)
+    _ = run_sql(update_customer_info)
     d = {}
     return wrap_json_for_send(d, "successful")
 
@@ -148,7 +146,7 @@ def select_cart(id):
     """ % id
     t = run_sql(select_cart)
     column = ["productID", "pic_url", "count", "productName"]
-    data_list = [dict(zip(column, t[i])) for i in range(len(t))]
+    data_list = [dict(zip(column, t[i].values())) for i in range(len(t))]
     d = {"total number": len(t), "detail": data_list}
     return wrap_json_for_send(d, 'successful')
 
