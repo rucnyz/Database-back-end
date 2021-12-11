@@ -20,7 +20,7 @@ def register():
     from customer   
      """
     t = run_sql(getNum)
-    customer_id_new = 'C' + str(int(t['cnt'][0])+1)
+    customer_id_new = 'C' + str(int(t['cnt'][0]) + 1)
 
     register = """
     INSERT 
@@ -49,8 +49,8 @@ def login():
     WHERE customer_phonenumber='%s' AND customer_password='%s'
     """ % (phone_number, password)
 
-    t = run_sql(login)
-    cust_ID = {"ID": t['customer_id'][0]}
+    t = run_sql(login)[0].values()[0]
+    cust_ID = {"ID": t}
 
     return wrap_json_for_send(cust_ID, "successful")
 
@@ -206,7 +206,7 @@ def set_is_return(id):  # 设置退货标记
     SET is_return = 1 
     WHERE order_id = '%s' ;
     """ % order_id
-    t = run_sql(set_is_return,)
+    t = run_sql(set_is_return, )
     d = {}
     return wrap_json_for_send(d, "successful")
 
@@ -217,7 +217,7 @@ def set_is_return(id):  # 设置退货标记
 # output:base, {"ordersID"}
 #
 @customer.route("/<id>/orders/add_cart", methods = ['POST', 'GET'])  # zzm
-def orders_add(id):  # 新订单添加
+def orders_add_cart(id):  # 新订单添加
     supplier_id = request.json["supplierID"]
     product_id = request.json["productID"]
     order_date = request.json["orderDate"]
@@ -231,7 +231,7 @@ def orders_add(id):  # 新订单添加
     from orders  
      """
     tuple_tmp = run_sql(getNum)
-    order_id_new = 'O' + str(int(tuple_tmp['cnt'][0]+1)) # 获得新的订单编号
+    order_id_new = 'O' + str(int(tuple_tmp['cnt'][0] + 1))  # 获得新的订单编号
 
     orders_add = """
     INSERT
@@ -246,13 +246,14 @@ def orders_add(id):  # 新订单添加
 
     return wrap_json_for_send(new_order_info, "successful")
 
+
 # 从商品界面里添加新订单。除接口外，与购物车添加订单均相同。
 # /api/customer/<id>/orders/add_product
 # input:base,{"supplierID","productID","orderDate","priceSum","quantity","deliverAddress","receiveAddress"}
 # output:base, {"ordersID"}
 #
 @customer.route("/<id>/orders/add_product", methods = ['POST', 'GET'])  # zzm
-def orders_add(id):  # 新订单添加
+def orders_add_product(id):  # 新订单添加
     supplier_id = request.json["supplierID"]
     product_id = request.json["productID"]
     order_date = request.json["orderDate"]
@@ -266,7 +267,7 @@ def orders_add(id):  # 新订单添加
     from orders  
      """
     tuple_tmp = run_sql(getNum)
-    order_id_new = 'O' + str(int(tuple_tmp['cnt'][0]+1)) # 获得新的订单编号
+    order_id_new = 'O' + str(int(tuple_tmp['cnt'][0] + 1))  # 获得新的订单编号
 
     orders_add = """
     INSERT

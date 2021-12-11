@@ -20,6 +20,7 @@ def show():
 @homepage.route("/getProduct", methods = ['POST', 'GET'])  # zzm
 def get_homePage():
     number = request.args['needNumber']
+    page = request.args['page']
     getHomePage = """
     SELECT TOP %s product_id, pic_url, product_name, price 
     FROM product p 
@@ -27,9 +28,8 @@ def get_homePage():
     """ % number
 
     t = run_sql(getHomePage)
-    column = ["商品ID", "商品图片", "商品名称", "商品价格"]
-    d = {"detail": [dict(zip(column, t[i])) for i in range(len(t))]}
-
+    column = ["id", "goodImg", "goodName", "goodPrice"]
+    d = {"totalSize": 149, "detail": [dict(zip(column, t[i])) for i in range(len(t))]}
     return wrap_json_for_send(d, "successful")
 
 
@@ -43,9 +43,9 @@ def get_homepage_category():
     from product p       
     
     """
-
-    t = run_sql(getHomepageCategory)['cat'][0]
-    d = {"number": len(t), "分类": t}
+    t = run_sql(getHomepageCategory)
+    t = [i[0] for i in t]
+    d = {"number": len(t), "category": t}
 
     return wrap_json_for_send(d, "successful")
 
@@ -53,7 +53,7 @@ def get_homepage_category():
 #  /api/HomePage/returnProductInCat   用于返回特定种类商品。
 # input: base,{"category":xx}
 # output: base ,{{"商品id"：id，"商品图片"：图片url，"商品名称"：名称，"商品价格"：价格},{……},{……}}
-@homepage.route("/returnProductInCat", methods=['POST', 'GET'])  # zzm
+@homepage.route("/returnProductInCat", methods = ['POST', 'GET'])  # zzm
 def return_product_in_category():
     cat = request.json['category']
 
@@ -64,7 +64,7 @@ def return_product_in_category():
     """ % cat
 
     t = run_sql(returnProductInCategory)
-    column = ["商品ID", "商品图片", "商品名称", "商品价格"]
+    column = ["id", "goodImg", "goodName", "goodPrice"]
     d = {"detail": [dict(zip(column, t[i])) for i in range(len(t))]}
 
     return wrap_json_for_send(d, "successful")
