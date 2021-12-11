@@ -65,6 +65,11 @@ def annual_sales():
 # output:base,{"customer_id","product_id","product_name","count"}
 @admin.route("/top_product", methods=['POST'])
 def top_product():
+    get_top_product = """
+    SELECT o.customer_id, p.product_id, p.product_name, COUNT(*)
+    FROM orders o, product p
+    WHERE o.product_id = p.product_id AND 
+    """
     return
 
 
@@ -78,11 +83,16 @@ def province_top():
                  '河北省', '河南省', '黑龙江省', '湖北省', '湖南省', '吉林省', '江苏省', '江西省', '辽宁省', '内蒙古自治区',
                  '宁夏回族自治区', '青海省', '山东省', '山西省', '陕西省', '上海市', '四川省', '台湾省', '天津市', '西藏自治区',
                  '香港特别行政区', '新疆维吾尔自治区', '云南省', '浙江省', '重庆市']
+    province_top = []
     for i in provinces:
         get_province_top = """
-        SELECT 
+        SELECT '%s' province, AVG(o.price_sum) avg, MAX(o.price_sum) max, MIN(o.price_sum) min
         FROM orders o
-        WHERE o.
-        """
-
-    return
+        WHERE o.receive_address LIKE '%s';
+        """ % i
+        t = run_sql(get_province_top)
+        province_top.append(t)
+    column = ["province", "average", "max", "min"]
+    # TOTODO 降序排列
+    d = {"detail": [dict(zip(column, province_top[i])) for i in range(len(province_top))]}
+    return wrap_json_for_send(d, "successful")
