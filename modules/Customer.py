@@ -145,17 +145,52 @@ def select_cart(id):
     return wrap_json_for_send(d, 'successful')
 
 
-# /api/customer/id/shoppingCart/update  仅限更新数量
-# input:base, {"customerID": "xxx", "productID":,"商品数量"}
+# 在购物车界面只能增加某件商品的数量(update)，在商品界面才可以向购物车增加新的商品(add)
+# /api/customer/"id"/shoppingCart/add
+# input: base,{"customerID": "xxx", "productID":,"count"}
 # output:base
-# 从购物车进入订单界面，与从顾客界面进入订单相同。
+@customer.route("/<id>/shoppingCart/add", methods = ['POST'])  # hcy
+def add_cart(id):
+    product_id = request.json['productID']
+    count = request.json['count']
+    add_cart = """
+    CREATE TRIGGER trig_insert
+    ON cart AFTER INSERT
+    AS
+    BEGIN
+        DECLARE @customer_id char(10), @product_id char(10);
+        SELECT @customer_id = customer_id, @product_id = product_id FROM inserted;
+        IF EXISTS(
+        SELECT *
+        FROM cart
+        WHERE customer_id=@customer_id AND product_id=@product_id)
+        
+        BEGIN
+            rollback transaction;
+            UPDATE cart
+            SET count=count+@count
+            WHERE customer_id=@customer_id AND product_id=@product_id;
+        END
+    END 
+    
+    INSERT
+    INTO cart
+    VALUES('%s', '%s', '%s')
+    """ % (id, product_id, count)
+    run_sql(add_cart)
+    d = {}
+    return wrap_json_for_send(d, 'successful')
+
+# /api/customer/id/shoppingCart/update  仅限更新数量
+# input:base, {"customerID": "xxx", "productID":,"count"}
+# output:base
 @customer.route("/<id>/shoppingCart/update", methods = ['POST'])  # hcy
 def update_cart(id):
     product_id = request.json['productID']
     count = request.json['count']
     update_cart = """
     UPDATE cart
-    SET count=%d
+    SET count=%s
     WHERE customer_id='%s', product_id='%s'
     """ % (count, id, product_id)
     run_sql(update_cart)
@@ -236,7 +271,7 @@ def orders_add_cart(id):  # 新订单添加
     orders_add = """
     INSERT
     INTO orders
-    VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) 
+    VALUES('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s') 
     """ % (
         order_id_new, id, supplier_id, product_id, order_date, price_sum, quantity, deliver_address, receive_address, 0,
         "Null")
