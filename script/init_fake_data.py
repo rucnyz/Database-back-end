@@ -5,6 +5,7 @@ from utils import run_sql
 from faker import Faker
 import hashlib
 import pandas as pd
+
 # 注意
 # 顾客id：C000000051
 # 原始密码：_OmUuV+ZE5

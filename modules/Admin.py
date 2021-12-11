@@ -8,7 +8,7 @@ admin = Blueprint('admin', __name__)
 # 1. 显示每个商家最热卖的top 3个商品。
 # /api/admin/top3_product
 # input:base,{""}
-# output:base,{"supplier_id",{"product_id","product_name","sum_quantity"},...,{}}
+# output:base,{"supplier_id","rank","product_id","product_name","sum_quantity"}
 @admin.route("/top3_product", methods=['POST'])
 def top3_product():
 # 获取已有商家数量，进行循环
@@ -30,17 +30,9 @@ def top3_product():
         ORDER BY SUM(o.quantity) DESC
         """ % spid
 
-        tuple_tmp = run_sql(top3_product)
-
-
-
-
-
-
-
-
-    column = ['supplier_id', 'product_id', 'product_name']
-    d = {"detail": [dict(zip(column, t[i])) for i in range(len(t))]}
+        t = run_sql(top3_product)
+        column = ['supplier_id', 'product_id', 'product_name',]
+        d = {"detail": [dict(zip(column, t[i])) for i in range(len(t))]}
 
 
 
@@ -53,6 +45,8 @@ def top3_product():
 # output:base,{"key_words",{"product_id","product_name","supplier_id","supplier_name"{}},{},...,{}}
 @admin.route("/low5_supplier", methods=['POST'])
 def low5_supplier():
+
+
     return
 
 

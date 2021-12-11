@@ -19,7 +19,12 @@ def show():
 # output: base, {{"商品id"：id，"商品图片"：图片url，"商品名称"：名称，"商品价格"：价格},{……},{……}}
 @homepage.route("/getProduct", methods = ['POST', 'GET'])  # zzm
 def get_homePage():
-    number = request.json['needNumber']
+    number = request.args['needNumber']
+    page = request.args['page']
+    getSize = """
+    SELECT count(*) 
+    FROM product
+    """
     getHomePage = """
     SELECT TOP %s product_id, pic_url, product_name, price 
     FROM product p 
@@ -27,9 +32,9 @@ def get_homePage():
     """ % number
 
     t = run_sql(getHomePage)
-    column = ["商品ID", "商品图片", "商品名称", "商品价格"]
-    d = {"detail": [dict(zip(column, t[i])) for i in range(len(t))]}
-
+    size = run_sql(getSize)
+    column = ["id", "goodImg", "goodName", "goodPrice"]
+    d = {"totalSize": size[0][''], "detail": [dict(zip(column, t[i].values())) for i in range(len(t))]}
     return wrap_json_for_send(d, "successful")
 
 
@@ -41,11 +46,10 @@ def get_homepage_category():
     getHomepageCategory = """
     select distinct p.category cat
     from product p       
-    
     """
-
-    t = run_sql(getHomepageCategory)['cat'][0]
-    d = {"number": len(t), "分类": t}
+    t = run_sql(getHomepageCategory)
+    t = [i['cat'] for i in t]
+    d = {"number": len(t), "category": t}
 
     return wrap_json_for_send(d, "successful")
 
@@ -53,7 +57,7 @@ def get_homepage_category():
 #  /api/HomePage/returnProductInCat   用于返回特定种类商品。
 # input: base,{"category":xx}
 # output: base ,{{"商品id"：id，"商品图片"：图片url，"商品名称"：名称，"商品价格"：价格},{……},{……}}
-@homepage.route("/returnProductInCat", methods=['POST', 'GET'])  # zzm
+@homepage.route("/returnProductInCat", methods = ['POST', 'GET'])  # zzm
 def return_product_in_category():
     cat = request.json['category']
 
@@ -64,7 +68,34 @@ def return_product_in_category():
     """ % cat
 
     t = run_sql(returnProductInCategory)
-    column = ["商品ID", "商品图片", "商品名称", "商品价格"]
+    column = ["ID", "product_pic", "product_name", "price"]
     d = {"detail": [dict(zip(column, t[i])) for i in range(len(t))]}
 
     return wrap_json_for_send(d, "successful")
+
+# 5. 搜索含某关键词（可限制类别）的商品
+# /api/HomePage/search_product 用于返回特定关键词商品。
+# input: base,{"keywords", ”category“}
+# output: base, {{"product_id":id, "pic_url":图片url, "product_name":名称, "price"：价格},{……},{……}}
+@homepage.route("/search_product", methods = ['POST', 'GET'])  # lsy
+def search_product():
+    cat = request.json['category']
+    keywords = request.json['keywords']
+    search_product = """
+    SELECT product_id, pic_url, product_name, price
+    FROM product p  
+    WHERE product_name LIKE '%s'     
+    """%keywords
+    search_cat_product = """
+    SELECT product_id, pic_url, product_name, price
+    FROM product p  
+    WHERE product_name LIKE '%s' AND category = '%s'
+    """%(keywords, cat)
+    if cat.isspace():
+        t = run_sql(search_product)
+    else:
+        t = run_sql(search_cat_product)
+    column = ["ID", "product_pic", "product_name", "price"]
+    d = {"detail": [dict(zip(column, t[i])) for i in range(len(t))]}
+    return wrap_json_for_send(d, "successful")
+

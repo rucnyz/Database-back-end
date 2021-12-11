@@ -14,13 +14,15 @@ db = SQLAlchemy()
 def register():
     phone_number = request.json['phoneNumber']
     password = request.json['password'][:10]
+    realName = request.json['realName']
+    nickName = request.json['nickName']
 
     getNum = """
      SELECT COUNT(*) as cnt
     from customer   
      """
     t = run_sql(getNum)
-    customer_id_new = 'C' + str(int(t['cnt'][0])+1)
+    customer_id_new = 'C' + str(int(t['cnt'][0]) + 1)
 
     register = """
     INSERT 
@@ -28,7 +30,13 @@ def register():
     VALUES('%s','%s','%s')
     """ % (customer_id_new, phone_number, password)
 
-    customer_id_new = run_sql(register)
+    register_info = """
+    INSERT 
+    INTO info_customer
+    VALUES('%s','%s','%s','%s')
+    """ % (customer_id_new, "", nickName, phone_number)
+    _ = run_sql(register)
+    _ = run_sql(register_info)
     new_cust_info = {"ID": customer_id_new}
 
     return wrap_json_for_send(new_cust_info, "successful")
@@ -49,8 +57,8 @@ def login():
     WHERE customer_phonenumber='%s' AND customer_password='%s'
     """ % (phone_number, password)
 
-    t = run_sql(login)
-    cust_ID = {"ID": t['customer_id'][0]}
+    t = run_sql(login)[0].values()[0]
+    cust_ID = {"ID": t}
 
     return wrap_json_for_send(cust_ID, "successful")
 
@@ -190,6 +198,7 @@ def add_cart(id):
     d = {}
     return wrap_json_for_send(d, 'successful')
 
+
 # /api/customer/id/shoppingCart/update  仅限更新数量
 # input:base, {"customerID": "xxx", "productID":,"count"}
 # output:base
@@ -250,7 +259,7 @@ def set_is_return(id):  # 设置退货标记
     SET is_return = 1 
     WHERE order_id = '%s' ;
     """ % order_id
-    t = run_sql(set_is_return,)
+    t = run_sql(set_is_return, )
     d = {}
     return wrap_json_for_send(d, "successful")
 
@@ -261,7 +270,7 @@ def set_is_return(id):  # 设置退货标记
 # output:base, {"ordersID"}
 #
 @customer.route("/<id>/orders/add_cart", methods = ['POST', 'GET'])  # zzm
-def orders_add(id):  # 新订单添加
+def orders_add_cart(id):  # 新订单添加
     supplier_id = request.json["supplierID"]
     product_id = request.json["productID"]
     order_date = request.json["orderDate"]
@@ -275,7 +284,7 @@ def orders_add(id):  # 新订单添加
     from orders  
      """
     tuple_tmp = run_sql(getNum)
-    order_id_new = 'O' + str(int(tuple_tmp['cnt'][0]+1)) # 获得新的订单编号
+    order_id_new = 'O' + str(int(tuple_tmp['cnt'][0] + 1))  # 获得新的订单编号
 
     orders_add = """
     CREATE TRIGGER trig_insert
@@ -308,14 +317,14 @@ def orders_add(id):  # 新订单添加
 
     return wrap_json_for_send(new_order_info, "successful")
 
+
 # 从商品界面里添加新订单。除接口外，与购物车添加订单均相同。
 # /api/customer/<id>/orders/add_product
 # input:base,{"supplierID","productID","orderDate","priceSum","quantity","deliverAddress","receiveAddress"}
 # output:base, {"ordersID"}
 #
 @customer.route("/<id>/orders/add_product", methods = ['POST', 'GET'])  # zzm
-def orders_add(id):  # 新订单添加,需要进行库存判定。设置trigger。
-
+def orders_add_product(id):  # 新订单添加
     supplier_id = request.json["supplierID"]
     product_id = request.json["productID"]
     order_date = request.json["orderDate"]
@@ -329,7 +338,7 @@ def orders_add(id):  # 新订单添加,需要进行库存判定。设置trigger�
     from orders  
      """
     tuple_tmp = run_sql(getNum)
-    order_id_new = 'O' + str(int(tuple_tmp['cnt'][0]+1)) # 获得新的订单编号
+    order_id_new = 'O' + str(int(tuple_tmp['cnt'][0] + 1))  # 获得新的订单编号
 
     orders_add = """
     CREATE TRIGGER trig_insert
@@ -361,4 +370,3 @@ def orders_add(id):  # 新订单添加,需要进行库存判定。设置trigger�
     new_order_info = {"ID": order_id_new}
 
     return wrap_json_for_send(new_order_info, "successful")
-
