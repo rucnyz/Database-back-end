@@ -80,24 +80,35 @@ def return_product_in_category():
 # output: base, {{"product_id":id, "pic_url":图片url, "product_name":名称, "price"：价格},{……},{……}}
 @homepage.route("/getProductInCond", methods = ['POST', 'GET'])  # lsy
 def search_product():
-    cat = request.json['category']
-    keywords = request.json['keywords']
-
+    cat = request.args['category']
+    keywords = request.args['keywords']
+    number = request.args['needNumber']
+    page = request.args['page']
     if len(cat) == 0:
         get_product = """
-            SELECT product_id, pic_url, product_name, price
+            SELECT TOP %s product_id, pic_url, product_name, price
             FROM product p  
             WHERE product_name LIKE '%%%s%%'     
-            """ % keywords
-
+            """ % (number, keywords)
+        get_size = """
+                SELECT count(*)
+                    FROM product p  
+                    WHERE product_name LIKE '%%%s%%'     
+                    """ % keywords
     else:
         get_product = """
-            SELECT product_id, pic_url, product_name, price
-            FROM product p  
-            WHERE product_name LIKE '%%%s%%' AND category = '%s'
-            """ % (keywords, cat)
+                    SELECT TOP %s product_id, pic_url, product_name, price
+                    FROM product p  
+                    WHERE product_name LIKE '%%%s%%' AND category = '%s'
+                    """ % (number, keywords, cat)
+        get_size = """
+                        SELECT count(*)
+                        FROM product p  
+                        WHERE product_name LIKE '%%%s%%' AND category = '%s'
+                   """ % (keywords, cat)
 
     t = run_sql(get_product)
+    size = run_sql(get_size)
     column = ["ID", "product_pic", "product_name", "price"]
-    d = {"detail": [dict(zip(column, t[i].values())) for i in range(len(t))]}
+    d = {"totalSize": size[0][''], "detail": [dict(zip(column, t[i].values())) for i in range(len(t))]}
     return wrap_json_for_send(d, "successful")
