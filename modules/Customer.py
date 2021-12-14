@@ -20,7 +20,7 @@ def register():
     from customer   
      """
     t = run_sql(getNum)
-    customer_id_new = 'C' + str(int(t['cnt'][0]) + 1)
+    customer_id_new = 'C' + str(int(t[0]['cnt']) + 1)
 
     register = """
     INSERT 
@@ -54,9 +54,17 @@ def login():
     FROM customer
     WHERE customer_phonenumber='%s' AND customer_password='%s'
     """ % (phone_number, password)
+    customer_id = run_sql(login)[0]['customer_id']
 
-    t = run_sql(login)[0]
-    cust_ID = {"ID": t}
+    info = """
+    SELECT nickname, address_name
+    FROM info_customer
+    WHERE customer_id='%s'
+    """ % customer_id
+    c_info = run_sql(info)
+    nickName = c_info[0]['nickname']
+    address_name = c_info[0]['address_name']
+    cust_ID = {"ID": customer_id, "phoneNumber": phone_number, "nickName": nickName, "addressName": address_name}
 
     return wrap_json_for_send(cust_ID, "successful")
 
