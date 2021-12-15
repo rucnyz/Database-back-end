@@ -11,7 +11,7 @@ admin = Blueprint('admin', __name__)
 # output:base,{"supplier_id","rank","product_id","product_name","sum_quantity"}
 @admin.route("/top3_product", methods=['POST'])
 def top3_product():
-# 获取已有商家数量，进行循环
+    # 获取已有商家数量，进行循环
     getNum = """
             SELECT COUNT(*) as cnt
            from supplier   
@@ -19,8 +19,7 @@ def top3_product():
     tmp = run_sql(getNum)
     number = int(tmp['cnt'][0])
 
-
-    for i in range(1, number+1):
+    for i in range(1, number + 1):
         spid = 'S' + i
         top3_product = """
         SELECT TOP 3 s.supplier_id, p.product_id, p.product_name, SUM(o.quantity)
@@ -31,10 +30,8 @@ def top3_product():
         """ % spid
 
         t = run_sql(top3_product)
-        column = ['supplier_id', 'product_id', 'product_name',]
+        column = ['supplier_id', 'product_id', 'product_name', ]
         d = {"detail": [dict(zip(column, t[i])) for i in range(len(t))]}
-
-
 
     return
 
@@ -45,8 +42,6 @@ def top3_product():
 # output:base,{"key_words",{"product_id","product_name","supplier_id","supplier_name"{}},{},...,{}}
 @admin.route("/low5_supplier", methods=['POST'])
 def low5_supplier():
-
-
     return
 
 
@@ -59,21 +54,28 @@ def annual_sales():
     return
 
 
-# 4.显示每个会员购买次数最多的商品。
+# 4.显示每个会员购买次数最多的商品。  # lsy
 # /api/admin/top_product
 # input:base,{""}
-# output:base,{"customer_id","product_id","product_name","count"}
+# output:base,{"customer_id","product_id","product_name","top_num"}
 @admin.route("/top_product", methods=['POST'])
 def top_product():
     get_top_product = """
-    SELECT o.customer_id, p.product_id, p.product_name, COUNT(*)
-    FROM orders o, product p
-    WHERE o.product_id = p.product_id AND 
+    SELECT o_c.customer_id, o_c.product_id, p.product_name, MAX(pc_count) top_num
+    FROM product p, 
+    (SELECT customer_id, product_id, COUNT(*) pc_count
+    FROM orders
+    GROUP BY customer_id, product_id) o_c
+    WHERE p.product_id = o_c.product_id
+    GROUP BY  o_c.customer_id, o_c.product_id, p.product_name;
     """
-    return
+    t = run_sql(get_top_product)
+    column = ["customer_id", "product_id", "product_name", "top_num"]
+    d = {"detail": [dict(zip(column, t[i])) for i in range(len(t))]}
+    return wrap_json_for_send(d, "successful")
 
 
-# 5. 显示每个省份会员的平均消费额、最大消费额和最小消费额，并按平均消费额降序排列。
+# 5. 显示每个省份会员的平均消费额、最大消费额和最小消费额，并按平均消费额降序排列。   # lsy
 # /api/admin/province_top
 # input:base,{""}
 # output:base,{"province","average_spending","max_spending","min_spending"}
