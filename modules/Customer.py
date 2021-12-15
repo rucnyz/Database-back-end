@@ -144,18 +144,26 @@ def update_customer_info(id):
 # 2. 用户购物车查询
 # /api/customer/"id"/shoppingCart
 # input: base,"ID"
-# output: base,{"total number", "address":["",""],"detail":[{"productID","pic_url",”count“,"productName"},...,{...}]}
-@customer.route("/<id>/shoppingCart", methods = ['POST'])  # hcy
+# output: base,{"totalSize","address":[{"address_name", "nickname", "phone"}] ,"cart_detail":[{"productID","pic_url",”count“,"productName","price"},...,{...}]}
+@customer.route("/<id>/shoppingCart", methods = ['POST'])  # hcy lsy(address)
 def select_cart(id):
     select_cart = """
     SELECT p.product_id, pic_url, count, product_name, price
     FROM product p, cart c
     WHERE p.product_id = c.product_id AND c.customer_id='%s'
     """ % id
-    t = run_sql(select_cart)
-    column = ["productID", "pic_url", "count", "productName"]
-    data_list = [dict(zip(column, t[i].values())) for i in range(len(t))]
-    d = {"totalSize": len(t), "detail": data_list}
+    t_cart = run_sql(select_cart)
+    column_cart = ["productID", "pic_url", "count", "productName"]
+    cart_list = [dict(zip(column_cart, t_cart[i].values())) for i in range(len(t_cart))]
+
+    get_address = """
+    SELECT * FROM info_customer
+    WHERE customer_id = '%s'
+    """ % id
+    t_address = run_sql(get_address)
+    column_address = ["address_name", "nickname", "phone"]
+    address_info = [dict(zip(column_address, t_address[i].values())) for i in range(len(t_address))]
+    d = {"totalSize": len(t_cart), "cart_detail": cart_list, "address": address_info}
     return wrap_json_for_send(d, 'successful')
 
 
@@ -390,7 +398,7 @@ def orders_add_product(id):  # 新订单添加
 # 显示此顾客所有的收货地址以供选择
 # /api/customer/<id>/orders/get_address
 # input:base,{""}
-# output:base, {""}
+# output:base, {"address_name", "nickname", "phone"}
 #
 @customer.route("/<id>/orders/get_address", methods = ['POST', 'GET'])  # lsy
 def orders_get_address(id):  # 显示所有地址

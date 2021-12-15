@@ -95,6 +95,6 @@ def province_top():
         t = run_sql(get_province_top)
         province_top.append(t.values())
     column = ["province", "average", "max", "min"]
-    # TODO 降序排列
+    # toTODO 降序排列
     d = {"detail": [dict(zip(column, province_top[i])) for i in range(len(province_top))]}
     return wrap_json_for_send(d, "successful")
