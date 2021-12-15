@@ -144,18 +144,18 @@ def update_customer_info(id):
 # 2. 用户购物车查询
 # /api/customer/"id"/shoppingCart
 # input: base,"ID"
-# output: base,{"total number", "detail":[{"productID","pic_url",”count“,"productName"},...,{...}]}
+# output: base,{"total number", "address":["",""],"detail":[{"productID","pic_url",”count“,"productName"},...,{...}]}
 @customer.route("/<id>/shoppingCart", methods = ['POST'])  # hcy
 def select_cart(id):
     select_cart = """
-    SELECT p.product_id, pic_url, count, product_name
+    SELECT p.product_id, pic_url, count, product_name, price
     FROM product p, cart c
     WHERE p.product_id = c.product_id AND c.customer_id='%s'
     """ % id
     t = run_sql(select_cart)
     column = ["productID", "pic_url", "count", "productName"]
     data_list = [dict(zip(column, t[i].values())) for i in range(len(t))]
-    d = {"total number": len(t), "detail": data_list}
+    d = {"totalSize": len(t), "detail": data_list}
     return wrap_json_for_send(d, 'successful')
 
 
@@ -272,7 +272,7 @@ def set_is_return(id):  # 设置退货标记
 
 # 从购物车里添加新订单。
 # /api/customer/<id>/orders/add_cart
-# input:base,{"supplierID","productID","orderDate","priceSum","quantity","deliverAddress","receiveAddress"}
+# input:base,{"productID","orderDate","priceSum","quantity","receiveAddress"}
 # output:base, {"ordersID"}
 #
 @customer.route("/<id>/orders/add_cart", methods = ['POST', 'GET'])  # zzm
@@ -282,6 +282,7 @@ def orders_add_cart(id):  # 新订单添加
     order_date = request.json["orderDate"]
     price_sum = request.json["priceSum"]
     quantity = request.json["quantity"]
+    # supplierID、deliverAddress 需后端查询得到
     deliver_address = request.json["deliverAddress"]
     receive_address = request.json["receiveAddress"]
 
