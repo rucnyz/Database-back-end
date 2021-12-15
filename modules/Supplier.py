@@ -86,7 +86,7 @@ def get_homepage(id):
     """ % supplier_id
     t = run_sql(get_homepage)
     column = ["商品ID", "商品名称", "商品价格", "商品图片", "商品销量"]
-    d = {"detail": [dict(zip(column, t[i])) for i in range(len(t))]}
+    d = {"detail": [dict(zip(column, t[i].values())) for i in range(len(t))]}
     return wrap_json_for_send(d, "successful")
 
 
@@ -116,7 +116,7 @@ def get_orders(id):
     #    """ % id
     t = run_sql(get_orders)
     column = ["下单时间", "顾客名称", "订单总额", "商品数量", "发货地址", "收货地址"]
-    d = {"detail": [dict(zip(column, t[i])) for i in range(len(t))]}
+    d = {"detail": [dict(zip(column, t[i].values())) for i in range(len(t))]}
     return wrap_json_for_send(d, "successful")
 
 
@@ -136,7 +136,7 @@ def get_order_items(id):
     """ % (id, time, customer_id)
     t = run_sql(get_items)
     column = ["商品id", "商品名称", "商品总价", "商品数量"]
-    d = {"detail": [dict(zip(column, t[i])) for i in range(len(t))]}
+    d = {"detail": [dict(zip(column, t[i].values())) for i in range(len(t))]}
     return wrap_json_for_send(d, "successful")
 
 

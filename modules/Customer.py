@@ -277,14 +277,22 @@ def set_is_return(id):  # 设置退货标记
 #
 @customer.route("/<id>/orders/add_cart", methods = ['POST', 'GET'])  # zzm
 def orders_add_cart(id):  # 新订单添加
-    supplier_id = request.json["supplierID"]
+    # supplier_id = request.json["supplierID"]
     product_id = request.json["productID"]
     order_date = request.json["orderDate"]
     price_sum = request.json["priceSum"]
     quantity = request.json["quantity"]
-    # supplierID、deliverAddress 需后端查询得到
-    deliver_address = request.json["deliverAddress"]
+    # supplierID、deliverAddress 需后端查询得到_____finished by lsy
+    # deliver_address = request.json["deliverAddress"]
     receive_address = request.json["receiveAddress"]
+    get_need = """
+    SELECT ifs.supplier_id, ifs.address_name
+    FROM product p, info_supplier ifs
+    WHERE p.product_id = '%s' AND p.supplier_id = ifs.supplier_id;  
+    """
+    need_info = run_sql(get_need)
+    supplier_id = need_info['supplier_id'][0]
+    deliver_address = need_info['address_name'][0]
 
     getNum = """
     SELECT COUNT(*) as cnt
@@ -377,3 +385,21 @@ def orders_add_product(id):  # 新订单添加
     new_order_info = {"ID": order_id_new}
 
     return wrap_json_for_send(new_order_info, "successful")
+
+
+# 显示此顾客所有的收货地址以供选择
+# /api/customer/<id>/orders/get_address
+# input:base,{""}
+# output:base, {""}
+#
+@customer.route("/<id>/orders/get_address", methods = ['POST', 'GET'])  # lsy
+def orders_get_address(id):  # 显示所有地址
+    get_address = """
+    SELECT * FROM info_customer
+    WHERE customer_id = '%s'
+    """ % id
+    t = run_sql(get_address)
+    column = ["address_name", "nickname", "phone"]
+    address_info = [dict(zip(column, t[i].values())) for i in range(len(t))]
+    d = {"address_info": address_info}
+    return wrap_json_for_send(d, 'successful')

@@ -16,7 +16,7 @@ def select_comments():  # 查看评价
     """ % product_id
     tuple = run_sql(select_comments)
     column = ['productID', 'ctName', 'quantity']
-    d = [dict(zip(column, tuple[i])) for i in range(len(tuple))]
+    d = [dict(zip(column, tuple[i].values())) for i in range(len(tuple))]
     t = {"number": len(tuple), "detail": d}
     return wrap_json_for_send(t, "successful")
 

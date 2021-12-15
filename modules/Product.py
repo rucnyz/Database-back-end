@@ -35,7 +35,7 @@ def product_info(id):
          "remain": t['remain'][0],
          "size": t['size'][0],
          "category": t['category'][0],
-         "price": t['pic_url'][0],
+         "pic_url": t['pic_url'][0],
          "comment": c}
     return wrap_json_for_send(d, 'successful')
 

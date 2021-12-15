@@ -31,7 +31,7 @@ def top3_product():
 
         t = run_sql(top3_product)
         column = ['supplier_id', 'product_id', 'product_name', ]
-        d = {"detail": [dict(zip(column, t[i])) for i in range(len(t))]}
+        d = {"detail": [dict(zip(column, t[i].values())) for i in range(len(t))]}
 
     return
 
@@ -71,7 +71,7 @@ def top_product():
     """
     t = run_sql(get_top_product)
     column = ["customer_id", "product_id", "product_name", "top_num"]
-    d = {"detail": [dict(zip(column, t[i])) for i in range(len(t))]}
+    d = {"detail": [dict(zip(column, t[i].values())) for i in range(len(t))]}
     return wrap_json_for_send(d, "successful")
 
 
@@ -93,8 +93,8 @@ def province_top():
         WHERE o.receive_address LIKE '%s';
         """ % i
         t = run_sql(get_province_top)
-        province_top.append(t)
+        province_top.append(t.values())
     column = ["province", "average", "max", "min"]
-    # TOTODO 降序排列
+    # TODO 降序排列
     d = {"detail": [dict(zip(column, province_top[i])) for i in range(len(province_top))]}
     return wrap_json_for_send(d, "successful")
