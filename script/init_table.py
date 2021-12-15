@@ -4,12 +4,13 @@ from utils import run_sql
 
 
 create_db = """
+commit;
 IF DB_ID('OnlineShopping') IS NULL 
-CREATE DATABASE OnlineShopping
+CREATE DATABASE OnlineShopping COLLATE Chinese_Simplified_Stroke_Order_100_CI_AS_SC_UTF8
             """
 # DB_ID对应数据库 OBJECT_ID对应表
 
-# run_sql(create_db)
+run_sql(create_db)
 # conn.autocommit(False)  # 指令关闭立即执行，以后还是等待conn.commit()时再统一执行
 
 # use数据库

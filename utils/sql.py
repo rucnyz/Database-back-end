@@ -36,7 +36,8 @@ class Database:
 
     def __get_connection(self):
         odbc_param = (f"FILEDSN={self.dsn}")
-        return pyodbc.connect(odbc_param)
+        cnxn = pyodbc.connect(odbc_param)
+        return cnxn
 
     def status(self):
         return self.connect_pool.status()
