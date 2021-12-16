@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import sys
+sys.path.append(".")
 import random
 from utils import run_sql
 from faker import Faker
@@ -14,7 +15,7 @@ import pandas as pd
 # 作为前端测试使用
 Faker.seed(135)
 
-sys.path.append(".")
+
 Faker.seed(135)
 fake = Faker(locale = 'zh_CN')
 
@@ -28,47 +29,65 @@ def hash_password(password):
     return res
 
 
-def get_col(sql_list, n):
-    sql_col = [x[n] for x in sql_list]
+def get_col(sql_list, col_name):
+    sql_col = [x[col_name] for x in sql_list]
     return sql_col
 
 
 def insert_customer():
     get_number = """
-    SELECT ISNULL(COUNT(*),0)
+    SELECT ISNULL(COUNT(*),0) as number
     FROM customer
     """
-    number = get_col(run_sql(get_number), 0)  # 数值型
+    number = get_col(run_sql(get_number), "number")  # 数值型
+    df_insert_customer = pd.DataFrame(columns=["customer_id","phone_number","password","password_hashed"])
     for i in range(n):
-        password_temp = fake.password(length = 10, upper_case = True, lower_case = True)
+        customer_id = 'C' + str(number[0] + i + 1).zfill(9)
+        phone_number = fake.phone_number()
+        password = fake.password(length = 10, upper_case = True, lower_case = True)
+        password_hashed = hash_password(password)
+        df_insert_customer.loc[i] = [customer_id,phone_number,password,password_hashed]
 
         insert_customer = """
         insert into customer(customer_id, customer_phonenumber, customer_password)
-        values('%s','%s','%s');
-        """ % ('C' + str(number[0] + i + 1).zfill(9),  # 编号
-               fake.phone_number(),
-               hash_password(password_temp))
-        run_sql(insert_customer)
+        values(:customer_id,:phone_number,:password);
+        """ 
+        run_sql(insert_customer,{"customer_id":customer_id,"phone_number":phone_number,"password":password_hashed})
+    df_insert_customer.to_csv("fake_data/insert_customer.csv")
 
 
 def insert_supplier():
     get_number = """
-    SELECT ISNULL(COUNT(*),0)
+    SELECT ISNULL(COUNT(*),0) as number
     FROM supplier
     """
 
-    number = get_col(run_sql(get_number), 0)
+    number = get_col(run_sql(get_number), "number")
+    df_insert_supplier = pd.DataFrame(columns=["supplier_id", "supplier_password","supplier_password_hashed", "supplier_name", "owner_name", "owner_id"])
     for i in range(n):
-        password_temp = fake.password(length = 10, upper_case = True, lower_case = True)
+        supplier_id = 'S' + str(number[0] + i + 1).zfill(9)
+        supplier_password = fake.password(length = 10, upper_case = True, lower_case = True)
+        supplier_password_hashed = hash_password(supplier_password)
+        supplier_name = fake.company() + str(i) # supplier_name是店铺名称
+        owner_name = fake.name()
+        owner_id = fake.ssn(min_age = 18, max_age = 90)  # owner_id 是店铺主的身份证号
+        df_insert_supplier.loc[i] = [supplier_id,supplier_password,supplier_password_hashed,supplier_name,owner_name,owner_id]
         insert_supplier = """
         insert into supplier(supplier_id, supplier_password, supplier_name, owner_name, owner_id)
-        values('%s','%s','%s','%s','%s')
-        """ % ('S' + str(number[0] + i + 1).zfill(9),
-               hash_password(password_temp),
-               fake.company() + str(i),  # supplier_name是店铺名称
-               fake.name(),
-               fake.ssn(min_age = 18, max_age = 90))  # owner_id 是店铺主的身份证号
-        run_sql(insert_supplier)
+        values(:supplier_id,:supplier_password,:supplier_name,:owner_name,:owner_id)
+        """ 
+        # % ('S' + str(number[0] + i + 1).zfill(9),
+        #        hash_password(supplier_password),
+        #        fake.company() + str(i),  # supplier_name是店铺名称
+        #        fake.name(),
+        #        fake.ssn(min_age = 18, max_age = 90))  # owner_id 是店铺主的身份证号
+        run_sql(insert_supplier,{"supplier_id":supplier_id,
+                                    "supplier_password":supplier_password_hashed,
+                                    "supplier_name":supplier_name,
+                                    "owner_name":owner_name,
+                                    "owner_id":owner_id
+        })
+    df_insert_supplier.to_csv("fake_data/insert_supplier.csv")
 
 
 def insert_info_supplier():
@@ -76,17 +95,25 @@ def insert_info_supplier():
     SELECT supplier_id
     FROM supplier
     """
-    supplier_id = get_col(run_sql(get_id), 0)  # 给所有的supplier都插入info
+    supplier_id = get_col(run_sql(get_id), "supplier_id")  # 给所有的supplier都插入info
     # supplier_id = random.sample(cursor.fetchall() , n) #从已有的id中随机取出n个
+    df_insert_info_supplier = pd.DataFrame(columns=["supplier_id", "address_name", "nickname", "phone"])
     for i in range(len(supplier_id)):
+        supplier_id_i = supplier_id[i]
+        address_name = fake.address()
+        nickname = fake.first_name() # 生成收货昵称
+        phone = fake.phone_number()
         insert_info_supplier = """
         INSERT INTO info_supplier(supplier_id, address_name, nickname, phone)
-        values('%s','%s','%s','%s')
-        """ % (supplier_id[i],
-               fake.address(),
-               fake.first_name(),  # 生成收货昵称
-               fake.phone_number())
-        run_sql(insert_info_supplier)
+        values(:supplier_id,:address_name,:nickname,:phone)
+        """ 
+        df_insert_info_supplier.loc[i] = [supplier_id_i,address_name,nickname,phone]
+        run_sql(insert_info_supplier,{"supplier_id":supplier_id_i,
+                                        "address_name":address_name, 
+                                        "nickname":nickname,
+                                        "phone":phone
+        })
+    df_insert_info_supplier.to_csv("fake_data/insert_info_supplier.csv")
 
 
 def insert_info_customer():
@@ -94,36 +121,43 @@ def insert_info_customer():
     SELECT customer_id
     FROM customer
     """
-    customer_id = get_col(run_sql(get_id), 0)
+    customer_id = get_col(run_sql(get_id), "customer_id")
+    df_insert_info_customer = pd.DataFrame(columns=["customer_id", "address_name", "nickname", "phone"])
     # customer_id = random.sample(cursor.fetchall(), n)
     for i in range(len(customer_id)):
+        customer_id_i = customer_id[i]
+        address_name = fake.address()
+        nickname = fake.first_name()
+        phone = fake.phone_number()
         insert_info_customer = """
         insert into info_customer(customer_id, address_name, nickname, phone)
-        values('%s','%s','%s','%s')
-        """ % (customer_id[i],
-               fake.address(),
-               fake.first_name(),  # 随机生成收货昵称
-               fake.phone_number())
-        run_sql(insert_info_customer)
+        values(:customer_id,:address_name,:nickname,:phone)
+        """ 
+        df_insert_info_customer.loc[i] = [customer_id_i, address_name, nickname, phone]
+        run_sql(insert_info_customer,{"customer_id":customer_id_i,
+                                        "address_name":address_name,
+                                        "nickname":nickname,
+                                        "phone":phone})
+    df_insert_info_customer.to_csv("fake_data/insert_info_customer.csv")
 
 
 def insert_product():
-    product_info = pd.read_csv("product_info.csv", encoding = "GBK")
+    product_info = pd.read_csv("script/product_info.csv", encoding = "GBK")
     product_name = product_info[u"商品名称"]
     pic_url = product_info["封面图链接"]
     price = product_info["价格"]
     get_number = """
-    SELECT ISNULL(COUNT(*), 0)
+    SELECT ISNULL(COUNT(*), 0) as number
     FROM product
     """
-    number = get_col(run_sql(get_number), 0)
+    number = get_col(run_sql(get_number), "number")
 
     get_id = """
     SELECT supplier_id
     FROM supplier
     """
 
-    supplier_id = get_col(run_sql(get_id), 0)
+    supplier_id = get_col(run_sql(get_id), "supplier_id")
     for i in range(len(supplier_id)):
         insert_product = """
         INSERT INTO product(product_id, product_name, price, supplier_id, remain, size, discount, category, pic_url)
@@ -142,29 +176,31 @@ def insert_product():
 
 def insert_orders():
     get_number = """
-    SELECT ISNULL(COUNT(*), 0)
+    SELECT ISNULL(COUNT(*), 0) as number
     FROM product
     """
-    number = get_col(run_sql(get_number), 0)
+    number = get_col(run_sql(get_number), "number")
 
     get_need_s = """
-    SELECT s.supplier_id, p.product_id, p.price*(1-p.discount)
+    SELECT s.supplier_id as supplier_id, p.product_id as product_id, p.price*(1-p.discount) as price
     FROM product p, supplier s
     WHERE s.supplier_id = p.supplier_id
     """
     need = run_sql(get_need_s)  # list类型
-    supplier_id = random.sample(get_col(need, 0), n)  # 随机挑选n个
-    product_id = random.sample(get_col(need, 1), n)
-    price_unit = random.sample(get_col(need, 2), n)
+    supplier_id = random.sample(get_col(need, "supplier_id"), n)  # 随机挑选n个
+    product_id = random.sample(get_col(need, "product_id"), n)
+    price_unit = random.sample(get_col(need, "price"), n)
 
     get_customer_id = """
     SELECT customer_id
     FROM customer
     """
-    customer_id = random.sample(get_col(run_sql(get_customer_id), 0), n)
+    customer_id = random.sample(get_col(run_sql(get_customer_id), "customer_id"), n)
 
     quantity = [random.randint(0, 9999) for x in range(n)]
-
+    df_insert_orders = pd.DataFrame(columns=["order_id", "customer_id", "supplier_id", "product_id", "orderdate",
+                                                "quantity", "price_sum", "deliver_address", "receive_address",
+                                                "is_return", "comment"])
     for i in range(n):
         # 先查人对应的地址
         get_address_c = """
@@ -172,31 +208,46 @@ def insert_orders():
         FROM  info_customer
         WHERE customer_id = '%s'
         """ % customer_id[i]
-        address_c = random.choice(get_col(run_sql(get_address_c), 0))  # 只要一个地址就行
+        address_c = random.choice(get_col(run_sql(get_address_c), "address_name"))  # 只要一个地址就行
 
         get_address_s = """
         SELECT  address_name
         FROM  info_supplier
         WHERE supplier_id = '%s'
         """ % supplier_id[i]
-        address_s = random.choice(get_col(run_sql(get_address_s), 0))
+        address_s = random.choice(get_col(run_sql(get_address_s), "address_name"))
+
+        order_id = 'O' + str(number[0] + i + 1).zfill(9)
+        customer_id_i = customer_id[i]
+        supplier_id_i = supplier_id[i]
+        product_id_i = product_id[i]
+        orderdate = fake.date_time_this_decade(before_now = True, after_now = False) # 本年代中的日期
+        quantity_i = quantity[i]
+        price_sum = quantity[i] * price_unit[i]
+        is_return = random.randint(0, 1)
+        comment = fake.paragraph(nb_sentences = 2)[:100]
+
 
         insert_orders = """
         INSERT INTO orders(order_id, customer_id, supplier_id, product_id, orderdate, quantity, price_sum, deliver_address, receive_address, is_return, comment)
-        VALUES('%s','%s','%s','%s','%s','%u','%f','%s','%s','%u','%s')
-        """ % ('O' + str(number[0] + i + 1).zfill(9),
-               customer_id[i],
-               supplier_id[i],
-               product_id[i],
-               fake.date_time_this_decade(before_now = True, after_now = False),  # 本年代中的日期
-               quantity[i],
-               quantity[i] * price_unit[i],
-               address_s,
-               address_c,
-               random.randint(0, 1),
-               fake.paragraph(nb_sentences = 2)[:100]  # varchar(200)
-               )
-        run_sql(insert_orders)
+        VALUES(:order_id, :customer_id, :supplier_id, :product_id, :orderdate, :quantity, :price_sum, :deliver_address, :receive_address, :is_return, :comment)
+        """ 
+        df_insert_orders.loc[i] = [order_id, customer_id_i, supplier_id_i,
+                                    product_id_i, orderdate, quantity_i, price_sum,
+                                    address_s, address_c, is_return,
+                                    comment]
+        run_sql(insert_orders,{"order_id":order_id,
+                                "customer_id":customer_id_i,
+                                "supplier_id":supplier_id_i,
+                                "product_id":product_id_i,
+                                "orderdate":orderdate,
+                                "quantity":quantity_i,
+                                "price_sum":price_sum,
+                                "deliver_address":address_s,
+                                "receive_address":address_c,
+                                "is_return":is_return,
+                                "comment":comment})
+        df_insert_orders.to_csv("fake_data/insert_orders.csv")
 
 
 def insert_cart():
@@ -204,23 +255,27 @@ def insert_cart():
         SELECT  customer_id
         FROM  customer
         """
-    customer_id = get_col(run_sql(get_customer_id), 0)
+    customer_id = get_col(run_sql(get_customer_id), "customer_id")
 
     get_product_id = """
     SELECT  product_id
     FROM  product
     """
-    product_id = random.sample(get_col(run_sql(get_product_id), 0), len(customer_id))
-
+    product_id = random.sample(get_col(run_sql(get_product_id), "product_id"), len(customer_id))
+    df_insert_cart = pd.DataFrame(columns=["customer_id" , "product_id", "count"])
     for i in range(0, len(customer_id)):
+        customer_id_i = customer_id[i]
+        product_id_i = product_id[i]
+        count = random.randint(0, 9999)
         insert_cart = """
         INSERT INTO cart(customer_id , product_id, count)
-        VALUES('%s', '%s', '%u')
-        """ % (customer_id[i],
-               product_id[i],
-               random.randint(0, 9999)
-               )
-        run_sql(insert_cart)
+        VALUES(:customer_id, :product_id, :count)
+        """ 
+        df_insert_cart.loc[i] = [customer_id_i, product_id_i, count]
+        run_sql(insert_cart,{"customer_id":customer_id_i,
+                                "product_id":product_id_i,
+                                "count":count})
+    df_insert_cart.to_csv("fake_data/insert_cart.csv")
 
 
 def insert_fake():
