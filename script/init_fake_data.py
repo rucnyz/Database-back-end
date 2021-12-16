@@ -143,7 +143,7 @@ def insert_info_customer():
 
 def insert_product():
     product_info = pd.read_csv("script/product_info.csv", encoding = "GBK")
-    product_name = product_info[u"商品名称"]
+    product_name = product_info["商品名称"]
     pic_url = product_info["封面图链接"]
     price = product_info["价格"]
     get_number = """

@@ -62,6 +62,7 @@ def login():
     WHERE customer_id='%s'
     """ % customer_id
     c_info = run_sql(info)
+    # c_info = loads(c_info)
     nickName = c_info[0]['nickname']
     address_name = c_info[0]['address_name']
     cust_ID = {"ID": customer_id, "phoneNumber": phone_number, "nickName": nickName, "addressName": address_name}
