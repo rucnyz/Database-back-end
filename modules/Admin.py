@@ -28,10 +28,11 @@ def top3_product():
         GROUP BY s.supplier_id
         ORDER BY SUM(o.quantity) DESC
         """ % spid
+        tuple_tmp = run_sql(top3_product)
+        column = ['supplier_id','rank', 'product_id', 'product_name']
+        d = {"detail": [dict(zip(column, t[i])) for i in range(len(t))]}
 
-        t = run_sql(top3_product)
-        column = ['supplier_id', 'product_id', 'product_name', ]
-        d = {"detail": [dict(zip(column, t[i].values())) for i in range(len(t))]}
+
 
     return
 
@@ -39,16 +40,17 @@ def top3_product():
 # 2. 给定一个商品，显示售卖此商品价格最低的5个商家。”（商品名字模糊搜索)
 # /api/admin/low5_supplier
 # input:base,{"key_words"}
-# output:base,{"key_words",{"product_id","product_name","supplier_id","supplier_name"{}},{},...,{}}
+# output:base,{"key_words",list["product_id","product_name",list["supplier_id","supplier_name"]],{},...,{}}
 @admin.route("/low5_supplier", methods=['POST'])
 def low5_supplier():
+    key_words = request.json['']
     return
 
 
 # 3. 显示每个商家的年销售总额。
 # /api/admin/annual_sales
 # input:base,{"year"}
-# output:base,{"year",{"supplier_id","supplier_name","annual_sales"{}},{},...,{}}
+# output:base,{"year",list[{"supplier_id","supplier_name","annual_sales"}]}
 @admin.route("/annual_sales", methods=['POST'])
 def annual_sales():
     return
