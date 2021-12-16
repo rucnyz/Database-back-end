@@ -5,21 +5,20 @@ from utils import run_sql, wrap_json_for_send
 admin = Blueprint('admin', __name__)
 
 
-# 1. 显示每个商家最热卖的top 3个商品。 # zzm
+# 1. 显示每个商家最热卖的top 3个商品。 # zzm  # hcy修改
 # /api/admin/top3_product
 # input:base,{""}
-# output:base,{"supplier_id","rank","product_id","product_name","sum_quantity"}
+# output:base,{"supplier_id","product_id","product_name","sum_quantity"}
 @admin.route("/top3_product", methods=['POST'])
 def top3_product():
     # 获取已有商家数量，进行循环
     getNum = """
-            SELECT COUNT(*) as cnt
-           from supplier   
-            """
+    SELECT COUNT(*) as cnt
+    FROM supplier
+    """
     tmp = run_sql(getNum)
     number = int(tmp['cnt'][0])
-    final_info = {}
-    for i in range(1, number + 1):
+    for i in range(number):
         spid = 'S' + i
         top3_product = """
         SELECT TOP 3 s.supplier_id, p.product_id, p.product_name, SUM(o.quantity)
@@ -28,10 +27,9 @@ def top3_product():
         GROUP BY s.supplier_id
         ORDER BY SUM(o.quantity) DESC
         """ % spid
-        tuple_tmp = run_sql(top3_product)
-        column = ['supplier_id','rank', 'product_id', 'product_name']
-        tmp_info = [dict(zip(column, tuple_tmp[i].values())) for i in range(len(tuple_tmp))]
-        final_info.update(tmp_info)
+    tuple_tmp = run_sql(top3_product)
+    column = ["supplier_id", "product_id", "product_name", "sum_quantity"]
+    final_info = [dict(zip(column, tuple_tmp[i].values())) for i in range(len(tuple_tmp))]
     d = {"detail": final_info}
 
     return wrap_json_for_send(d, "successful")
@@ -40,7 +38,7 @@ def top3_product():
 # 2. 给定一个商品，显示售卖此商品价格最低的5个商家。”（商品名字模糊搜索) # zzm   hcy修改
 # /api/admin/low5_supplier
 # input:base,{"key_words"}
-# output:base,{"key_words",'details': [{"price","product_id","product_name","supplier_id","supplier_name"{}},{},...,{}]}
+# output:base,{"key_words",'detail': [{"price","product_id","product_name","supplier_id","supplier_name"{}},{},...,{}]}
 @admin.route("/low5_supplier", methods=['POST'])
 def low5_supplier():
     key_words = request.json['key_words']
@@ -48,11 +46,11 @@ def low5_supplier():
     SELECT TOP 5 price, product_id, product_name, s.supplier_id supplier_id, supplier_name
     FROM product p, supplier s
     WHERE p.supplier_id=s.supplier_id AND product_name LIKE '%s'
-    ORDER BY price DESC 
+    ORDER BY price ASC 
     """ % key_words
     t = run_sql(get_low5_supplier)
     column = ["price", "product_id", "product_name", "supplier_id", "supplier_name"]
-    d = {'key_words': key_words, 'details': [dict(zip(column, t[i].values())) for i in range(len(t))]}
+    d = {'key_words': key_words, 'detail': [dict(zip(column, t[i].values())) for i in range(len(t))]}
 
     return wrap_json_for_send(d, "successful")
 
