@@ -29,7 +29,7 @@ def top3_product():
         ORDER BY SUM(o.quantity) DESC
         """ % spid
         tuple_tmp = run_sql(top3_product)
-        column = ['supplier_id','rank', 'product_id', 'product_name']
+        column = ['supplier_id','product_id', 'product_name','sum_quantity']
         tmp_info = [dict(zip(column, tuple_tmp[i].values())) for i in range(len(tuple_tmp))]
         final_info.update(tmp_info)
     d = {"detail": final_info}

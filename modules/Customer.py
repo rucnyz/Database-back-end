@@ -171,8 +171,15 @@ def select_cart(id):
 
 # 在购物车界面只能增加某件商品的数量(update)，在商品界面才可以向购物车增加新的商品(add)
 # /api/customer/"id"/shoppingCart/add
-# input: base,{"customerID": "xxx", "productID":,"count"}
+# input: base,{"productID":,"count":3}
 # output:base
+# 例子
+# {
+# "productID": "xx"
+# "count": 3
+# }
+
+
 @customer.route("/<id>/shoppingCart/add", methods = ['POST'])  # hcy
 def add_cart(id):
     product_id = request.json['productID']
@@ -285,6 +292,8 @@ def set_is_return(id):  # 设置退货标记
 # input:base,{"productID","orderDate","priceSum","quantity","receiveAddress"}
 # output:base, {"ordersID"}
 # {version:0.1, statuscode:successful, orders: [{"productID","orderDate","priceSum","quantity","receiveAddress"}]}
+
+
 @customer.route("/<id>/orders/add_cart", methods = ['POST', 'GET'])  # zzm
 def orders_add_cart(id):  # 新订单添加
     # supplier_id = request.json["supplierID"]
@@ -345,9 +354,20 @@ def orders_add_cart(id):  # 新订单添加
 
 # 从商品界面里添加新订单。除接口外，与购物车添加订单均相同。
 # /api/customer/<id>/orders/add_product
-# input:base,{"supplierID","productID","orderDate","priceSum","quantity","deliverAddress","receiveAddress"}
-# output:base, {"ordersID"}
+#  input:base,{"productID","orderDate","priceSum","quantity",“size”,"receiveAddress"}
+#  output:base, {"ordersID"}
 #
+# eg.
+# input:{
+#     "productID": "P000000001",
+#     "orderDate": "当前时间，精确到秒",
+#     "priceSum": "1000(总价格)",
+#     "quantity": "5(数量)",
+#     "size": "M、L等规格"
+#     "receiveAddress": "地址字符串"
+#   }
+# output:{"ordersID":"O1234"}
+
 @customer.route("/<id>/orders/add_product", methods = ['POST', 'GET'])  # zzm
 def orders_add_product(id):  # 新订单添加
     supplier_id = request.json["supplierID"]
@@ -355,7 +375,7 @@ def orders_add_product(id):  # 新订单添加
     order_date = request.json["orderDate"]
     price_sum = request.json["priceSum"]
     quantity = request.json["quantity"]
-    deliver_address = request.json["deliverAddress"]
+    size = request.json["size"]
     receive_address = request.json["receiveAddress"]
 
     getNum = """
@@ -364,6 +384,19 @@ def orders_add_product(id):  # 新订单添加
      """
     tuple_tmp = run_sql(getNum)
     order_id_new = 'O' + str(int(tuple_tmp[0]['cnt'] + 1))  # 获得新的订单编号
+
+
+
+    getDelAdd = """
+        
+    SELECT s.address_name da
+    FROM product p,supplier s
+    WHERE p.product_id='%s' AND p.product_id=s.product_id AND p.supplier_id=s.supplier_id
+    
+    
+    """ %product_id
+    t = run_sql(getDelAdd)
+    deliver_address = t['da'][0]
 
     orders_add = """
     CREATE TRIGGER trig_insert
