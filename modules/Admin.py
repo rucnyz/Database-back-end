@@ -18,7 +18,7 @@ def top3_product():
             """
     tmp = run_sql(getNum)
     number = int(tmp['cnt'][0])
-
+    final_info = {}
     for i in range(1, number + 1):
         spid = 'S' + i
         top3_product = """
@@ -30,11 +30,11 @@ def top3_product():
         """ % spid
         tuple_tmp = run_sql(top3_product)
         column = ['supplier_id','rank', 'product_id', 'product_name']
-        d = {"detail": [dict(zip(column, t[i])) for i in range(len(t))]}
+        tmp_info = [dict(zip(column, tuple_tmp[i].values())) for i in range(len(tuple_tmp))]
+        final_info.update(tmp_info)
+    d = {"detail": final_info}
 
-
-
-    return
+    return wrap_json_for_send(d, "successful")
 
 
 # 2. 给定一个商品，显示售卖此商品价格最低的5个商家。”（商品名字模糊搜索)
@@ -44,8 +44,17 @@ def top3_product():
 @admin.route("/low5_supplier", methods=['POST'])
 def low5_supplier():
     key_words = request.json['key_words']
+    low5_supplier ='''
+    SELECT TOP 5 p.product_id, p.product_name, s.supplier_id, s.supplier_name
+    FROM supplier s, product p
+    WHERE p.product_name LIKE '%%%s%%' AND p.supplier_id=s.supplier_id
+    ORDER BY p.price ASC
+    ''' %key_words
+    t = run_sql(low5_supplier)
+    column = ["productID", "product_name", "supplier_id", "supplier_name"]
+    d = {"key_words": key_words, "detail": [dict(zip(column, t[i].values())) for i in range(len(t))]}
 
-    return
+    return wrap_json_for_send(d, "successful")
 
 
 # 3. 显示每个商家的年销售总额。

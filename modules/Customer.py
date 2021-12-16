@@ -72,7 +72,7 @@ def login():
 # 用户个人信息查询
 # /api/customer/ID:"xxx"/info
 # input : base, {"ID":"xxx"}
-# output: base, {"nickName":"xxx", "phoneNumber":"xxx","address":list(无则返回空); }
+# output: base, {"address":[{"nickName","phoneNumber","address"}]}
 @customer.route("/<id>/info", methods = ['POST'])  # hcy
 def select_customer_info(id):
     # content = request.json
@@ -82,17 +82,19 @@ def select_customer_info(id):
     WHERE customer_id='%s'
     """ % id
     t = run_sql(select_customer_info)
+
     column = ['nickName', 'phoneNumber', 'address']
+
     list = [dict(zip(column, t[i].values())) for i in range(len(t))]
-    d = {"detail": list}
+    d = {"address": list}
     return wrap_json_for_send(d, 'successful')
 
 
 # /api/customer/"id"/address/add
-# input:base,{"ID","nickName","address","phoneNumber"}
+# input:base,{"customerID","nickName","phoneNumber","address"}
 # output: base
 @customer.route("/<id>/address/add", methods = ['POST'])  # hcy
-def add_customer_info(id):
+def add_customer_info(customerID):
     nickname = request.json['nickName']
     address = request.json['address']
     phone_number = request.json['phoneNumber']
@@ -101,33 +103,33 @@ def add_customer_info(id):
     INSERT
     INTO info_customer(customer_id, address_name, nickname, phone)
     VALUES('%s', '%s', '%s', '%s')
-    """ % (id, nickname, address, phone_number)
+    """ % (customerID, nickname, address, phone_number)
     _ = run_sql(add_customer_info)
     d = {}
     return wrap_json_for_send(d, "successful")
 
 
 # /api/customer/"id"/address/delete
-# input: base,{"ID","address"}
+# input: base,{"customerID","address"}
 # output: base
 @customer.route("/<id>/address/delete", methods = ['POST'])  # hcy
-def delete_customer_info(id):
+def delete_customer_info(customerID):
     address = request.json['address']
     delete_customer_info = """
     DELETE
     FROM info_customer
     WHERE customer_id='%s', address_name='%s'
-    """ % (id, address)
+    """ % (customerID, address)
     _ = run_sql(delete_customer_info)
     d = {}
     return wrap_json_for_send(d, "successful")
 
 
 # /api/customer/"id"/address/update
-# input: base, {"ID","nickName","phoneNumber","address"}
+# input: base, {"customerID","nickName","phoneNumber","address"}
 # ouput: base
 @customer.route("/<id>/address/update", methods = ['POST'])  # hcy
-def update_customer_info(id):
+def update_customer_info(customerID):
     nickname = request.json['nickName']
     address = request.json['address']
     phone_number = request.json['phoneNumber']
@@ -135,7 +137,7 @@ def update_customer_info(id):
     UPDATE info_customer
     SET address_name='%s', nickname='%s', phone='%s'
     WHERE customer_id='%s'
-    """ % (nickname, address, phone_number, id)
+    """ % (nickname, address, phone_number, customerID)
     _ = run_sql(update_customer_info)
     d = {}
     return wrap_json_for_send(d, "successful")

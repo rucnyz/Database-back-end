@@ -38,7 +38,7 @@ def get_homePage():
     return wrap_json_for_send(d, "successful")
 
 
-#  /api/HomePage/getCategory（固定栏）
+#  /api/HomePage/getCategory（固定栏）zzm
 # input: base
 # output: base ,{"number":xx（数字）,"分类”:[……, ……,……]}
 @homepage.route("/getCategory", methods = ['POST', 'GET'])  # zzm
@@ -54,7 +54,7 @@ def get_homepage_category():
     return wrap_json_for_send(d, "successful")
 
 
-#  /api/HomePage/getProductInCat   用于返回特定种类商品。
+#  /api/HomePage/getProductInCat   用于返回特定种类商品。zzm
 # input: base,{"category":xx}
 # output: base ,{{"商品id"：id，"商品图片"：图片url，"商品名称"：名称，"商品价格"：价格},{……},{……}}
 @homepage.route("/getProductInCat", methods = ['POST', 'GET'])  # zzm
