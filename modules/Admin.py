@@ -5,21 +5,21 @@ from utils import run_sql, wrap_json_for_send
 admin = Blueprint('admin', __name__)
 
 
-# 1. 显示每个商家最热卖的top 3个商品。
+# 1. 显示每个商家最热卖的top 3个商品。 # zzm  # hcy修改
 # /api/admin/top3_product
 # input:base,{""}
-# output:base,{"supplier_id","rank","product_id","product_name","sum_quantity"}
+# output:base,{"supplier_id","product_id","product_name","sum_quantity"}
 @admin.route("/top3_product", methods=['POST'])
 def top3_product():
     # 获取已有商家数量，进行循环
     getNum = """
-            SELECT COUNT(*) as cnt
-           from supplier   
-            """
+    SELECT COUNT(*) as cnt
+    FROM supplier
+    """
     tmp = run_sql(getNum)
     number = int(tmp['cnt'][0])
     final_info = {}
-    for i in range(1, number + 1):
+    for i in range(number):
         spid = 'S' + i
         top3_product = """
         SELECT TOP 3 s.supplier_id, p.product_id, p.product_name, SUM(o.quantity)
@@ -37,33 +37,61 @@ def top3_product():
     return wrap_json_for_send(d, "successful")
 
 
-# 2. 给定一个商品，显示售卖此商品价格最低的5个商家。”（商品名字模糊搜索)
+# 2. 给定一个商品，显示售卖此商品价格最低的5个商家。”（商品名字模糊搜索) # zzm   hcy修改
 # /api/admin/low5_supplier
 # input:base,{"key_words"}
-# output:base,{"key_words",list["product_id","product_name",list["supplier_id","supplier_name"]],{},...,{}}
+# output:base,{"key_words",'detail': [{"price","product_id","product_name","supplier_id","supplier_name"{}},{},...,{}]}
 @admin.route("/low5_supplier", methods=['POST'])
 def low5_supplier():
     key_words = request.json['key_words']
-    low5_supplier ='''
-    SELECT TOP 5 p.product_id, p.product_name, s.supplier_id, s.supplier_name
-    FROM supplier s, product p
-    WHERE p.product_name LIKE '%%%s%%' AND p.supplier_id=s.supplier_id
-    ORDER BY p.price ASC
-    ''' %key_words
-    t = run_sql(low5_supplier)
-    column = ["productID", "product_name", "supplier_id", "supplier_name"]
-    d = {"key_words": key_words, "detail": [dict(zip(column, t[i].values())) for i in range(len(t))]}
+    get_low5_supplier = """
+    SELECT TOP 5 p.price, p.product_id, p.product_name, s.supplier_id, s.supplier_name
+    FROM product p, supplier s
+    WHERE p.supplier_id=s.supplier_id AND product_name LIKE '%%%s%%'
+    ORDER BY price ASC 
+    """ % key_words
+    t = run_sql(get_low5_supplier)
+    column = ["price", "product_id", "product_name", "supplier_id", "supplier_name"]
+    d = {'key_words': key_words, 'detail': [dict(zip(column, t[i].values())) for i in range(len(t))]}
 
     return wrap_json_for_send(d, "successful")
 
 
-# 3. 显示每个商家的年销售总额。
+# 3. 显示每个商家的年销售总额。 # hcy
 # /api/admin/annual_sales
 # input:base,{"year"}
-# output:base,{"year",list[{"supplier_id","supplier_name","annual_sales"}]}
+# output:base, {"year":,"suppliers": list[{"supplier_id","supplier_name","annual_sales"}]}
 @admin.route("/annual_sales", methods=['POST'])
 def annual_sales():
-    return
+    # 获取年份，进行循环
+    get_years = """
+    SELECT DISTINCT DatePart('yyyy', orderdate)
+    from orders 
+    """
+    list_year = loads(run_sql(get_years))
+
+    get_annual_sales = """
+    SELECT DatePart('yyyy', o.orderdate) year, s.supplier_id supplier_id, s.supplier_name, SUM(o.price_sum) annual_sales
+    FROM supplier s, orders o
+    WHERE s.supplier_id=o.supplier_id
+    GROUP BY s.supplier_id, DatePart('yyyy', o.orderdate)
+    """
+    t = run_sql(get_annual_sales)
+    # t = loads(t)
+
+    l_all = []
+    for item in list_year:
+        dtmp = {}
+        ltmp = []
+        for item_ in t:
+            if item_['year'] == item:
+                ltmp.append(item_)
+        dtmp['year'] = item
+        dtmp['suppliers'] = ltmp
+        l_all.append(dtmp)
+
+    d = {"detail": l_all}
+    return wrap_json_for_send(d, "successful")
 
 
 # 4.显示每个会员购买次数最多的商品。  # lsy

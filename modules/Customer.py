@@ -62,6 +62,7 @@ def login():
     WHERE customer_id='%s'
     """ % customer_id
     c_info = run_sql(info)
+    # c_info = loads(c_info)
     nickName = c_info[0]['nickname']
     address_name = c_info[0]['address_name']
     cust_ID = {"ID": customer_id, "phoneNumber": phone_number, "nickName": nickName, "addressName": address_name}
@@ -223,7 +224,7 @@ def add_cart(id):
 
 
 # /api/customer/id/shoppingCart/update  仅限更新数量
-# input:base, {"customerID": "xxx", "productID":,"count"}
+# input:base, {"count": "xxx", "productID":,"count"}
 # output:base
 @customer.route("/<id>/shoppingCart/update", methods = ['POST'])  # hcy
 def update_cart(id):
@@ -259,16 +260,15 @@ def delete_cart(id):
 # 3. 用户已有订单查询。返回用户已有订单。允许顾客进行退货处理。
 @customer.route("/<id>/orders", methods = ['POST'])  # lsy
 def get_orders(id):
-    content = request.json
     ## 提取信息
     get_orders = """
-    SELECT order_id, p.product_id, product_name, quantity 
+    SELECT o.order_id, p.product_name, o.quantity, o.price_sum, o.receive_address, o.comment 
     FROM product p, orders o
     WHERE o.customer_id = '%s' 
     AND p.product_id = o.product_id;
     """ % id
     t = run_sql(get_orders)
-    column = ['orderID', 'productID', 'productID', 'quantity']
+    column = ['orderID', 'productName', 'quantity', 'priceSum', 'receiveAddress', 'comment']
     d = [dict(zip(column, t[i].values())) for i in range(len(t))]
     d = {"number": len(t), "detail": d}
     return wrap_json_for_send(d, "successful")
@@ -282,7 +282,7 @@ def set_is_return(id):  # 设置退货标记
     SET is_return = 1 
     WHERE order_id = '%s' ;
     """ % order_id
-    t = run_sql(set_is_return, )
+    t = run_sql(set_is_return)
     d = {}
     return wrap_json_for_send(d, "successful")
 
