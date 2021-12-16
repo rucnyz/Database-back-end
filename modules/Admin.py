@@ -18,7 +18,7 @@ def top3_product():
             """
     tmp = run_sql(getNum)
     number = int(tmp['cnt'][0])
-
+    final_info = {}
     for i in range(1, number + 1):
         spid = 'S' + i
         top3_product = """
@@ -28,15 +28,16 @@ def top3_product():
         GROUP BY s.supplier_id
         ORDER BY SUM(o.quantity) DESC
         """ % spid
-
-        t = run_sql(top3_product)
-        column = ['supplier_id', 'product_id', 'product_name', 'sum_quantity']
-        d = {"detail": [dict(zip(column, t[i].values())) for i in range(len(t))]}
+        tuple_tmp = run_sql(top3_product)
+        column = ['supplier_id','rank', 'product_id', 'product_name']
+        tmp_info = [dict(zip(column, tuple_tmp[i].values())) for i in range(len(tuple_tmp))]
+        final_info.update(tmp_info)
+    d = {"detail": final_info}
 
     return wrap_json_for_send(d, "successful")
 
 
-# 2. 给定一个商品，显示售卖此商品价格最低的5个商家。”（商品名字模糊搜索) # hcy
+# 2. 给定一个商品，显示售卖此商品价格最低的5个商家。”（商品名字模糊搜索) # zzm   hcy修改
 # /api/admin/low5_supplier
 # input:base,{"key_words"}
 # output:base,{"key_words",'details': [{"price","product_id","product_name","supplier_id","supplier_name"{}},{},...,{}]}
