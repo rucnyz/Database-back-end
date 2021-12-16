@@ -260,7 +260,7 @@ def get_orders(id):
     """ % id
     t = run_sql(get_orders)
     column = ['orderID', 'productID', 'productID', 'quantity']
-    d = [dict(zip(column, t[i])) for i in range(len(t))]
+    d = [dict(zip(column, t[i].values())) for i in range(len(t))]
     d = {"number": len(t), "detail": d}
     return wrap_json_for_send(d, "successful")
 
@@ -282,7 +282,7 @@ def set_is_return(id):  # 设置退货标记
 # /api/customer/<id>/orders/add_cart
 # input:base,{"productID","orderDate","priceSum","quantity","receiveAddress"}
 # output:base, {"ordersID"}
-#
+# {version:0.1, statuscode:successful, orders: [{"productID","orderDate","priceSum","quantity","receiveAddress"}]}
 @customer.route("/<id>/orders/add_cart", methods = ['POST', 'GET'])  # zzm
 def orders_add_cart(id):  # 新订单添加
     # supplier_id = request.json["supplierID"]
@@ -299,15 +299,15 @@ def orders_add_cart(id):  # 新订单添加
     WHERE p.product_id = '%s' AND p.supplier_id = ifs.supplier_id;  
     """
     need_info = run_sql(get_need)
-    supplier_id = need_info['supplier_id'][0]
-    deliver_address = need_info['address_name'][0]
+    supplier_id = need_info[0]['supplier_id']
+    deliver_address = need_info[0]['address_name']
 
     getNum = """
     SELECT COUNT(*) as cnt
     from orders  
      """
     tuple_tmp = run_sql(getNum)
-    order_id_new = 'O' + str(int(tuple_tmp['cnt'][0] + 1))  # 获得新的订单编号
+    order_id_new = 'O' + str(int(tuple_tmp[0]['cnt'] + 1))  # 获得新的订单编号
 
     orders_add = """
     CREATE TRIGGER trig_insert
@@ -361,7 +361,7 @@ def orders_add_product(id):  # 新订单添加
     from orders  
      """
     tuple_tmp = run_sql(getNum)
-    order_id_new = 'O' + str(int(tuple_tmp['cnt'][0] + 1))  # 获得新的订单编号
+    order_id_new = 'O' + str(int(tuple_tmp[0]['cnt'] + 1))  # 获得新的订单编号
 
     orders_add = """
     CREATE TRIGGER trig_insert
