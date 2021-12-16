@@ -43,7 +43,8 @@ def top3_product():
 # output:base,{"key_words",list["product_id","product_name",list["supplier_id","supplier_name"]],{},...,{}}
 @admin.route("/low5_supplier", methods=['POST'])
 def low5_supplier():
-    key_words = request.json['']
+    key_words = request.json['key_words']
+
     return
 
 
