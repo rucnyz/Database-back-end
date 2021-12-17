@@ -46,12 +46,12 @@ def product_info():
     """ % product_id
     c = run_sql(comment)
 
-    d = {"productName": t['product_name'][0],
-         "price": t['price'][0],
-         "remain": t['remain'][0],
-         "size": t['size'][0],
-         "category": t['category'][0],
-         "pic_url": t['pic_url'][0],
+    d = {"productName": t[0]['product_name'],
+         "price": t[0]['price'],
+         "remain": t[0]['remain'],
+         "size": t[0]['size'],
+         "category": t[0]['category'],
+         "pic_url": t[0]['pic_url'],
          "comments": c}
     return wrap_json_for_send(d, 'successful')
 

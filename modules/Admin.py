@@ -17,13 +17,13 @@ def top3_product():
     FROM supplier
     """
     tmp = run_sql(getNum)
-    number = int(tmp['cnt'][0])
+    number = int(tmp[0]['cnt'])
     final_info = {}
     for i in range(number):
-        spid = 'S' + i
+        spid = 'S' + str(i)
         top3_product = """
         SELECT TOP 3 s.supplier_id, p.product_id, p.product_name, SUM(o.quantity)
-        FROM supplier s , orders o , products p
+        FROM supplier s , orders o , product p
         WHERE s.supplier_id=o.supplier_id AND p.product_id=o.product_id AND s.supplier='%s'
         GROUP BY s.supplier_id
         ORDER BY SUM(o.quantity) DESC
@@ -48,7 +48,7 @@ def low5_supplier():
     SELECT TOP 5 p.price, p.product_id, p.product_name, s.supplier_id, s.supplier_name
     FROM product p, supplier s
     WHERE p.supplier_id=s.supplier_id AND product_name LIKE '%%%s%%'
-    ORDER BY price ASC 
+    ORDER BY price 
     """ % key_words
     t = run_sql(get_low5_supplier)
     column = ["price", "product_id", "product_name", "supplier_id", "supplier_name"]
@@ -65,19 +65,18 @@ def low5_supplier():
 def annual_sales():
     # 获取年份，进行循环
     get_years = """
-    SELECT DISTINCT DatePart('yyyy', orderdate)
+    SELECT DISTINCT DatePart(yyyy, orderdate)
     from orders 
     """
-    list_year = loads(run_sql(get_years))
-
+    list_year = run_sql(get_years)
+    list_year = [i[''] for i in list_year]
     get_annual_sales = """
-    SELECT DatePart('yyyy', o.orderdate) year, s.supplier_id supplier_id, s.supplier_name, SUM(o.price_sum) annual_sales
+    SELECT DatePart(yyyy, o.orderdate) year, s.supplier_id, s.supplier_name, SUM(o.price_sum) annual_sales
     FROM supplier s, orders o
     WHERE s.supplier_id=o.supplier_id
-    GROUP BY s.supplier_id, DatePart('yyyy', o.orderdate)
+    GROUP BY s.supplier_id, s.supplier_name, DatePart(yyyy, o.orderdate)
     """
     t = run_sql(get_annual_sales)
-    # t = loads(t)
 
     l_all = []
     for item in list_year:
