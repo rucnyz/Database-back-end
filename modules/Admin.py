@@ -12,24 +12,24 @@ admin = Blueprint('admin', __name__)
 @admin.route("/top3_product", methods=['POST'])
 def top3_product():
     # 获取已有商家数量，进行循环
-    getNum = """
+    get_num = """
     SELECT COUNT(*) as cnt
     FROM supplier
     """
-    tmp = run_sql(getNum)
-    number = int(tmp[0]['cnt'])
+    tmp = run_sql(get_num)
+    number = int(tmp['cnt'][0])
     final_info = {}
     for i in range(number):
         spid = 'S' + str(i)
         top3_product = """
         SELECT TOP 3 s.supplier_id, p.product_id, p.product_name, SUM(o.quantity)
         FROM supplier s , orders o , product p
-        WHERE s.supplier_id=o.supplier_id AND p.product_id=o.product_id AND s.supplier='%s'
+        WHERE s.supplier_id=o.supplier_id AND p.product_id=o.product_id AND s.supplier_id='%s'
         GROUP BY s.supplier_id
         ORDER BY SUM(o.quantity) DESC
         """ % spid
         tuple_tmp = run_sql(top3_product)
-        column = ['supplier_id','product_id', 'product_name','sum_quantity']
+        column = ['supplier_id', 'product_id', 'product_name', 'sum_quantity']
         tmp_info = [dict(zip(column, tuple_tmp[i].values())) for i in range(len(tuple_tmp))]
         final_info.update(tmp_info)
     d = {"detail": final_info}
