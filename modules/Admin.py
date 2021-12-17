@@ -52,7 +52,7 @@ def low5_supplier():
     """ % key_words
     t = run_sql(get_low5_supplier)
     column = ["price", "product_id", "product_name", "supplier_id", "supplier_name"]
-    d = {'key_words': key_words, 'detail': [dict(zip(column, t[i].values())) for i in range(len(t))]}
+    d = {'keywords': key_words, 'detail': [dict(zip(column, t[i].values())) for i in range(len(t))]}
 
     return wrap_json_for_send(d, "successful")
 
