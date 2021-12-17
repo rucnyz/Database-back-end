@@ -39,11 +39,11 @@ def top3_product():
 
 # 2. 给定一个商品，显示售卖此商品价格最低的5个商家。”（商品名字模糊搜索) # zzm   hcy修改
 # /api/admin/low5_supplier
-# input:base,{"key_words"}
-# output:base,{"key_words",'detail': [{"price","product_id","product_name","supplier_id","supplier_name"{}},{},...,{}]}
+# input:base,{"keywords"}
+# output:base,{"keywords",'detail': [{"price","product_id","product_name","supplier_id","supplier_name"{}},{},...,{}]}
 @admin.route("/low5_supplier", methods=['POST'])
 def low5_supplier():
-    key_words = request.json['key_words']
+    key_words = request.json['keywords']
     get_low5_supplier = """
     SELECT TOP 5 p.price, p.product_id, p.product_name, s.supplier_id, s.supplier_name
     FROM product p, supplier s
