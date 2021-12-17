@@ -19,7 +19,7 @@ def top3_product():
     tmp = run_sql(get_num)
     number = int(tmp['cnt'][0])
     final_info = {}
-    for i in range(number):
+    for i in range(1, number+1):
         spid = 'S' + str(i)
         top3_product = """
         SELECT TOP 3 s.supplier_id, p.product_id, p.product_name, SUM(o.quantity)
