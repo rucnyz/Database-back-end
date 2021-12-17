@@ -25,13 +25,14 @@ def top3_product():
         SELECT TOP 3 s.supplier_id, p.product_id, p.product_name, SUM(o.quantity)
         FROM supplier s , orders o , product p
         WHERE s.supplier_id=o.supplier_id AND p.product_id=o.product_id AND s.supplier_id='%s'
-        GROUP BY s.supplier_id
+        GROUP BY s.supplier_id, p.product_id, p.product_name
         ORDER BY SUM(o.quantity) DESC
         """ % spid
         tuple_tmp = run_sql(top3_product)
         column = ['supplier_id', 'product_id', 'product_name', 'sum_quantity']
         tmp_info = [dict(zip(column, tuple_tmp[i].values())) for i in range(len(tuple_tmp))]
         final_info.update(tmp_info)
+
     d = {"detail": final_info}
 
     return wrap_json_for_send(d, "successful")
