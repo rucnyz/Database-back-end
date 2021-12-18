@@ -308,7 +308,7 @@ def orders_add_cart(id):  # 新订单添加
     SELECT ifs.supplier_id, ifs.address_name
     FROM product p, info_supplier ifs
     WHERE p.product_id = '%s' AND p.supplier_id = ifs.supplier_id;  
-    """
+    """ % product_id
     need_info = run_sql(get_need)
     supplier_id = need_info[0]['supplier_id']
     deliver_address = need_info[0]['address_name']
