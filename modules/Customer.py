@@ -289,7 +289,7 @@ def set_is_return(id):  # 设置退货标记
 
 # 从购物车里添加新订单。
 # /api/customer/<id>/orders/add_cart
-# input:base,{"productID","orderDate","priceSum","quantity","receiveAddress"}
+# input:base,{"productID","order_date","price_sum","quantity","receive_address"}
 # output:base, {"ordersID"}
 # {version:0.1, statuscode:successful, orders: [{"productID","orderDate","priceSum","quantity","receiveAddress"}]}
 
@@ -298,12 +298,12 @@ def set_is_return(id):  # 设置退货标记
 def orders_add_cart(id):  # 新订单添加
     # supplier_id = request.json["supplierID"]
     product_id = request.json["productID"]
-    order_date = request.json["orderDate"]
-    price_sum = request.json["priceSum"]
+    order_date = request.json["order_date"]
+    price_sum = request.json["price_sum"]
     quantity = request.json["quantity"]
     # supplierID、deliverAddress 需后端查询得到_____finished by lsy
     # deliver_address = request.json["deliverAddress"]
-    receive_address = request.json["receiveAddress"]
+    receive_address = request.json["receive_address"]
     get_need = """
     SELECT ifs.supplier_id, ifs.address_name
     FROM product p, info_supplier ifs
@@ -341,12 +341,22 @@ def orders_add_cart(id):  # 新订单添加
     
     INSERT
     INTO orders
-    VALUES('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s') 
-    """ % (
-        order_id_new, id, supplier_id, product_id, order_date, price_sum, quantity, deliver_address, receive_address, 0,
-        "Null")
+    VALUES(:order_id, :customer_id, :supplier_id, :product_id, :orderdate, 
+    :quantity, :price_sum, :deliver_address, :receive_address, :is_return, :comment)
+    """
 
-    run_sql(orders_add)
+    run_sql(orders_add, {"order_id": order_id_new,
+                                "customer_id": id,
+                                "supplier_id": supplier_id,
+                                "product_id": product_id,
+                                "orderdate": order_date,
+                                "quantity": quantity,
+                                "price_sum": price_sum,
+                                "deliver_address": deliver_address,
+                                "receive_address": receive_address,
+                                "is_return": 0,
+                                "comment": "Null"})
+
     new_order_info = {"ID": order_id_new}
 
     return wrap_json_for_send(new_order_info, "successful")
