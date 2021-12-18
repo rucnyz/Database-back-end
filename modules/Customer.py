@@ -293,7 +293,6 @@ def set_is_return(id):  # 设置退货标记
 # output:base, {"ordersID"}
 # {version:0.1, statuscode:successful, orders: [{"productID","orderDate","priceSum","quantity","receiveAddress"}]}
 
-
 @customer.route("/<id>/orders/add_cart", methods = ['POST', 'GET'])  # zzm
 def orders_add_cart(id):  # 新订单添加
     # supplier_id = request.json["supplierID"]
