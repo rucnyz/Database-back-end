@@ -17,7 +17,7 @@ def top3_product():
     FROM supplier
     """
     tmp = run_sql(get_num)
-    number = int(tmp['cnt'][0])
+    number = int(tmp[0]['cnt'])
     final_info = {}
     for i in range(1, number+1):
         spid = 'S' + str(i)

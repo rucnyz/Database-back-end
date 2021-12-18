@@ -1,13 +1,21 @@
 import sys
-sys.path.append(".")
+import platform
+
 from utils import run_sql
 
-
-create_db = """
-commit;
-IF DB_ID('OnlineShopping') IS NULL 
-CREATE DATABASE OnlineShopping COLLATE Chinese_Simplified_Stroke_Order_100_CI_AS_SC_UTF8
-            """
+sys.path.append(".")
+if platform.system() == 'Windows':
+    create_db = """
+    commit;
+    IF DB_ID('OnlineShopping') IS NULL 
+    CREATE DATABASE OnlineShopping
+                """
+else:
+    create_db = """
+        commit;
+        IF DB_ID('OnlineShopping') IS NULL 
+        CREATE DATABASE OnlineShopping COLLATE Chinese_Simplified_Stroke_Order_100_CI_AS_SC_UTF8
+                    """
 # DB_ID对应数据库 OBJECT_ID对应表
 
 run_sql(create_db)
