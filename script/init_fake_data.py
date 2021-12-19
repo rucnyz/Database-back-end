@@ -195,7 +195,7 @@ def insert_cart():
     for i in range(0, len(customer_id)):
         customer_id_i = customer_id[i]
         product_id_i = product_id[i]
-        count = random.randint(0, 9999)
+        count = random.randint(0, 50)
         insert_cart = """
         INSERT INTO cart(customer_id , product_id, count)
         VALUES(:customer_id, :product_id, :count)
@@ -252,7 +252,7 @@ def insert_orders():
 
         order_id = 'O' + str(number[0] + i + 1).zfill(9)
         orderdate = fake.date_time_this_decade(before_now = True, after_now = False)  # 本年代中的日期
-        quantity_i = random.randint(0, 99)
+        quantity_i = random.randint(0, 50)
         price_sum = quantity_i * price_unit_i
         is_return = random.randint(0, 1)
         comment = fake.paragraph(nb_sentences = 2)[:100]
