@@ -10,8 +10,8 @@ from flask_sqlalchemy import SQLAlchemy
 from utils import run_sql, wrap_json_for_send
 
 product = Blueprint('product', __name__)
-
-# /api/products/"商品ID"
+db = SQLAlchemy()
+# /api/product/"商品ID"
 # input: base, {"ID"}
 # output: base, {"productName", "price", "remain", "size", "category", "pic_url", "comment":[{'comment'}]}
 # input例子
@@ -30,20 +30,20 @@ product = Blueprint('product', __name__)
 #   'pic_url': 'https://img14.360buyimg.com/n7/jfs/t1/168641/4/25410/143878/61a864c4E342d985c/5daf74ceca47577e.jpg',
 # }
 @product.route("/<id>", methods = ['POST'])  # hcy
-def product_info():
+def product_info(id):
     product_id = request.json['productID']
     product_info = """
     SELECT product_name, price, remain, size, category, pic_url
     FROM product
     WHERE product_id='%s'
-    """ % product_id
+    """ % id
     t = run_sql(product_info)
 
     comment = """
     SELECT TOP 5 comment
     FROM orders
     WHERE product_id='%s'
-    """ % product_id
+    """ % id
     c = run_sql(comment)
 
     d = {"productName": t[0]['product_name'],
