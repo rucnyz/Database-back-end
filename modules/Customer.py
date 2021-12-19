@@ -261,13 +261,15 @@ def delete_cart(id):
 def get_orders(id):
     ## 提取信息
     get_orders = """
-    SELECT o.order_id, p.product_name, o.quantity, o.price_sum, o.receive_address, o.comment 
-    FROM product p, orders o
+    SELECT o.order_id, p.product_name, p.pic_url, o.quantity, o.price_sum, o.receive_address, i.phone, i.nickname, o.comment, o.is_return
+    FROM product p, orders o, info_customer i
     WHERE o.customer_id = '%s' 
-    AND p.product_id = o.product_id;
+    AND p.product_id = o.product_id AND o.customer_id = i.customer_id 
+    AND o.receive_address = i.address_name;
     """ % id
     t = run_sql(get_orders)
-    column = ['orderID', 'productName', 'quantity', 'priceSum', 'receiveAddress', 'comment']
+    column = ['orderID', 'productName', 'pic_url', 'quantity', 'priceSum', 'receiveAddress', 'phone', 'nickname',
+              'comment', 'is_return']
     d = [dict(zip(column, t[i].values())) for i in range(len(t))]
     d = {"number": len(t), "detail": d}
     return wrap_json_for_send(d, "successful")
@@ -344,16 +346,16 @@ def orders_add_cart(id):  # 新订单添加
     """
 
     run_sql(orders_add, {"order_id": order_id_new,
-                                "customer_id": id,
-                                "supplier_id": supplier_id,
-                                "product_id": product_id,
-                                "orderdate": order_date,
-                                "quantity": quantity,
-                                "price_sum": price_sum,
-                                "deliver_address": deliver_address,
-                                "receive_address": receive_address,
-                                "is_return": 0,
-                                "comment": "Null"})
+                         "customer_id": id,
+                         "supplier_id": supplier_id,
+                         "product_id": product_id,
+                         "orderdate": order_date,
+                         "quantity": quantity,
+                         "price_sum": price_sum,
+                         "deliver_address": deliver_address,
+                         "receive_address": receive_address,
+                         "is_return": 0,
+                         "comment": "Null"})
 
     new_order_info = {"ID": order_id_new}
 
@@ -394,8 +396,6 @@ def orders_add_product(id):  # 新订单添加
     tuple_tmp = run_sql(getNum)
     order_id_new = 'O' + str(int(tuple_tmp[0]['cnt'] + 1))  # 获得新的订单编号
 
-
-
     getDelAdd = """
         
     SELECT s.address_name da
@@ -403,7 +403,7 @@ def orders_add_product(id):  # 新订单添加
     WHERE p.product_id='%s' AND p.product_id=s.product_id AND p.supplier_id=s.supplier_id
     
     
-    """ %product_id
+    """ % product_id
     t = run_sql(getDelAdd)
     deliver_address = t[0]['da']
 
