@@ -67,8 +67,9 @@ def product_info(id):
 # {
 #   'comments': [
 #     {
-#       'customerID': "xxx"
 #       'comment': '情况注册全部增加能力积分对于.'
+#       'date': "xxx"
+#       'customerID': "xxx"
 #     }
 #   ]
 # }
@@ -76,9 +77,9 @@ def product_info(id):
 @product.route("/<id>/allcomments", methods = ['POST'])  # hcy #zzm修改
 def allcomments(id):
     comment = """
-    SELECT comment
-    FROM orders
-    WHERE product_id='%s'
+    SELECT comment, orderdate, customer.customer_id customerID
+    FROM orders, customer
+    WHERE product_id='%s' AND customer.customer_id=orders.customer_id
     """ % id
     c = run_sql(comment)
 
