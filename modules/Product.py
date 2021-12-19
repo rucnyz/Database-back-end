@@ -1,16 +1,13 @@
-# -*- coding: utf-8 -*-
-# @Time    : 2021/12/11 21:10
-# @Author  : HCY
-# @File    : Product.py
-# @Software: PyCharm
-
 from flask import Blueprint, request
 from flask_sqlalchemy import SQLAlchemy
 
 from utils import run_sql, wrap_json_for_send
 
 product = Blueprint('product', __name__)
+
 db = SQLAlchemy()
+
+
 # /api/product/"商品ID"
 # input: base, {"ID"}
 # output: base, {"productName", "price", "remain", "size", "category", "pic_url", "comment":[{'comment'}]}
@@ -29,7 +26,7 @@ db = SQLAlchemy()
 #   'category': '配饰',
 #   'pic_url': 'https://img14.360buyimg.com/n7/jfs/t1/168641/4/25410/143878/61a864c4E342d985c/5daf74ceca47577e.jpg',
 # }
-@product.route("/<id>", methods = ['POST'])  # hcy
+@product.route("/<id>", methods = ['POST'])  # hcy#张子木修改
 def product_info(id):
     product_id = request.json['productID']
     product_info = """
@@ -56,7 +53,7 @@ def product_info(id):
     return wrap_json_for_send(d, 'successful')
 
 
-# /api/products/“商品ID"/allcomments
+# /api/product/“商品ID"/allcomments
 # input: base, {"ID"}
 # output:base, {"comments":[]}
 # iput例子
@@ -76,7 +73,7 @@ def product_info(id):
 #   ]
 # }
 
-@product.route("/<id>/allcomments", methods = ['POST'])  # hcy
+@product.route("/<id>/allcomments", methods = ['POST'])  # hcy #zzm修改
 def allcomments(id):
     comment = """
     SELECT comment
