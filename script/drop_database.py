@@ -1,5 +1,5 @@
 import sys
-sys.path.append(".")
+sys.path.append("..")
 from utils import run_sql
 
 del_database = """  
