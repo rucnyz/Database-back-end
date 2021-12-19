@@ -56,6 +56,7 @@ def select_comments():  # 查看评价
 def update_comment():  # 更新评价
     order_id = request.json["order_id"]
     comments = request.json["comment"]
+
     update_comment = """
     UPDATE orders
     SET comment = '%s'

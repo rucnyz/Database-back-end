@@ -75,13 +75,28 @@ def product_info(id):
 # }
 
 @product.route("/<id>/allcomments", methods = ['POST'])  # hcy #zzm修改
-def allcomments(id):
-    comment = """
-    SELECT comment, orderdate, customer.customer_id customerID
-    FROM orders, customer
-    WHERE product_id='%s' AND customer.customer_id=orders.customer_id
-    """ % id
-    c = run_sql(comment)
+def allcomments(id):#这个id没有用。要返回的是评论对应的id
 
-    d = {"comments": c}
+    need_number = request.json['needNumber']
+    page = request.json['page']
+    start_num = need_number*(page-1)
+    if page == 1:
+        comment = """
+        SELECT TOP 10 comment, orderdate, customer.customer_id customerID
+        FROM orders, customer
+        WHERE product_id='%s' AND customer.customer_id=orders.customer_id
+        """ % id
+    else:
+        comment = """
+        SELECT TOP %s o.customer_id ,o.comment 
+        FROM orders, customer
+        WHERE order_id>(SELECT MAX(order_id) FROM (SELECT TOP %s order_id FROM orders ORDER BY order_id ASC)AS TEMP)
+              
+                        
+        """ %(need_number,start_num)
+
+    c = run_sql(comment)
+    column = ['customerID','comments']
+    d = {"details":[dict(zip(column, c[i].values())) for i in range(len(c))]}
+
     return wrap_json_for_send(d, 'successful')
