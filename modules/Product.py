@@ -75,11 +75,14 @@ def product_info(id):
 
 @product.route("/<id>/allcomments", methods = ['POST'])  # hcy #zzm修改
 def allcomments(id):
+    need_number = request.json['needNumber']
+    page = request.json['page']
+
     comment = """
-    SELECT comment
+    SELECT TOP %s comment
     FROM orders
     WHERE product_id='%s'
-    """ % id
+    """ %(need_number,id)
     c = run_sql(comment)
 
     d = {"comments": c}

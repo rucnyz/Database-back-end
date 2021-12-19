@@ -74,7 +74,7 @@ def login():
 # /api/customer/ID:"xxx"/info
 # input : base, {"ID":"xxx"}
 # output: base, {"address":[{"nickName","phoneNumber","address"}]}
-@customer.route("/<id>/info", methods = ['POST'])  # hcy
+@customer.route("/<id>/info", methods = ['POST'])  # hcy#zzm修改
 def select_customer_info(id):
     select_customer_info = """
     SELECT nickname, phone, address_name
@@ -93,7 +93,7 @@ def select_customer_info(id):
 # /api/customer/"id"/address/add
 # input:base,{"customerID","nickName","phoneNumber","address"}
 # output: base
-@customer.route("/<customerID>/address/add", methods = ['POST'])  # hcy
+@customer.route("/<customerID>/address/add", methods = ['POST'])  # hcy#zzm修改
 def add_customer_info(customerID):
     nickname = request.json['nickName']
     address = request.json['address']
@@ -112,7 +112,7 @@ def add_customer_info(customerID):
 # /api/customer/"id"/address/delete
 # input: base,{"customerID","address"}
 # output: base
-@customer.route("/<customerID>/address/delete", methods = ['POST'])  # hcy
+@customer.route("/<customerID>/address/delete", methods = ['POST'])  # hcy#zzm修改
 def delete_customer_info(customerID):
     address = request.json['address']
     delete_customer_info = """
@@ -128,7 +128,7 @@ def delete_customer_info(customerID):
 # /api/customer/"id"/address/update
 # input: base, {"customerID","nickName","phoneNumber","address"}
 # ouput: base
-@customer.route("/<customerID>/address/update", methods = ['POST'])  # hcy
+@customer.route("/<customerID>/address/update", methods = ['POST'])  # hcy#zzm修改
 def update_customer_info(customerID):
     nickname = request.json['nickName']
     address = request.json['address']
@@ -366,14 +366,15 @@ def orders_add_cart(id):  # 新订单添加
 #  output:base, {"ordersID"}
 #
 # eg.
-# input:{
-#     "productID": "P000000001",
-#     "orderDate": "当前时间，精确到秒",
-#     "priceSum": "1000(总价格)",
-#     "quantity": "5(数量)",
-#     "size": "M、L等规格"
-#     "receiveAddress": "地址字符串"
-#   }
+{
+    "productID": "P000000001",
+    "orderDate": "2020-07-14 11:21:08",
+    "priceSum": "1000",
+    "quantity": "5",
+    "size": "M",
+    "receiveAddress": "somewhere1234"
+}
+
 # output:{"ordersID":"O1234"}
 
 @customer.route("/<id>/orders/add_product", methods = ['POST', 'GET'])  # zzm
