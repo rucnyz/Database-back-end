@@ -1,9 +1,10 @@
 import sys
+sys.path.append("..")
 import platform
 
 from utils import run_sql
 
-sys.path.append(".")
+
 if platform.system() == 'Windows':
     create_db = """
     commit;
