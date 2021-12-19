@@ -178,8 +178,6 @@ def select_cart(id):
 # "productID": "xx"
 # "count": 3
 # }
-
-
 @customer.route("/<id>/shoppingCart/add", methods = ['POST'])  # hcy
 def add_cart(id):
     product_id = request.json['productID']
@@ -320,9 +318,10 @@ def orders_add_cart(id):  # 新订单添加
     tuple_tmp = run_sql(getNum)
     order_id_new = 'O' + str(int(tuple_tmp[0]['cnt'] + 1))  # 获得新的订单编号
 
+    # 不确定触发器是不是建立在orders上
     orders_add = """
     CREATE TRIGGER trig_insert
-    ON cart AFTER INSERT
+    ON orders AFTER INSERT
     AS
     BEGIN
         DECLARE @product_id char(10), @quantity int;
@@ -344,6 +343,32 @@ def orders_add_cart(id):  # 新订单添加
     VALUES(:order_id, :customer_id, :supplier_id, :product_id, :orderdate, 
     :quantity, :price_sum, :deliver_address, :receive_address, :is_return, :comment)
     """
+
+    remain_minus_1 = """
+    CREATE TRIGGER trig_insert
+    ON product AFTER UPDATE
+    AS
+    BEGIN
+        DECLARE @product_id char(10), @quantity int;
+        SELECT @product_id=product_id, @quantity=quantity FROM inserted;
+        
+        IF NOT EXISTS(
+        SELECT *
+        FROM product
+        WHERE product_id=@product_id AND remain>=@quantity
+        )
+            
+        BEGIN
+            rollback transaction
+        END
+    END
+    
+    UPDATE product
+    SET remain=remain-1
+    WHERE product_id=:product_id
+    """
+
+    run_sql(remain_minus_1, {"product_id": product_id})
 
     run_sql(orders_add, {"order_id": order_id_new,
                          "customer_id": id,
@@ -407,14 +432,56 @@ def orders_add_product(id):  # 新订单添加
     deliver_address = t[0]['da']
     supplier_id = t[0]['sid']
 
-
     orders_add = """
+    CREATE TRIGGER trig_insert
+    ON orders AFTER INSERT
+    AS
+    BEGIN
+        DECLARE @product_id char(10), @quantity int;
+        SELECT @product_id=product_id, @quantity=quantity FROM inserted;
+
+        IF NOT EXISTS(
+        SELECT *
+        FROM product
+        WHERE product_id=@product_id AND remain>=@quantity
+        )
+
+        BEGIN
+            rollback transaction
+        END
+    END
+
     INSERT
     INTO orders
     VALUES(:order_id, :customer_id, :supplier_id, :product_id, :orderdate, 
     :quantity, :price_sum, :deliver_address, :receive_address, :is_return, :comment)
-    
     """
+
+    remain_minus_1 = """
+    CREATE TRIGGER trig_insert
+    ON product AFTER UPDATE
+    AS
+    BEGIN
+        DECLARE @product_id char(10), @quantity int;
+        SELECT @product_id=product_id, @quantity=quantity FROM inserted;
+
+        IF NOT EXISTS(
+        SELECT *
+        FROM product
+        WHERE product_id=@product_id AND remain>=@quantity
+        )
+
+        BEGIN
+            rollback transaction
+        END
+    END
+
+    UPDATE product
+    SET remain=remain-1
+    WHERE product_id=:product_id
+    """
+
+    run_sql(remain_minus_1, {"product_id": product_id})
 
     run_sql(orders_add, {"order_id": order_id_new,
                          "customer_id": id,
