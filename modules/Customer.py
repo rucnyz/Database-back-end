@@ -349,7 +349,7 @@ def orders_add_cart(id):  # 新订单添加
                          "customer_id": id,
                          "supplier_id": supplier_id,
                          "product_id": product_id,
-                         "orderdate": order_date,
+                         "orderDate": order_date,
                          "quantity": quantity,
                          "price_sum": price_sum,
                          "deliver_address": deliver_address,
@@ -368,72 +368,66 @@ def orders_add_cart(id):  # 新订单添加
 #  output:base, {"ordersID"}
 #
 # eg.
-{
-    "productID": "P000000001",
-    "orderDate": "2020-07-14 11:21:08",
-    "priceSum": "1000",
-    "quantity": "5",
-    "size": "M",
-    "receiveAddress": "somewhere1234"
-}
+# {
+#     "productID": "P000000001",
+#     "orderDate": "2020-07-14 11:21:08",
+#     "priceSum": "1000",
+#     "quantity": "5",
+#     "size": "M",
+#     "receiveAddress": "somewhere1234"
+# }
 
 # output:{"ordersID":"O1234"}
 
-@customer.route("/<id>/orders/add_product", methods = ['POST', 'GET'])  # zzm
+@customer.route("/<id>/orders/add_product", methods = ['POST', 'GET'])  # zzm #hcy
 def orders_add_product(id):  # 新订单添加
-    supplier_id = request.json["supplierID"]
-    product_id = request.json["productID"]
-    order_date = request.json["orderDate"]
-    price_sum = request.json["priceSum"]
-    quantity = request.json["quantity"]
-    size = request.json["size"]
-    receive_address = request.json["receiveAddress"]
+
+    product_id = request.json['productID']
+    order_date = request.json['orderDate']
+    price_sum = request.json['priceSum']
+    quantity = request.json['quantity']
+    receive_address = request.json['receiveAddress']
 
     getNum = """
     SELECT COUNT(*) as cnt
     from orders  
-     """
+    """
+
     tuple_tmp = run_sql(getNum)
     order_id_new = 'O' + str(int(tuple_tmp[0]['cnt'] + 1))  # 获得新的订单编号
 
-    getDelAdd = """
+    getInfo = """
+    SELECT info_s.address_name da s.supplier_id sid
+    FROM product p,supplier s, info_supplier info_s
+    WHERE p.product_id='%s' AND p.supplier_id=s.supplier_id
+          AND s.supplier_id=info_s.supplier_id
         
-    SELECT s.address_name da
-    FROM product p,supplier s
-    WHERE p.product_id='%s' AND p.product_id=s.product_id AND p.supplier_id=s.supplier_id
-    
-    
     """ % product_id
-    t = run_sql(getDelAdd)
+    t = run_sql(getInfo)
     deliver_address = t[0]['da']
+    supplier_id = t[0]['sid']
+
 
     orders_add = """
-    CREATE TRIGGER trig_insert
-    ON cart AFTER INSERT
-    AS
-    BEGIN
-        DECLARE @product_id char(10), @quantity int;
-        SELECT @product_id=product_id, @quantity=quantity FROM inserted;
-        
-        IF NOT EXISTS(
-        SELECT *
-        FROM product
-        WHERE product_id=@product_id AND remain>=@quantity
-        )
-            
-        BEGIN
-            rollback transaction
-        END
-    END
-    
     INSERT
     INTO orders
-    VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) 
-    """ % (
-        order_id_new, id, supplier_id, product_id, order_date, price_sum, quantity, deliver_address, receive_address, 0,
-        "Null")
+    VALUES(:order_id, :customer_id, :supplier_id, :product_id, :orderdate, 
+    :quantity, :price_sum, :deliver_address, :receive_address, :is_return, :comment)
+    
+    """
 
-    run_sql(orders_add)
+    run_sql(orders_add, {"order_id": order_id_new,
+                         "customer_id": id,
+                         "supplier_id": supplier_id,
+                         "product_id": product_id,
+                         "orderDate": order_date,
+                         "quantity": quantity,
+                         "price_sum": price_sum,
+                         "deliver_address": deliver_address,
+                         "receive_address": receive_address,
+                         "is_return": 0,
+                         "comment": "Null"})
+
     new_order_info = {"ID": order_id_new}
 
     return wrap_json_for_send(new_order_info, "successful")
