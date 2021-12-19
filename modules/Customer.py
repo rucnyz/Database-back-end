@@ -404,7 +404,7 @@ def orders_add_product(id):  # 新订单添加
     
     """ %product_id
     t = run_sql(getDelAdd)
-    deliver_address = t['da'][0]
+    deliver_address = t[0]['da']
 
     orders_add = """
     CREATE TRIGGER trig_insert
