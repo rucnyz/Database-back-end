@@ -76,7 +76,6 @@ def login():
 # output: base, {"address":[{"nickName","phoneNumber","address"}]}
 @customer.route("/<id>/info", methods = ['POST'])  # hcy
 def select_customer_info(id):
-    # content = request.json
     select_customer_info = """
     SELECT nickname, phone, address_name
     FROM info_customer
@@ -94,7 +93,7 @@ def select_customer_info(id):
 # /api/customer/"id"/address/add
 # input:base,{"customerID","nickName","phoneNumber","address"}
 # output: base
-@customer.route("/<id>/address/add", methods = ['POST'])  # hcy
+@customer.route("/<customerID>/address/add", methods = ['POST'])  # hcy
 def add_customer_info(customerID):
     nickname = request.json['nickName']
     address = request.json['address']
@@ -113,7 +112,7 @@ def add_customer_info(customerID):
 # /api/customer/"id"/address/delete
 # input: base,{"customerID","address"}
 # output: base
-@customer.route("/<id>/address/delete", methods = ['POST'])  # hcy
+@customer.route("/<customerID>/address/delete", methods = ['POST'])  # hcy
 def delete_customer_info(customerID):
     address = request.json['address']
     delete_customer_info = """
@@ -129,7 +128,7 @@ def delete_customer_info(customerID):
 # /api/customer/"id"/address/update
 # input: base, {"customerID","nickName","phoneNumber","address"}
 # ouput: base
-@customer.route("/<id>/address/update", methods = ['POST'])  # hcy
+@customer.route("/<customerID>/address/update", methods = ['POST'])  # hcy
 def update_customer_info(customerID):
     nickname = request.json['nickName']
     address = request.json['address']
