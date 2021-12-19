@@ -1,9 +1,9 @@
 from flask import Blueprint, request
-
+from flask_sqlalchemy import SQLAlchemy
 from utils import run_sql, wrap_json_for_send
 
 admin = Blueprint('admin', __name__)
-
+db = SQLAlchemy()
 
 # 1. 显示每个商家最热卖的top 3个商品。 # zzm  # hcy修改
 # /api/admin/top3_product
