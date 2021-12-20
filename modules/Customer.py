@@ -362,13 +362,13 @@ def orders_add_cart(id):  # 新订单添加
         :quantity, :price_sum, :deliver_address, :receive_address, :is_return, :comment)
         """
 
-        remain_minus_1 = """
+        remain_minus_quantity = """
         CREATE TRIGGER trig_insert
         ON product AFTER UPDATE
         AS
         BEGIN
             DECLARE @product_id char(10), @quantity int;
-            SELECT @product_id=product_id, @quantity=quantity FROM inserted;
+            SELECT @product_id=product_id, @quantity=quantity FROM updated;
             
             IF NOT EXISTS(
             SELECT *
@@ -382,11 +382,12 @@ def orders_add_cart(id):  # 新订单添加
         END
         
         UPDATE product
-        SET remain=remain-1
+        SET remain=remain-:quantity
         WHERE product_id=:product_id
         """
 
-        run_sql(remain_minus_1, {"productId": product_id})
+        run_sql(remain_minus_quantity, {"productId": product_id,
+                                        "quantity": quantity})
 
         run_sql(orders_add, {"order_id": order_id_new,
                              "customer_id": id,
