@@ -125,7 +125,7 @@ def delete_customer_info(customerID):
     delete_customer_info = """
     DELETE
     FROM info_customer
-    WHERE customer_id=:customer_id, address_name=:address_name
+    WHERE customer_id=:customer_id AND address_name=:address_name
     """
     _ = run_sql(delete_customer_info, {"customer_id": customerID,
                                        "address_name": address})
@@ -243,7 +243,7 @@ def update_cart(id):
     update_cart = """
     UPDATE cart
     SET count=:count
-    WHERE customer_id=:customer_id, product_id=:product_id
+    WHERE customer_id=:customer_id AND product_id=:product_id
     """
     run_sql(update_cart, {"count": count,
                           "customer_id": id,
@@ -263,7 +263,7 @@ def delete_cart(id):
         delete_cart = """
         DELETE
         FROM cart
-        WHERE customer_id=:customer_id, product_id=:product_id
+        WHERE customer_id=:customer_id AND product_id=:product_id
         """
         run_sql(delete_cart, {"customer_id": id,
                               "product_id": i})
