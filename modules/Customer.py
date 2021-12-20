@@ -195,7 +195,7 @@ def add_cart(id):
     count = request.json['count']
 
     add_cart = """
-    CREATE TRIGGER trig_insert
+    CREATE TRIGGER trig_insert_cart
     ON cart AFTER INSERT
     AS
     BEGIN
@@ -340,7 +340,7 @@ def orders_add_cart(id):  # 新订单添加
 
         # 不确定触发器是不是建立在orders上
         orders_add = """
-        CREATE TRIGGER trig_insert
+        CREATE TRIGGER trig_insert_c2o
         ON orders AFTER INSERT
         AS
         BEGIN
@@ -365,7 +365,7 @@ def orders_add_cart(id):  # 新订单添加
         """
 
         remain_minus_quantity = """
-        CREATE TRIGGER trig_insert
+        CREATE TRIGGER trig_insert_remains_c2o
         ON product AFTER UPDATE
         AS
         BEGIN
@@ -455,7 +455,7 @@ def orders_add_product(id):  # 新订单添加
     supplier_id = t[0]['sid']
 
     orders_add = """
-    CREATE TRIGGER trig_insert
+    CREATE TRIGGER trig_insert_p2o
     ON orders AFTER INSERT
     AS
     BEGIN
@@ -480,7 +480,7 @@ def orders_add_product(id):  # 新订单添加
     """
 
     remain_minus_quantity = """
-    CREATE TRIGGER trig_insert
+    CREATE TRIGGER trig_insert_remains_p2o 
     ON product AFTER UPDATE
     AS
     BEGIN
