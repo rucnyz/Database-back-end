@@ -381,7 +381,7 @@ def orders_add_cart(id):  # 新订单添加
                          "deliver_address": deliver_address,
                          "receive_address": receive_address,
                          "is_return": 0,
-                         "comment": "Null"})
+                         "comment": ""})
 
     new_order_info = {"ID": order_id_new}
 
@@ -494,7 +494,7 @@ def orders_add_product(id):  # 新订单添加
                          "deliver_address": deliver_address,
                          "receive_address": receive_address,
                          "is_return": 0,
-                         "comment": "Null"})
+                         "comment": ""})
 
     new_order_info = {"ID": order_id_new}
 
