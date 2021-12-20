@@ -7,7 +7,6 @@ customer = Blueprint('customer', __name__)
 
 db = SQLAlchemy()
 
-
 # /api/customer/register
 # input: base, { "phoneNumber":"xxx", "password": "xxx"}
 # output:base {"ID":"xxx"}
