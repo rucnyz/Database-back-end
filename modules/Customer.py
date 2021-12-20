@@ -86,7 +86,7 @@ def select_customer_info(id):
     """
     t = run_sql(select_customer_info, {"customer_id": id})
 
-    column = ['nickname', 'phoneNumber', 'addressName']
+    column = ['nickName', 'phoneNumber', 'addressName']
 
     list = [dict(zip(column, t[i].values())) for i in range(len(t))]
     d = {"address": list}
