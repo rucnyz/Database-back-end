@@ -93,12 +93,12 @@ def select_customer_info(id):
     return wrap_json_for_send(d, 'successful')
 
 
-# /api/customer/"id"/address/add
+# /api/customer/"id"/address/add【已测试】
 # input:base,{"customerID","nickName","phoneNumber","address"}
 # output: base
 @customer.route("/<customerID>/address/add", methods = ['POST'])  # hcy#zzm修改
 def add_customer_info(customerID):
-    nickname = request.json['nickname']
+    nickname = request.json['nickName']
     address = request.json['address']
     phone_number = request.json['phoneNumber']
 
@@ -115,7 +115,7 @@ def add_customer_info(customerID):
     return wrap_json_for_send(d, "successful")
 
 
-# /api/customer/"id"/address/delete
+# /api/customer/"id"/address/delete【已测试】
 # input: base,{"customerID","address"}
 # output: base
 @customer.route("/<customerID>/address/delete", methods = ['POST'])  # hcy#zzm修改
@@ -132,18 +132,18 @@ def delete_customer_info(customerID):
     return wrap_json_for_send(d, "successful")
 
 
-# /api/customer/"id"/address/update
+# /api/customer/"id"/address/update【已测试】
 # input: base, {"customerID","nickName","phoneNumber","address"}
 # ouput: base
-@customer.route("/<customerID>/address/update", methods = ['POST'])  # hcy#zzm修改
+@customer.route("/<customerID>/address/update", methods = ['POST'])  # hcy　#　zzm修改
 def update_customer_info(customerID):
-    nickname = request.json['nickname']
+    nickname = request.json['nickName']
     address = request.json['address']
     phone_number = request.json['phoneNumber']
     update_customer_info = """
     UPDATE info_customer
-    SET address_name=:address_name, nickname=:nickname, phone=:phone
-    WHERE customer_id=:customer_id
+    SET nickname=:nickname, phone=:phone
+    WHERE customer_id=:customer_id AND address_name=:address_name
     """
     _ = run_sql(update_customer_info, {"address_name": address,
                                        "nickname": nickname,
