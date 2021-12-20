@@ -170,7 +170,7 @@ def select_cart(id):
     cart_list = [dict(zip(column_cart, t_cart[i].values())) for i in range(len(t_cart))]
 
     get_address = """
-    SELECT * FROM info_customer
+    SELECT address_name, nickname, phone FROM info_customer
     WHERE customer_id=:customer_id
     """
     t_address = run_sql(get_address, {"customer_id": id})
