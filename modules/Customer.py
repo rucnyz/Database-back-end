@@ -7,7 +7,9 @@ customer = Blueprint('customer', __name__)
 
 db = SQLAlchemy()
 
-
+# /api/customer/register
+# input: base, { "phoneNumber":"xxx", "password": "xxx"}
+# output:base {"ID":"xxx"}
 @customer.route("/register", methods = ['POST', 'GET'])  # zzm
 def register():
     phone_number = request.json['phoneNumber']
@@ -33,7 +35,8 @@ def register():
     INTO info_customer
     VALUES('%s','%s','%s','%s')
     """ % (customer_id_new, "", nickName, phone_number)
-    _ = run_sql(register)
+    _ = run_sql(register, {"customer_id": customer_id_new,
+                           })
     _ = run_sql(register_info)
     new_cust_info = {"ID": customer_id_new}
 
@@ -52,16 +55,17 @@ def login():
     login = """
     SELECT customer_id
     FROM customer
-    WHERE customer_phonenumber='%s' AND customer_password='%s'
-    """ % (phone_number, password)
-    customer_id = run_sql(login)[0]['customer_id']
+    WHERE customer_phonenumber=:customer_phonenumber AND customer_password=:customer_password
+    """
+    customer_id = run_sql(login, {"customer_phonenumber": phone_number,
+                                  "customer_password": password})[0]['customer_id']
 
     info = """
     SELECT nickname, address_name
     FROM info_customer
-    WHERE customer_id='%s'
-    """ % customer_id
-    c_info = run_sql(info)
+    WHERE customer_id=:customer_id
+    """
+    c_info = run_sql(info, {"customer_id": customer_id})
     # c_info = loads(c_info)
     nickName = c_info[0]['nickname']
     address_name = c_info[0]['address_name']
@@ -79,9 +83,9 @@ def select_customer_info(id):
     select_customer_info = """
     SELECT nickname, phone, address_name
     FROM info_customer
-    WHERE customer_id='%s'
-    """ % id
-    t = run_sql(select_customer_info)
+    WHERE customer_id=:customer_id
+    """
+    t = run_sql(select_customer_info, {"customer_id": id})
 
     column = ['nickName', 'phoneNumber', 'address']
 
@@ -102,9 +106,12 @@ def add_customer_info(customerID):
     add_customer_info = """
     INSERT
     INTO info_customer(customer_id, address_name, nickname, phone)
-    VALUES('%s', '%s', '%s', '%s')
-    """ % (customerID, nickname, address, phone_number)
-    _ = run_sql(add_customer_info)
+    VALUES(:customer_id, :address_name, :nickname, :phone)
+    """
+    _ = run_sql(add_customer_info, {"customer_id": customerID,
+                                    "address_name": address,
+                                    "nickname": nickname,
+                                    "phone": phone_number})
     d = {}
     return wrap_json_for_send(d, "successful")
 
@@ -118,9 +125,10 @@ def delete_customer_info(customerID):
     delete_customer_info = """
     DELETE
     FROM info_customer
-    WHERE customer_id='%s', address_name='%s'
-    """ % (customerID, address)
-    _ = run_sql(delete_customer_info)
+    WHERE customer_id=:customer_id, address_name=:address_name
+    """
+    _ = run_sql(delete_customer_info, {"customer_id": customerID,
+                                       "address_name": address})
     d = {}
     return wrap_json_for_send(d, "successful")
 
@@ -135,10 +143,13 @@ def update_customer_info(customerID):
     phone_number = request.json['phoneNumber']
     update_customer_info = """
     UPDATE info_customer
-    SET address_name='%s', nickname='%s', phone='%s'
-    WHERE customer_id='%s'
-    """ % (nickname, address, phone_number, customerID)
-    _ = run_sql(update_customer_info)
+    SET address_name=:address_name, nickname=:nickname, phone=:phone
+    WHERE customer_id=:customer_id
+    """
+    _ = run_sql(update_customer_info, {"address_name": address,
+                                       "nickname": nickname,
+                                       "phone": phone_number,
+                                       "customer_id": customerID})
     d = {}
     return wrap_json_for_send(d, "successful")
 
@@ -152,17 +163,17 @@ def select_cart(id):
     select_cart = """
     SELECT p.product_id, pic_url, count, product_name, price
     FROM product p, cart c
-    WHERE p.product_id = c.product_id AND c.customer_id='%s'
-    """ % id
-    t_cart = run_sql(select_cart)
+    WHERE p.product_id = c.product_id AND c.customer_id=:customer_id
+    """
+    t_cart = run_sql(select_cart, {"customer_id": id})
     column_cart = ["productID", "pic_url", "count", "productName"]
     cart_list = [dict(zip(column_cart, t_cart[i].values())) for i in range(len(t_cart))]
 
     get_address = """
     SELECT * FROM info_customer
-    WHERE customer_id = '%s'
-    """ % id
-    t_address = run_sql(get_address)
+    WHERE customer_id=:customer_id
+    """
+    t_address = run_sql(get_address, {"customer_id": id})
     column_address = ["address_name", "nickname", "phone"]
     address_info = [dict(zip(column_address, t_address[i].values())) for i in range(len(t_address))]
     d = {"totalSize": len(t_cart), "cart_detail": cart_list, "address": address_info}
@@ -213,9 +224,11 @@ def add_cart(id):
     
     INSERT
     INTO cart
-    VALUES('%s', '%s', '%s')
-    """ % (id, product_id, count)
-    run_sql(add_cart)
+    VALUES(:customer_id, :product_id, :count)
+    """
+    run_sql(add_cart, {"customer_id": id,
+                       "product_id": product_id,
+                       "count": count})
     d = {}
     return wrap_json_for_send(d, 'successful')
 
@@ -229,10 +242,12 @@ def update_cart(id):
     count = request.json['count']
     update_cart = """
     UPDATE cart
-    SET count=%s
-    WHERE customer_id='%s', product_id='%s'
-    """ % (count, id, product_id)
-    run_sql(update_cart)
+    SET count=:count
+    WHERE customer_id=:customer_id, product_id=:product_id
+    """
+    run_sql(update_cart, {"count": count,
+                          "customer_id": id,
+                          "product_id": product_id})
     d = {}
     return wrap_json_for_send(d, 'successful')
 
@@ -247,9 +262,10 @@ def delete_cart(id):
     delete_cart = """
     DELETE
     FROM cart
-    WHERE customer_id='%s', product_id='%s'
-    """ % (id, product_id)
-    run_sql(delete_cart)
+    WHERE customer_id=:customer_id, product_id=:product_id
+    """
+    run_sql(delete_cart, {"customer_id": id,
+                          "product_id": product_id})
     d = {}
     return wrap_json_for_send(d, 'successful')
 
@@ -261,11 +277,11 @@ def get_orders(id):
     get_orders = """
     SELECT o.order_id, p.product_name, p.pic_url, o.quantity, o.price_sum, o.receive_address, i.phone, i.nickname, o.comment, o.is_return
     FROM product p, orders o, info_customer i
-    WHERE o.customer_id = '%s' 
+    WHERE o.customer_id=:customer_id 
     AND p.product_id = o.product_id AND o.customer_id = i.customer_id 
     AND o.receive_address = i.address_name;
-    """ % id
-    t = run_sql(get_orders)
+    """
+    t = run_sql(get_orders, {"customer_id": id})
     column = ['orderID', 'productName', 'pic_url', 'quantity', 'priceSum', 'receiveAddress', 'phone', 'nickname',
               'comment', 'is_return']
     d = [dict(zip(column, t[i].values())) for i in range(len(t))]
@@ -279,9 +295,9 @@ def set_is_return(id):  # 设置退货标记
     set_is_return = """
     UPDATE orders
     SET is_return = 1 
-    WHERE order_id = '%s' ;
-    """ % order_id
-    t = run_sql(set_is_return)
+    WHERE order_id=:order_id;
+    """
+    t = run_sql(set_is_return, {"order_id": order_id})
     d = {}
     return wrap_json_for_send(d, "successful")
 
@@ -305,9 +321,9 @@ def orders_add_cart(id):  # 新订单添加
     get_need = """
     SELECT ifs.supplier_id, ifs.address_name
     FROM product p, info_supplier ifs
-    WHERE p.product_id = '%s' AND p.supplier_id = ifs.supplier_id;  
-    """ % product_id
-    need_info = run_sql(get_need)
+    WHERE p.product_id=:product_id AND p.supplier_id = ifs.supplier_id;  
+    """
+    need_info = run_sql(get_need, {"product_id": product_id})
     supplier_id = need_info[0]['supplier_id']
     deliver_address = need_info[0]['address_name']
 
@@ -424,11 +440,11 @@ def orders_add_product(id):  # 新订单添加
     getInfo = """
     SELECT info_s.address_name da s.supplier_id sid
     FROM product p,supplier s, info_supplier info_s
-    WHERE p.product_id='%s' AND p.supplier_id=s.supplier_id
+    WHERE p.product_id=:product_id AND p.supplier_id=s.supplier_id
           AND s.supplier_id=info_s.supplier_id
         
-    """ % product_id
-    t = run_sql(getInfo)
+    """
+    t = run_sql(getInfo, {"product_id": product_id})
     deliver_address = t[0]['da']
     supplier_id = t[0]['sid']
 
@@ -509,9 +525,9 @@ def orders_add_product(id):  # 新订单添加
 def orders_get_address(id):  # 显示所有地址
     get_address = """
     SELECT * FROM info_customer
-    WHERE customer_id = '%s'
-    """ % id
-    t = run_sql(get_address)
+    WHERE customer_id=:customer_id
+    """
+    t = run_sql(get_address, {"customer_id": id})
     column = ["address_name", "nickname", "phone"]
     address_info = [dict(zip(column, t[i].values())) for i in range(len(t))]
     d = {"address_info": address_info}
