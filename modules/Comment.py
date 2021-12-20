@@ -15,11 +15,11 @@ def select_comments():  # 查看评价
     FROM orders o 
     WHERE product_id = '%s' ; 
     """ % product_id
-    tuple = run_sql(select_comments)
+    t = run_sql(select_comments)
     column = ['productID', 'ctName', 'quantity']
-    d = [dict(zip(column, tuple[i].values())) for i in range(len(tuple))]
-    t = {"number": len(tuple), "detail": d}
-    return wrap_json_for_send(t, "successful")
+    d = [dict(zip(column, t[i].values())) for i in range(len(t))]
+    d = {"number": len(t), "detail": d}
+    return wrap_json_for_send(d, "successful")
 
 # add和delete都不需要了，直接update
 # @comment.route("/add", methods=['POST'])  # lsy
@@ -54,7 +54,7 @@ def select_comments():  # 查看评价
 # output: base
 @comment.route("/update", methods=['POST'])  # lsy
 def update_comment():  # 更新评价
-    order_id = request.json["order_id"]
+    order_id = request.json["orderID"]
     comments = request.json["comment"]
 
     update_comment = """

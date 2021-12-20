@@ -99,7 +99,7 @@ def select_customer_info(id):
 # output: base
 @customer.route("/<customerID>/address/add", methods = ['POST'])  # hcy#zzm修改
 def add_customer_info(customerID):
-    nickname = request.json['nickName']
+    nickname = request.json['nickname']
     address = request.json['address']
     phone_number = request.json['phoneNumber']
 
@@ -138,7 +138,7 @@ def delete_customer_info(customerID):
 # ouput: base
 @customer.route("/<customerID>/address/update", methods = ['POST'])  # hcy#zzm修改
 def update_customer_info(customerID):
-    nickname = request.json['nickName']
+    nickname = request.json['nickname']
     address = request.json['address']
     phone_number = request.json['phoneNumber']
     update_customer_info = """
@@ -161,12 +161,12 @@ def update_customer_info(customerID):
 @customer.route("/<id>/shoppingCart", methods = ['POST'])  # hcy lsy(address)
 def select_cart(id):
     select_cart = """
-    SELECT p.product_id, pic_url, count, product_name, price
+    SELECT p.product_id, pic_url, count, product_name, price, size
     FROM product p, cart c
     WHERE p.product_id = c.product_id AND c.customer_id=:customer_id
     """
     t_cart = run_sql(select_cart, {"customer_id": id})
-    column_cart = ["productID", "pic_url", "count", "productName"]
+    column_cart = ["productID", "picUrl", "count", "productName", "price", "size"]
     cart_list = [dict(zip(column_cart, t_cart[i].values())) for i in range(len(t_cart))]
 
     get_address = """
@@ -174,9 +174,9 @@ def select_cart(id):
     WHERE customer_id=:customer_id
     """
     t_address = run_sql(get_address, {"customer_id": id})
-    column_address = ["address_name", "nickname", "phone"]
+    column_address = ["addressName", "nickname", "phone"]
     address_info = [dict(zip(column_address, t_address[i].values())) for i in range(len(t_address))]
-    d = {"totalSize": len(t_cart), "cart_detail": cart_list, "address": address_info}
+    d = {"totalSize": len(t_cart), "cartDetail": cart_list, "address": address_info}
     return wrap_json_for_send(d, 'successful')
 
 
@@ -259,13 +259,14 @@ def update_cart(id):
 @customer.route("/<id>/shoppingCart/delete", methods = ['POST'])  # hcy
 def delete_cart(id):
     product_id = request.json['productID']
-    delete_cart = """
-    DELETE
-    FROM cart
-    WHERE customer_id=:customer_id, product_id=:product_id
-    """
-    run_sql(delete_cart, {"customer_id": id,
-                          "product_id": product_id})
+    for i in product_id:
+        delete_cart = """
+        DELETE
+        FROM cart
+        WHERE customer_id=:customer_id, product_id=:product_id
+        """
+        run_sql(delete_cart, {"customer_id": id,
+                              "product_id": i})
     d = {}
     return wrap_json_for_send(d, 'successful')
 
@@ -282,8 +283,8 @@ def get_orders(id):
     AND o.receive_address = i.address_name;
     """
     t = run_sql(get_orders, {"customer_id": id})
-    column = ['orderID', 'productName', 'pic_url', 'quantity', 'priceSum', 'receiveAddress', 'phone', 'nickname',
-              'comment', 'is_return']
+    column = ['orderID', 'productName', 'picUrl', 'quantity', 'priceSum', 'receiveAddress', 'phone', 'nickname',
+              'comment', 'isReturn']
     d = [dict(zip(column, t[i].values())) for i in range(len(t))]
     d = {"number": len(t), "detail": d}
     return wrap_json_for_send(d, "successful")
@@ -291,7 +292,7 @@ def get_orders(id):
 
 @customer.route("/<id>/orders/salesreturn", methods = ['POST'])  # lsy
 def set_is_return(id):  # 设置退货标记
-    order_id = request.json["order_id"]
+    order_id = request.json["orderId"]
     set_is_return = """
     UPDATE orders
     SET is_return = 1 
@@ -312,12 +313,12 @@ def set_is_return(id):  # 设置退货标记
 def orders_add_cart(id):  # 新订单添加
     # supplier_id = request.json["supplierID"]
     product_id = request.json["productID"]
-    order_date = request.json["order_date"]
-    price_sum = request.json["price_sum"]
+    order_date = request.json["orderDate"]
+    price_sum = request.json["priceSum"]
     quantity = request.json["quantity"]
     # supplierID、deliverAddress 需后端查询得到_____finished by lsy
     # deliver_address = request.json["deliverAddress"]
-    receive_address = request.json["receive_address"]
+    receive_address = request.json["receiveAddress"]
     get_need = """
     SELECT ifs.supplier_id, ifs.address_name
     FROM product p, info_supplier ifs
@@ -384,19 +385,19 @@ def orders_add_cart(id):  # 新订单添加
     WHERE product_id=:product_id
     """
 
-    run_sql(remain_minus_1, {"product_id": product_id})
+    run_sql(remain_minus_1, {"productId": product_id})
 
     run_sql(orders_add, {"order_id": order_id_new,
                          "customer_id": id,
                          "supplier_id": supplier_id,
                          "product_id": product_id,
-                         "orderDate": order_date,
+                         "orderdate": order_date,
                          "quantity": quantity,
                          "price_sum": price_sum,
                          "deliver_address": deliver_address,
                          "receive_address": receive_address,
                          "is_return": 0,
-                         "comment": "Null"})
+                         "comment": ""})
 
     new_order_info = {"ID": order_id_new}
 
@@ -438,7 +439,7 @@ def orders_add_product(id):  # 新订单添加
     order_id_new = 'O' + str(int(tuple_tmp[0]['cnt'] + 1))  # 获得新的订单编号
 
     getInfo = """
-    SELECT info_s.address_name da s.supplier_id sid
+    SELECT info_s.address_name da, s.supplier_id sid
     FROM product p,supplier s, info_supplier info_s
     WHERE p.product_id=:product_id AND p.supplier_id=s.supplier_id
           AND s.supplier_id=info_s.supplier_id
@@ -497,19 +498,19 @@ def orders_add_product(id):  # 新订单添加
     WHERE product_id=:product_id
     """
 
-    run_sql(remain_minus_1, {"product_id": product_id})
+    run_sql(remain_minus_1, {"productId": product_id})
 
     run_sql(orders_add, {"order_id": order_id_new,
                          "customer_id": id,
                          "supplier_id": supplier_id,
                          "product_id": product_id,
-                         "orderDate": order_date,
+                         "orderdate": order_date,
                          "quantity": quantity,
                          "price_sum": price_sum,
                          "deliver_address": deliver_address,
                          "receive_address": receive_address,
                          "is_return": 0,
-                         "comment": "Null"})
+                         "comment": ""})
 
     new_order_info = {"ID": order_id_new}
 
@@ -524,11 +525,12 @@ def orders_add_product(id):  # 新订单添加
 @customer.route("/<id>/orders/get_address", methods = ['POST', 'GET'])  # lsy
 def orders_get_address(id):  # 显示所有地址
     get_address = """
-    SELECT * FROM info_customer
+    SELECT address_name, nickname, phone
+    FROM info_customer
     WHERE customer_id=:customer_id
     """
     t = run_sql(get_address, {"customer_id": id})
-    column = ["address_name", "nickname", "phone"]
+    column = ["addressName", "nickname", "phone"]
     address_info = [dict(zip(column, t[i].values())) for i in range(len(t))]
-    d = {"address_info": address_info}
+    d = {"addressInfo": address_info}
     return wrap_json_for_send(d, 'successful')

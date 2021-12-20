@@ -28,7 +28,6 @@ db = SQLAlchemy()
 # }
 @product.route("/<id>", methods = ['POST'])  # hcy#张子木修改
 def product_info(id):
-    product_id = request.json['productID']
     product_info = """
     SELECT product_name, price, remain, size, category, pic_url
     FROM product
@@ -36,20 +35,14 @@ def product_info(id):
     """ % id
     t = run_sql(product_info)
 
-    comment = """
-    SELECT TOP 5 comment
-    FROM orders
-    WHERE product_id='%s'
-    """ % id
-    c = run_sql(comment)
-
-    d = {"productName": t[0]['product_name'],
-         "price": t[0]['price'],
-         "remain": t[0]['remain'],
-         "size": t[0]['size'],
-         "category": t[0]['category'],
-         "pic_url": t[0]['pic_url'],
-         "comments": c}
+    d = {
+        "productName": t[0]['product_name'],
+        "price": t[0]['price'],
+        "remain": t[0]['remain'],
+        "size": t[0]['size'],
+        "category": t[0]['category'],
+        "pic_url": t[0]['pic_url']
+    }
     return wrap_json_for_send(d, 'successful')
 
 
@@ -58,7 +51,6 @@ def product_info(id):
 # output:base, {"comments":[]}
 # iput例子
 # {
-# 'productID': 'xxxx'
 # 'needNumber': 20
 #   'page': 1
 #
