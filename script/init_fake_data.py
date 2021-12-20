@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import sys
-sys.path.append("..")
 
 import random
 from utils import run_sql
@@ -8,6 +7,7 @@ from faker import Faker
 import hashlib
 import pandas as pd
 
+sys.path.append("..")
 
 # 注意
 # 顾客id：C000000051
@@ -206,6 +206,7 @@ def insert_cart():
                               "count": count})
     df_insert_cart.to_csv("../fake_data/insert_cart.csv")
 
+
 def insert_orders():
     get_number = """
     SELECT ISNULL(COUNT(*), 0) as number
@@ -230,7 +231,7 @@ def insert_orders():
                                                "quantity", "price_sum", "deliver_address", "receive_address",
                                                "is_return", "comment"])
     # 生成50*n条订单数据
-    for i in range(50*n):
+    for i in range(50 * n):
         # 先查人对应的地址
         supplier_id_i = random.choice(get_col(need, "supplier_id"))  # 随机挑选1个
         product_id_i = random.choice(get_col(need, "product_id"))
@@ -279,8 +280,6 @@ def insert_orders():
         df_insert_orders.to_csv("../fake_data/insert_orders.csv")
 
 
-
-
 def insert_fake():
     use_db = """
     USE OnlineShopping
@@ -291,6 +290,7 @@ def insert_fake():
     run_sql(delet)
 
     run_sql(use_db)
+    # insert_orders()
     insert_customer()
     insert_supplier()
     insert_info_customer()
