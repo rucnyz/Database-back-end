@@ -12,8 +12,6 @@ db = SQLAlchemy()
 def register():
     phone_number = request.json['phoneNumber']
     password = request.json['password'][:10]
-    realName = request.json['realName']
-    nickName = request.json['nickName']
 
     getNum = """
      SELECT COUNT(*) as cnt
@@ -28,13 +26,8 @@ def register():
     VALUES('%s','%s','%s')
     """ % (customer_id_new, phone_number, password)
 
-    register_info = """
-    INSERT 
-    INTO info_customer
-    VALUES('%s','%s','%s','%s')
-    """ % (customer_id_new, "", nickName, phone_number)
     _ = run_sql(register)
-    _ = run_sql(register_info)
+
     new_cust_info = {"ID": customer_id_new}
 
     return wrap_json_for_send(new_cust_info, "successful")
@@ -454,7 +447,7 @@ def orders_add_product(id):  # 新订单添加
 
     INSERT
     INTO orders
-    VALUES(:order_id, :customer_id, :supplier_id, :product_id, :orderdate, 
+    VALUES(:order_id, :customer_id, :supplier_id, :product_id, :orderDate, 
     :quantity, :price_sum, :deliver_address, :receive_address, :is_return, :comment)
     """
 
