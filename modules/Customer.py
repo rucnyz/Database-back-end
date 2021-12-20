@@ -150,12 +150,12 @@ def update_customer_info(customerID):
 @customer.route("/<id>/shoppingCart", methods = ['POST'])  # hcy lsy(address)
 def select_cart(id):
     select_cart = """
-    SELECT p.product_id, pic_url, count, product_name, price
+    SELECT p.product_id, pic_url, count, product_name, price, size
     FROM product p, cart c
     WHERE p.product_id = c.product_id AND c.customer_id='%s'
     """ % id
     t_cart = run_sql(select_cart)
-    column_cart = ["productID", "pic_url", "count", "productName"]
+    column_cart = ["productID", "picUrl", "count", "productName", "price", "size"]
     cart_list = [dict(zip(column_cart, t_cart[i].values())) for i in range(len(t_cart))]
 
     get_address = """
@@ -163,9 +163,9 @@ def select_cart(id):
     WHERE customer_id = '%s'
     """ % id
     t_address = run_sql(get_address)
-    column_address = ["address_name", "nickname", "phone"]
+    column_address = ["addressName", "nickname", "phone"]
     address_info = [dict(zip(column_address, t_address[i].values())) for i in range(len(t_address))]
-    d = {"totalSize": len(t_cart), "cart_detail": cart_list, "address": address_info}
+    d = {"totalSize": len(t_cart), "cartDetail": cart_list, "address": address_info}
     return wrap_json_for_send(d, 'successful')
 
 
@@ -244,12 +244,13 @@ def update_cart(id):
 @customer.route("/<id>/shoppingCart/delete", methods = ['POST'])  # hcy
 def delete_cart(id):
     product_id = request.json['productID']
-    delete_cart = """
-    DELETE
-    FROM cart
-    WHERE customer_id='%s', product_id='%s'
-    """ % (id, product_id)
-    run_sql(delete_cart)
+    for i in product_id:
+        delete_cart = """
+        DELETE
+        FROM cart
+        WHERE customer_id='%s', product_id='%s'
+        """ % (id, i)
+        run_sql(delete_cart)
     d = {}
     return wrap_json_for_send(d, 'successful')
 
