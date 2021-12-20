@@ -371,16 +371,16 @@ def orders_add_cart(id):  # 新订单添加
 
     run_sql(remain_minus_1, {"productId": product_id})
 
-    run_sql(orders_add, {"orderId": order_id_new,
-                         "customerId": id,
-                         "supplierId": supplier_id,
-                         "productId": product_id,
-                         "orderDate": order_date,
+    run_sql(orders_add, {"order_id": order_id_new,
+                         "customer_id": id,
+                         "supplier_id": supplier_id,
+                         "product_id": product_id,
+                         "orderdate": order_date,
                          "quantity": quantity,
-                         "priceSum": price_sum,
-                         "deliverAddress": deliver_address,
-                         "receiveAddress": receive_address,
-                         "isReturn": 0,
+                         "price_sum": price_sum,
+                         "deliver_address": deliver_address,
+                         "receive_address": receive_address,
+                         "is_return": 0,
                          "comment": "Null"})
 
     new_order_info = {"ID": order_id_new}
@@ -484,16 +484,16 @@ def orders_add_product(id):  # 新订单添加
 
     run_sql(remain_minus_1, {"productId": product_id})
 
-    run_sql(orders_add, {"orderId": order_id_new,
-                         "customerId": id,
-                         "supplierId": supplier_id,
-                         "productId": product_id,
-                         "orderDate": order_date,
+    run_sql(orders_add, {"order_id": order_id_new,
+                         "customer_id": id,
+                         "supplier_id": supplier_id,
+                         "product_id": product_id,
+                         "orderdate": order_date,
                          "quantity": quantity,
-                         "priceSum": price_sum,
-                         "deliverAddress": deliver_address,
-                         "receiveAddress": receive_address,
-                         "isReturn": 0,
+                         "price_sum": price_sum,
+                         "deliver_address": deliver_address,
+                         "receive_address": receive_address,
+                         "is_return": 0,
                          "comment": "Null"})
 
     new_order_info = {"ID": order_id_new}
@@ -509,7 +509,8 @@ def orders_add_product(id):  # 新订单添加
 @customer.route("/<id>/orders/get_address", methods = ['POST', 'GET'])  # lsy
 def orders_get_address(id):  # 显示所有地址
     get_address = """
-    SELECT * FROM info_customer
+    SELECT address_name, nickname, phone 
+    FROM info_customer
     WHERE customer_id = '%s'
     """ % id
     t = run_sql(get_address)
