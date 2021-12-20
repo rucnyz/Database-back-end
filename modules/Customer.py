@@ -304,101 +304,104 @@ def set_is_return(id):  # 设置退货标记
 
 # 从购物车里添加新订单。
 # /api/customer/<id>/orders/add_cart
-# input:base,{"productID","order_date","price_sum","quantity","receive_address"}
-# output:base, {"ordersID"}
+# input:base, {"orders": [" "productID", "order_date","price_sum", "quantity", "size","receive_address""]}
+# output:base,{"orderID":["xxx", "xxx", "xxx"]}
 # {version:0.1, statuscode:successful, orders: [{"productID","orderDate","priceSum","quantity","receiveAddress"}]}
 
-@customer.route("/<id>/orders/add_cart", methods = ['POST', 'GET'])  # zzm
+@customer.route("/<id>/orders/add_cart", methods = ['POST', 'GET'])  # zzm # hcy增加批量提交订单
 def orders_add_cart(id):  # 新订单添加
-    # supplier_id = request.json["supplierID"]
-    product_id = request.json["productID"]
-    order_date = request.json["orderDate"]
-    price_sum = request.json["priceSum"]
-    quantity = request.json["quantity"]
-    # supplierID、deliverAddress 需后端查询得到_____finished by lsy
-    # deliver_address = request.json["deliverAddress"]
-    receive_address = request.json["receiveAddress"]
-    get_need = """
-    SELECT ifs.supplier_id, ifs.address_name
-    FROM product p, info_supplier ifs
-    WHERE p.product_id=:product_id AND p.supplier_id = ifs.supplier_id;  
-    """
-    need_info = run_sql(get_need, {"product_id": product_id})
-    supplier_id = need_info[0]['supplier_id']
-    deliver_address = need_info[0]['address_name']
+    orders = request.json["orders"]
+    orderID = []
+    for i in range(orders):
+        product_id = orders[i]["productID"]
+        order_date = orders[i]["orderDate"]
+        price_sum = orders[i]["priceSum"]
+        quantity = orders[i]["quantity"]
+        # supplierID、deliverAddress 需后端查询得到_____finished by lsy
+        # deliver_address = request.json["deliverAddress"]
+        receive_address = orders[i]["receiveAddress"]
+        get_need = """
+        SELECT ifs.supplier_id, ifs.address_name
+        FROM product p, info_supplier ifs
+        WHERE p.product_id=:product_id AND p.supplier_id = ifs.supplier_id;  
+        """
+        need_info = run_sql(get_need, {"product_id": product_id})
+        supplier_id = need_info[0]['supplier_id']
+        deliver_address = need_info[0]['address_name']
 
-    getNum = """
-    SELECT COUNT(*) as cnt
-    from orders  
-     """
-    tuple_tmp = run_sql(getNum)
-    order_id_new = 'O' + str(int(tuple_tmp[0]['cnt'] + 1))  # 获得新的订单编号
+        getNum = """
+        SELECT COUNT(*) as cnt
+        from orders  
+         """
+        tuple_tmp = run_sql(getNum)
+        order_id_new = 'O' + str(int(tuple_tmp[0]['cnt'] + 1))  # 获得新的订单编号
 
-    # 不确定触发器是不是建立在orders上
-    orders_add = """
-    CREATE TRIGGER trig_insert
-    ON orders AFTER INSERT
-    AS
-    BEGIN
-        DECLARE @product_id char(10), @quantity int;
-        SELECT @product_id=product_id, @quantity=quantity FROM inserted;
-        
-        IF NOT EXISTS(
-        SELECT *
-        FROM product
-        WHERE product_id=@product_id AND remain>=@quantity
-        )
-            
+        # 不确定触发器是不是建立在orders上
+        orders_add = """
+        CREATE TRIGGER trig_insert
+        ON orders AFTER INSERT
+        AS
         BEGIN
-            rollback transaction
-        END
-    END
-    
-    INSERT
-    INTO orders
-    VALUES(:order_id, :customer_id, :supplier_id, :product_id, :orderdate, 
-    :quantity, :price_sum, :deliver_address, :receive_address, :is_return, :comment)
-    """
-
-    remain_minus_1 = """
-    CREATE TRIGGER trig_insert
-    ON product AFTER UPDATE
-    AS
-    BEGIN
-        DECLARE @product_id char(10), @quantity int;
-        SELECT @product_id=product_id, @quantity=quantity FROM inserted;
-        
-        IF NOT EXISTS(
-        SELECT *
-        FROM product
-        WHERE product_id=@product_id AND remain>=@quantity
-        )
+            DECLARE @product_id char(10), @quantity int;
+            SELECT @product_id=product_id, @quantity=quantity FROM inserted;
             
-        BEGIN
-            rollback transaction
+            IF NOT EXISTS(
+            SELECT *
+            FROM product
+            WHERE product_id=@product_id AND remain>=@quantity
+            )
+                
+            BEGIN
+                rollback transaction
+            END
         END
-    END
-    
-    UPDATE product
-    SET remain=remain-1
-    WHERE product_id=:product_id
-    """
+        
+        INSERT
+        INTO orders
+        VALUES(:order_id, :customer_id, :supplier_id, :product_id, :orderdate, 
+        :quantity, :price_sum, :deliver_address, :receive_address, :is_return, :comment)
+        """
 
-    run_sql(remain_minus_1, {"productId": product_id})
+        remain_minus_1 = """
+        CREATE TRIGGER trig_insert
+        ON product AFTER UPDATE
+        AS
+        BEGIN
+            DECLARE @product_id char(10), @quantity int;
+            SELECT @product_id=product_id, @quantity=quantity FROM inserted;
+            
+            IF NOT EXISTS(
+            SELECT *
+            FROM product
+            WHERE product_id=@product_id AND remain>=@quantity
+            )
+                
+            BEGIN
+                rollback transaction
+            END
+        END
+        
+        UPDATE product
+        SET remain=remain-1
+        WHERE product_id=:product_id
+        """
 
-    run_sql(orders_add, {"order_id": order_id_new,
-                         "customer_id": id,
-                         "supplier_id": supplier_id,
-                         "product_id": product_id,
-                         "orderdate": order_date,
-                         "quantity": quantity,
-                         "price_sum": price_sum,
-                         "deliver_address": deliver_address,
-                         "receive_address": receive_address,
-                         "is_return": 0,
-                         "comment": ""})
+        run_sql(remain_minus_1, {"productId": product_id})
 
-    new_order_info = {"ID": order_id_new}
+        run_sql(orders_add, {"order_id": order_id_new,
+                             "customer_id": id,
+                             "supplier_id": supplier_id,
+                             "product_id": product_id,
+                             "orderdate": order_date,
+                             "quantity": quantity,
+                             "price_sum": price_sum,
+                             "deliver_address": deliver_address,
+                             "receive_address": receive_address,
+                             "is_return": 0,
+                             "comment": ""})
+        orderID.append(order_id_new)
+
+    new_order_info = {"orderID": orderID}
 
     return wrap_json_for_send(new_order_info, "successful")
 
