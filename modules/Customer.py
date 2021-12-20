@@ -155,7 +155,7 @@ def update_customer_info(customerID):
 
 
 # 2. 用户购物车查询
-# /api/customer/"id"/shoppingCart
+# /api/customer/"id"/shoppingCart【已测试】
 # input: base,"ID"
 # output: base,{"totalSize","address":[{"address_name", "nickname", "phone"}] ,"cart_detail":[{"productID","pic_url",”count“,"productName","price"},...,{...}]}
 @customer.route("/<id>/shoppingCart", methods = ['POST'])  # hcy lsy(address)
@@ -181,7 +181,7 @@ def select_cart(id):
 
 
 # 在购物车界面只能增加某件商品的数量(update)，在商品界面才可以向购物车增加新的商品(add)
-# /api/customer/"id"/shoppingCart/add
+# /api/customer/"id"/shoppingCart/add【测试有问题】
 # input: base,{"productID":,"count":3}
 # output:base
 # 例子
@@ -195,7 +195,7 @@ def add_cart(id):
     count = request.json['count']
 
     add_cart = """
-    CREATE TRIGGER trig_insert
+    CREATE TRIGGER trig_insert_cart
     ON cart AFTER INSERT
     AS
     BEGIN
@@ -226,15 +226,13 @@ def add_cart(id):
     INTO cart
     VALUES(:customer_id, :product_id, :count)
     """
-    run_sql(add_cart, {"customer_id": id,
-                       "product_id": product_id,
-                       "count": count})
+    run_sql(add_cart, {"customer_id": id, "product_id": product_id, "count": count})
     d = {}
     return wrap_json_for_send(d, 'successful')
 
 
-# /api/customer/id/shoppingCart/update  仅限更新数量
-# input:base, {"count": "xxx", "productID":,"count"}
+# /api/customer/id/shoppingCart/update  仅限更新数量【已测试】
+# input:base, {"count": "xxx", "productID":}
 # output:base
 @customer.route("/<id>/shoppingCart/update", methods = ['POST'])  # hcy
 def update_cart(id):
@@ -252,8 +250,8 @@ def update_cart(id):
     return wrap_json_for_send(d, 'successful')
 
 
-# /api/customer/id/shoppingCart/delete  删除购买的这一整个商品
-# input: base,{"customerID": "xxx", "productID":}
+# /api/customer/id/shoppingCart/delete  删除购买的这一整个商品【已测试】
+# input: base,{"customerID": "xxx", "productID":[列表！！！]}
 # output: base
 # 下订单后，删除购物车中购买的商品
 @customer.route("/<id>/shoppingCart/delete", methods = ['POST'])  # hcy
