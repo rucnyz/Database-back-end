@@ -195,37 +195,11 @@ def add_cart(id):
     count = request.json['count']
 
     add_cart = """
-    CREATE TRIGGER trig_insert_cart
-    ON cart AFTER INSERT
-    AS
-    BEGIN
-        DECLARE @customer_id char(10), @product_id char(10), @count int;
-        IF EXISTS(
-        SELECT *
-        FROM product
-        WHERE product_id=@product_id AND remain>=@count
-        )
-        
-        BEGIN
-            SELECT @customer_id = customer_id, @product_id = product_id, @count = count FROM inserted;
-            IF EXISTS(
-            SELECT *
-            FROM cart
-            WHERE customer_id=@customer_id AND product_id=@product_id)
-            
-            BEGIN
-                rollback transaction;
-                UPDATE cart
-                SET count=count+@count
-                WHERE customer_id=@customer_id AND product_id=@product_id;
-            END
-        END
-    END 
-    
     INSERT
-    INTO cart
+    INTO cart(customer_id, product_id, count)
     VALUES(:customer_id, :product_id, :count)
     """
+
     run_sql(add_cart, {"customer_id": id, "product_id": product_id, "count": count})
     d = {}
     return wrap_json_for_send(d, 'successful')
