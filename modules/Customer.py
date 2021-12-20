@@ -7,22 +7,23 @@ customer = Blueprint('customer', __name__)
 
 db = SQLAlchemy()
 
-# /api/customer/register[已测试]
+
+# /api/customer/register
 # input: base, { "phoneNumber":"xxx", "password": "xxx"}
 # output:base {"ID":"xxx"}
 @customer.route("/register", methods = ['POST', 'GET'])  # zzm
 def register():
     phone_number = request.json['phoneNumber']
     password = request.json['password'][:10]
-    # realName = request.json['realName']
-    # nickName = request.json['nickName']
+    realName = request.json['realName']
+    nickName = request.json['nickName']
 
     getNum = """
-    SELECT COUNT(*) as cnt
+     SELECT COUNT(*) as cnt
     from customer   
-    """
+     """
     t = run_sql(getNum)
-    customer_id_new = 'C' + str(int(t[0]['cnt']) + 1).zfill(9)
+    customer_id_new = 'C' + str(int(t[0]['cnt']) + 1)
 
     register = """
     INSERT 
@@ -30,19 +31,19 @@ def register():
     VALUES('%s','%s','%s')
     """ % (customer_id_new, phone_number, password)
 
-    # register_info = """
-    # INSERT
-    # INTO info_customer
-    # VALUES('%s','%s','%s','%s')
-    # """ % (customer_id_new, "", nickName, phone_number)
+    register_info = """
+    INSERT 
+    INTO info_customer
+    VALUES('%s','%s','%s','%s')
+    """ % (customer_id_new, "", nickName, phone_number)
     _ = run_sql(register)
-    # _ = run_sql(register_info)
+    _ = run_sql(register_info)
     new_cust_info = {"ID": customer_id_new}
 
     return wrap_json_for_send(new_cust_info, "successful")
 
 
-# 用户登录。用户提供登录名与密码，与数据库中内容进行匹配验证，返回登录成功与否。【已测试】
+# 用户登录。用户提供登录名与密码，与数据库中内容进行匹配验证，返回登录成功与否。
 # /api/user/login
 # input: base, {"phoneNumber":"xxx","password:"xxx"}
 # output: base, {"ID":"xxx"}
@@ -59,17 +60,16 @@ def login():
     customer_id = run_sql(login, {"customer_phonenumber": phone_number,
                                   "customer_password": password})[0]['customer_id']
 
-    # info = """
-    # SELECT nickname, address_name
-    # FROM info_customer
-    # WHERE customer_id=:customer_id
-    # """
-    # c_info = run_sql(info, {"customer_id": customer_id})
-    # # c_info = loads(c_info)
-    # nickName = c_info[0]['nickname']
-    # address_name = c_info[0]['address_name']
-    cust_ID = {"ID": customer_id}
-    # , "phoneNumber": phone_number, "nickName": nickName, "addressName": address_name
+    info = """
+    SELECT nickname, address_name
+    FROM info_customer
+    WHERE customer_id=:customer_id
+    """
+    c_info = run_sql(info, {"customer_id": customer_id})
+    # c_info = loads(c_info)
+    nickName = c_info[0]['nickname']
+    address_name = c_info[0]['address_name']
+    cust_ID = {"ID": customer_id, "phoneNumber": phone_number, "nickName": nickName, "addressName": address_name}
 
     return wrap_json_for_send(cust_ID, "successful")
 
@@ -269,23 +269,24 @@ def delete_cart(id):
     return wrap_json_for_send(d, 'successful')
 
 
-# 3. 用户已有订单查询。返回用户已有订单。允许顾客进行退货处理。
+# 3. 用户已有订单查询。返回用户已有订单。允许顾客进行退货处理。[已测试]
 @customer.route("/<id>/orders", methods = ['POST'])  # lsy
 def get_orders(id):
     ## 提取信息
     get_orders = """
-    SELECT o.order_id, p.product_name, p.pic_url, o.quantity, o.price_sum, o.receive_address, i.phone, i.nickname, o.comment, o.is_return
+    SELECT o.order_id, o.orderdate, p.product_name, p.pic_url, o.quantity, o.price_sum, o.receive_address, i.phone, i.nickname, o.comment, o.is_return
     FROM product p, orders o, info_customer i
     WHERE o.customer_id=:customer_id 
     AND p.product_id = o.product_id AND o.customer_id = i.customer_id 
     AND o.receive_address = i.address_name;
     """
     t = run_sql(get_orders, {"customer_id": id})
-    column = ['orderID', 'productName', 'picUrl', 'quantity', 'priceSum', 'receiveAddress', 'phone', 'nickname',
-              'comment', 'isReturn']
+    column = ['order_id', 'order_date', 'product_name', 'pic_url', 'quantity', 'price_sum', 'receive_address',
+              'phone', 'nickname', 'comment', 'is_return']
     d = [dict(zip(column, t[i].values())) for i in range(len(t))]
     d = {"number": len(t), "detail": d}
     return wrap_json_for_send(d, "successful")
+
 
 
 @customer.route("/<id>/orders/salesreturn", methods = ['POST'])  # lsy
