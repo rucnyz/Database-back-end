@@ -271,23 +271,24 @@ def delete_cart(id):
     return wrap_json_for_send(d, 'successful')
 
 
-# 3. 用户已有订单查询。返回用户已有订单。允许顾客进行退货处理。
+# 3. 用户已有订单查询。返回用户已有订单。允许顾客进行退货处理。[已测试]
 @customer.route("/<id>/orders", methods = ['POST'])  # lsy
 def get_orders(id):
     ## 提取信息
     get_orders = """
-    SELECT o.order_id, p.product_name, p.pic_url, o.quantity, o.price_sum, o.receive_address, i.phone, i.nickname, o.comment, o.is_return
+    SELECT o.order_id, o.orderdate, p.product_name, p.pic_url, o.quantity, o.price_sum, o.receive_address, i.phone, i.nickname, o.comment, o.is_return
     FROM product p, orders o, info_customer i
     WHERE o.customer_id=:customer_id 
     AND p.product_id = o.product_id AND o.customer_id = i.customer_id 
     AND o.receive_address = i.address_name;
     """
     t = run_sql(get_orders, {"customer_id": id})
-    column = ['orderID', 'productName', 'picUrl', 'quantity', 'priceSum', 'receiveAddress', 'phone', 'nickname',
-              'comment', 'isReturn']
+    column = ['order_id', 'order_date', 'product_name', 'pic_url', 'quantity', 'price_sum', 'receive_address',
+              'phone', 'nickname', 'comment', 'is_return']
     d = [dict(zip(column, t[i].values())) for i in range(len(t))]
     d = {"number": len(t), "detail": d}
     return wrap_json_for_send(d, "successful")
+
 
 
 @customer.route("/<id>/orders/salesreturn", methods = ['POST'])  # lsy
