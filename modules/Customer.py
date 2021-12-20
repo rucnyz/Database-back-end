@@ -194,11 +194,10 @@ def add_cart(id):
     product_id = request.json['productID']
     count = request.json['count']
 
-    add_cart = """
+    add_trigger = """
     CREATE TRIGGER trig_insert_cart
     ON cart AFTER INSERT
     AS
-    BEGIN
         DECLARE @customer_id char(10), @product_id char(10), @count int;
         IF EXISTS(
         SELECT *
@@ -220,8 +219,10 @@ def add_cart(id):
                 WHERE customer_id=@customer_id AND product_id=@product_id;
             END
         END
-    END 
-    
+    """
+    run_sql(add_trigger)  # 创建触发器的语句必须是批处理中唯一的语句
+
+    add_cart = """
     INSERT
     INTO cart
     VALUES(:customer_id, :product_id, :count)
