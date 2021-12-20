@@ -182,7 +182,7 @@ def select_cart(id):
 
 
 # 在购物车界面只能增加某件商品的数量(update)，在商品界面才可以向购物车增加新的商品(add)
-# /api/customer/"id"/shoppingCart/add【修改trigger】
+# /api/customer/"id"/shoppingCart/add【测试有问题，需要修改trigger为before】
 # input: base,{"productID":,"count":3}
 # output:base
 # 例子
@@ -190,6 +190,7 @@ def select_cart(id):
 # "productID": "xx"
 # "count": 3
 # }
+# trigger的创建必须作为批处理中唯一的语句
 @customer.route("/<id>/shoppingCart/add", methods=['POST'])  # hcy
 def add_cart(id):
     product_id = request.json['productID']
