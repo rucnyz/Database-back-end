@@ -7,22 +7,22 @@ customer = Blueprint('customer', __name__)
 
 db = SQLAlchemy()
 
-# /api/customer/register
+# /api/customer/register[已测试]
 # input: base, { "phoneNumber":"xxx", "password": "xxx"}
 # output:base {"ID":"xxx"}
 @customer.route("/register", methods = ['POST', 'GET'])  # zzm
 def register():
     phone_number = request.json['phoneNumber']
     password = request.json['password'][:10]
-    realName = request.json['realName']
-    nickName = request.json['nickName']
+    # realName = request.json['realName']
+    # nickName = request.json['nickName']
 
     getNum = """
-     SELECT COUNT(*) as cnt
+    SELECT COUNT(*) as cnt
     from customer   
-     """
+    """
     t = run_sql(getNum)
-    customer_id_new = 'C' + str(int(t[0]['cnt']) + 1)
+    customer_id_new = 'C' + str(int(t[0]['cnt']) + 1).zfill(9)
 
     register = """
     INSERT 
@@ -30,19 +30,19 @@ def register():
     VALUES('%s','%s','%s')
     """ % (customer_id_new, phone_number, password)
 
-    register_info = """
-    INSERT 
-    INTO info_customer
-    VALUES('%s','%s','%s','%s')
-    """ % (customer_id_new, "", nickName, phone_number)
+    # register_info = """
+    # INSERT
+    # INTO info_customer
+    # VALUES('%s','%s','%s','%s')
+    # """ % (customer_id_new, "", nickName, phone_number)
     _ = run_sql(register)
-    _ = run_sql(register_info)
+    # _ = run_sql(register_info)
     new_cust_info = {"ID": customer_id_new}
 
     return wrap_json_for_send(new_cust_info, "successful")
 
 
-# 用户登录。用户提供登录名与密码，与数据库中内容进行匹配验证，返回登录成功与否。
+# 用户登录。用户提供登录名与密码，与数据库中内容进行匹配验证，返回登录成功与否。【已测试】
 # /api/user/login
 # input: base, {"phoneNumber":"xxx","password:"xxx"}
 # output: base, {"ID":"xxx"}
@@ -59,16 +59,17 @@ def login():
     customer_id = run_sql(login, {"customer_phonenumber": phone_number,
                                   "customer_password": password})[0]['customer_id']
 
-    info = """
-    SELECT nickname, address_name
-    FROM info_customer
-    WHERE customer_id=:customer_id
-    """
-    c_info = run_sql(info, {"customer_id": customer_id})
-    # c_info = loads(c_info)
-    nickName = c_info[0]['nickname']
-    address_name = c_info[0]['address_name']
-    cust_ID = {"ID": customer_id, "phoneNumber": phone_number, "nickName": nickName, "addressName": address_name}
+    # info = """
+    # SELECT nickname, address_name
+    # FROM info_customer
+    # WHERE customer_id=:customer_id
+    # """
+    # c_info = run_sql(info, {"customer_id": customer_id})
+    # # c_info = loads(c_info)
+    # nickName = c_info[0]['nickname']
+    # address_name = c_info[0]['address_name']
+    cust_ID = {"ID": customer_id}
+    # , "phoneNumber": phone_number, "nickName": nickName, "addressName": address_name
 
     return wrap_json_for_send(cust_ID, "successful")
 
