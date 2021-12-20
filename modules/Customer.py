@@ -7,6 +7,7 @@ customer = Blueprint('customer', __name__)
 
 db = SQLAlchemy()
 
+
 # /api/customer/register
 # input: base, { "phoneNumber":"xxx", "password": "xxx"}
 # output:base {"ID":"xxx"}
@@ -367,13 +368,13 @@ def orders_add_cart(id):  # 新订单添加
         ON product AFTER UPDATE
         AS
         BEGIN
-            DECLARE @product_id char(10), @quantity int;
-            SELECT @product_id=product_id, @quantity=quantity FROM updated;
+            DECLARE @product_id char(10);
+            SELECT @product_id=product_id FROM inserted;
             
             IF NOT EXISTS(
             SELECT *
             FROM product
-            WHERE product_id=@product_id AND remain>=@quantity
+            WHERE product_id=@product_id AND remain>=0
             )
                 
             BEGIN
@@ -386,7 +387,7 @@ def orders_add_cart(id):  # 新订单添加
         WHERE product_id=:product_id
         """
 
-        run_sql(remain_minus_quantity, {"productId": product_id,
+        run_sql(remain_minus_quantity, {"product_id": product_id,
                                         "quantity": quantity})
 
         run_sql(orders_add, {"order_id": order_id_new,
@@ -477,18 +478,18 @@ def orders_add_product(id):  # 新订单添加
     :quantity, :price_sum, :deliver_address, :receive_address, :is_return, :comment)
     """
 
-    remain_minus_1 = """
+    remain_minus_quantity = """
     CREATE TRIGGER trig_insert
     ON product AFTER UPDATE
     AS
     BEGIN
-        DECLARE @product_id char(10), @quantity int;
-        SELECT @product_id=product_id, @quantity=quantity FROM inserted;
+        DECLARE @product_id char(10);
+        SELECT @product_id=product_id FROM inserted;
 
         IF NOT EXISTS(
         SELECT *
         FROM product
-        WHERE product_id=@product_id AND remain>=@quantity
+        WHERE product_id=@product_id AND remain>=0
         )
 
         BEGIN
@@ -497,11 +498,12 @@ def orders_add_product(id):  # 新订单添加
     END
 
     UPDATE product
-    SET remain=remain-1
+    SET remain=remain-:quantity
     WHERE product_id=:product_id
     """
 
-    run_sql(remain_minus_1, {"productId": product_id})
+    run_sql(remain_minus_quantity, {"product_id": product_id,
+                                    "quantity": quantity})
 
     run_sql(orders_add, {"order_id": order_id_new,
                          "customer_id": id,
