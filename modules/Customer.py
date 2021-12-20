@@ -340,8 +340,8 @@ def orders_add_cart(id):  # 新订单添加
         order_id_new = 'O' + str(int(tuple_tmp[0]['cnt'] + 1))  # 获得新的订单编号
 
         # 不确定触发器是不是建立在orders上
-        orders_add = """
-        CREATE TRIGGER trig_insert_c2o
+        orders_trigger = """
+        CREATE TRIGGER trig_insert_orders
         ON orders AFTER INSERT
         AS
         BEGIN
@@ -358,8 +358,10 @@ def orders_add_cart(id):  # 新订单添加
                 rollback transaction
             END
         END
+        """
+        run_sql(orders_trigger)
         
-        INSERT
+        orders_add = """INSERT
         INTO orders
         VALUES(:order_id, :customer_id, :supplier_id, :product_id, :orderdate, 
         :quantity, :price_sum, :deliver_address, :receive_address, :is_return, :comment)
