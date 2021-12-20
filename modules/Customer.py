@@ -73,7 +73,7 @@ def login():
     return wrap_json_for_send(cust_ID, "successful")
 
 
-# 用户个人信息查询
+# 用户个人信息查询[已测试]
 # /api/customer/ID:"xxx"/info
 # input : base, {"ID":"xxx"}
 # output: base, {"address":[{"nickName","phoneNumber","address"}]}
@@ -86,7 +86,7 @@ def select_customer_info(id):
     """
     t = run_sql(select_customer_info, {"customer_id": id})
 
-    column = ['nickName', 'phoneNumber', 'address']
+    column = ['nickname', 'phoneNumber', 'addressName']
 
     list = [dict(zip(column, t[i].values())) for i in range(len(t))]
     d = {"address": list}
