@@ -26,7 +26,7 @@ db = SQLAlchemy()
 #   'category': '配饰',
 #   'pic_url': 'https://img14.360buyimg.com/n7/jfs/t1/168641/4/25410/143878/61a864c4E342d985c/5daf74ceca47577e.jpg',
 # }
-@product.route("/<id>", methods = ['POST'])  # hcy#张子木修改
+@product.route("/<id>", methods = ['POST'])  # hcy
 def product_info(id):
     product_info = """
     SELECT product_name, price, remain, size, category, pic_url
@@ -51,6 +51,7 @@ def product_info(id):
 # output:base, {"comments":[]}
 # iput例子
 # {
+# 'productID': 'xxxx'
 # 'needNumber': 20
 #   'page': 1
 #
@@ -66,27 +67,29 @@ def product_info(id):
 #   ]
 # }
 
-@product.route("/<id>/allcomments", methods = ['POST'])  # hcy #zzm修改
-def allcomments(id):  # 这个id没有用。要返回的是评论对应的id
+@product.route("/<productID>/allcomments", methods = ['POST'])  # hcy #zzm修改
+def allcomments(productID):
 
     need_number = request.args['needNumber']
     page = request.args['page']
     start_num = need_number * (int(page) - 1)
+
     if page == 1:
         comment = """
-        SELECT TOP 10 comment, orderdate, customer.customer_id
-        FROM orders, customer
-        WHERE product_id='%s' AND customer.customer_id=orders.customer_id
-        """ % id
+        SELECT TOP %s o.comment, o.orderdate, c.customer_id
+        FROM orders o, customer c
+        WHERE o.product_id='%s' AND c.customer_id=o.customer_id
+        """ % (need_number,productID)
     else:
         comment = """
-        SELECT TOP 10 comment, orderdate, customer.customer_id 
-        FROM orders, customer
-        WHERE product_id='%s' AND customer.customer_id=orders.customer_id
-        """ % id
+    	  SELECT TOP %s o.comment, o.orderdate, c.customer_id
+        FROM orders o, customer c
+        WHERE o.product_id='%s' AND c.customer_id=o.customer_id
+			  AND o.order_id>(SELECT MAX(order_id) FROM (SELECT TOP %s order_id FROM orders ORDER BY order_id ASC)AS TEMP)
+		""" % (need_number,productID,start_num)
 
     c = run_sql(comment)
-    column = ['comments', "date", 'customerID']
+    column = ["comments", "date", "customerID"]
     d = {"comments": [dict(zip(column, c[i].values())) for i in range(len(c))]}
 
     return wrap_json_for_send(d, 'successful')
