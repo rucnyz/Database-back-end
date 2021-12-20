@@ -7,7 +7,7 @@ comment = Blueprint('comment', __name__)
 
 # 4. 评价功能：与顾客订单进行绑定。当订单交易完成后，顾客可以选择对商品进行评价，并存储在数据库中。
 # count
-@comment.route("/", methods=['POST'])  # lsy
+@comment.route("/", methods = ['POST'])  # lsy
 def select_comments():  # 查看评价
     product_id = request.json["product_id"]
     select_comments = """
@@ -20,6 +20,7 @@ def select_comments():  # 查看评价
     d = [dict(zip(column, t[i].values())) for i in range(len(t))]
     d = {"number": len(t), "detail": d}
     return wrap_json_for_send(d, "successful")
+
 
 # add和delete都不需要了，直接update
 # @comment.route("/add", methods=['POST'])  # lsy
@@ -52,7 +53,7 @@ def select_comments():  # 查看评价
 # /api/comments/update[后端已完成]
 # input: base, {"orderID“,"comment"}
 # output: base
-@comment.route("/update", methods=['POST'])  # lsy
+@comment.route("/update", methods = ['POST'])  # lsy
 def update_comment():  # 更新评价
     order_id = request.json["orderID"]
     comments = request.json["comment"]
