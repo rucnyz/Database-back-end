@@ -349,8 +349,8 @@ def orders_add_cart(id):  # 新订单添加
 
 # output:{"ordersID":"O1234"}
 
-@customer.route("/<id>/orders/add_product", methods=['POST', 'GET'])  # zzm #hcy
-def orders_add_product(id):  # 新订单添加
+@customer.route("/<customerID>/orders/add_product", methods=['POST', 'GET'])  # zzm #hcy
+def orders_add_product(customerID):  # 新订单添加
 
     product_id = request.json['productID']
     order_date = request.json['orderDate']
@@ -360,7 +360,7 @@ def orders_add_product(id):  # 新订单添加
 
     getNum = """
     SELECT COUNT(*) as cnt
-    from orders  
+    FROM orders  
     """
 
     tuple_tmp = run_sql(getNum)
@@ -385,7 +385,7 @@ def orders_add_product(id):  # 新订单添加
     """
 
     run_sql(orders_add, {"order_id": order_id_new,
-                         "customer_id": id,
+                         "customer_id": customerID,
                          "supplier_id": supplier_id,
                          "product_id": product_id,
                          "orderdate": order_date,
