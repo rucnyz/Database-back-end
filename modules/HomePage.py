@@ -79,7 +79,7 @@ def return_product_in_category():
 # input: base,{"keywords", ”category“, "needNumber", "page"}
 # output: base, {{"product_id":id, "pic_url":图片url, "product_name":名称, "price"：价格},{……},{……}}
 @homepage.route("/getProductInCond", methods = ['POST', 'GET'])  # lsy
-def search_product():
+def get_product_in_cond():
     cat = request.args['category']
     keywords = request.args['keywords']
     number = request.args['needNumber']
@@ -112,3 +112,30 @@ def search_product():
     column = ["ID", "product_pic", "product_name", "price"]
     d = {"totalSize": size[0][''], "detail": [dict(zip(column, t[i].values())) for i in range(len(t))]}
     return wrap_json_for_send(d, "successful")
+
+
+#  /api/HomePage/search_product   用于返回特定关键词商品。
+# input: base,{"keywords", ”category“}
+# output: base, {{"商品id":id, "商品图片":图片url, "商品名称":名称, "商品价格"：价格},{……},{……}}
+@homepage.route("/search_product ", methods=['POST', 'GET'])  # zzm
+def search_product():
+    cat = request.json['category']
+    keywords = request.json['keywords']
+    get_cat_product = """
+    SELECT product_id, pic_url, product_name, price
+    FROM product p
+    WHERE p.category='%s' AND p.product_name LIKE '%s'
+    """ % (cat, keywords)
+    get_product = """
+    SELECT product_id, pic_url, product_name, price
+    FROM product p
+    WHERE p.product_name LIKE '%s'
+    """ % keywords
+    if cat.isspace():
+        t = run_sql(get_product)
+    else:
+        t = run_sql(get_cat_product)
+    column = ["商品ID", "商品图片", "商品名称", "商品价格"]
+    d = {"detail": [dict(zip(column, t[i])) for i in range(len(t))]}
+    return wrap_json_for_send(d, "successful")
+
