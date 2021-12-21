@@ -1,6 +1,7 @@
 /mssql_config.json
 /.idea
-test
+test/*
 *.dsn
 ^sample.dsn
 __pycache__
+!test/pressure_test
