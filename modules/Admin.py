@@ -5,7 +5,8 @@ from utils import run_sql, wrap_json_for_send
 admin = Blueprint('admin', __name__)
 db = SQLAlchemy()
 
-# 1. 显示每个商家最热卖的top 3个商品。 # zzm  # hcy修改
+
+# 1. 显示每个商家最热卖的top 3个商品。 # zzm  # hcy修改【lsy已测试】
 # /api/admin/top3_product
 # input:base,{""}
 # output:base,{"supplier_id","product_id","product_name","sum_quantity"}
@@ -19,7 +20,7 @@ def top3_product():
     tmp = run_sql(get_num)
     number = int(tmp[0]['cnt'])
     final_info = []
-    for i in range(1, number+1):
+    for i in range(1, number + 1):
         spid = 'S' + str(i).zfill(9)
         top3_product = """
         SELECT TOP 3 s.supplier_id, p.product_id, p.product_name, SUM(o.quantity)
@@ -28,7 +29,7 @@ def top3_product():
         GROUP BY s.supplier_id, p.product_id, p.product_name
         ORDER BY SUM(o.quantity) DESC
         """
-        tuple_tmp = run_sql(top3_product,{"supplier_id": spid})
+        tuple_tmp = run_sql(top3_product, {"supplier_id": spid})
         column = ['supplier_id', 'product_id', 'product_name', 'sum_quantity']
         tmp_info = [dict(zip(column, tuple_tmp[i].values())) for i in range(len(tuple_tmp))]
         final_info.append(tmp_info)
@@ -38,27 +39,28 @@ def top3_product():
     return wrap_json_for_send(d, "successful")
 
 
-# 2. 给定一个商品，显示售卖此商品价格最低的5个商家。”（商品名字模糊搜索) # zzm   hcy修改
+# 2. 给定一个商品，显示售卖此商品价格最低的5个商家。”（商品名字模糊搜索) # zzm   hcy修改【lsy已测试】
 # /api/admin/low5_supplier
 # input:base,{"keywords"}
 # output:base,{"keywords",'detail': [{"price","product_id","product_name","supplier_id","supplier_name"{}},{},...,{}]}
 @admin.route("/low5_supplier", methods=['POST'])
 def low5_supplier():
     key_words = request.json['keywords']
+    key_words_vague = '%'+key_words+'%'
     get_low5_supplier = """
     SELECT TOP 5 p.price, p.product_id, p.product_name, s.supplier_id, s.supplier_name
     FROM product p, supplier s
-    WHERE p.supplier_id=s.supplier_id AND product_name LIKE '%%%s%%'
+    WHERE p.supplier_id=s.supplier_id AND product_name LIKE :vague
     ORDER BY price 
-    """ % key_words
-    t = run_sql(get_low5_supplier)
+    """
+    t = run_sql(get_low5_supplier, {"vague": key_words_vague})
     column = ["price", "product_id", "product_name", "supplier_id", "supplier_name"]
     d = {'keywords': key_words, 'detail': [dict(zip(column, t[i].values())) for i in range(len(t))]}
 
     return wrap_json_for_send(d, "successful")
 
 
-# 3. 显示每个商家的年销售总额。 # hcy
+# 3. 显示每个商家的年销售总额。 # hcy 【lsy已测试】
 # /api/admin/annual_sales
 # input:base,{"year"}
 # output:base, {"year":,"suppliers": list[{"supplier_id","supplier_name","annual_sales"}]}
@@ -72,7 +74,7 @@ def annual_sales():
     list_year = run_sql(get_years)
     list_year = [i[''] for i in list_year]
     get_annual_sales = """
-    SELECT DatePart(yyyy, o.orderdate) year, s.supplier_id, s.supplier_name, SUM(o.price_sum) annual_sales
+    SELECT DatePart(yyyy, o.orderdate) year, s.supplier_id, s.supplier_name, round(SUM(o.price_sum),2) annual_sales
     FROM supplier s, orders o
     WHERE s.supplier_id=o.supplier_id
     GROUP BY s.supplier_id, s.supplier_name, DatePart(yyyy, o.orderdate)
@@ -94,7 +96,7 @@ def annual_sales():
     return wrap_json_for_send(d, "successful")
 
 
-# 4.显示每个会员购买次数最多的商品。  # lsy
+# 4.显示每个会员购买次数最多的商品。  # lsy【已测试】
 # /api/admin/top_product
 # input:base,{""}
 # output:base,{"customer_id","product_id","product_name","top_num"}
@@ -115,10 +117,11 @@ def top_product():
     return wrap_json_for_send(d, "successful")
 
 
-# 5. 显示每个省份会员的平均消费额、最大消费额和最小消费额，并按平均消费额降序排列。   # lsy
+# 5. 显示每个省份会员的平均消费额、最大消费额和最小消费额，并按平均消费额降序排列。   # lsy【已测试】
 # /api/admin/province_top
 # input:base,{""}
-# output:base,{"province","average_spending","max_spending","min_spending"}
+# output:base,{"province", "count", "average_spending","max_spending","min_spending"}
+# 可以加功能：以不同方式排序
 @admin.route("/province_top", methods=['POST'])
 def province_top():
     provinces = ['安徽省', '澳门特别行政区', '北京市', '福建省', '甘肃省', '广东省', '广西壮族自治区', '贵州省', '海南省',
@@ -127,14 +130,18 @@ def province_top():
                  '香港特别行政区', '新疆维吾尔自治区', '云南省', '浙江省', '重庆市']
     province_top = []
     for i in provinces:
+        vague = i + '%'
+        print(vague)
         get_province_top = """
-        SELECT '%s' province, AVG(o.price_sum) avg, MAX(o.price_sum) max, MIN(o.price_sum) min
-        FROM orders o
-        WHERE o.receive_address LIKE '%s';
-        """ % i
-        t = run_sql(get_province_top)
-        province_top.append(t.values())
-    column = ["province", "average", "max", "min"]
+        SELECT :province province, round(ISNULL(COUNT(*),0), 0) count, round(ISNULL(AVG(price_sum),0),2) avg, round(ISNULL(MAX(price_sum),0),2) max, round(ISNULL(MIN(price_sum),0),2) min
+        FROM (SELECT o.price_sum
+                FROM orders o
+	            WHERE o.receive_address LIKE :vague) AS pvs;
+        """
+        t = run_sql(get_province_top, {"province": i, "vague": vague})
+        province_top.append(t)
+    column = ["province", "count", "average", "max", "min"]
+    province_top = sorted(province_top, key=lambda province_top: [x['avg'] for x in province_top], reverse=True)
     # toTODO 降序排列
     d = {"detail": [dict(zip(column, province_top[i])) for i in range(len(province_top))]}
     return wrap_json_for_send(d, "successful")
