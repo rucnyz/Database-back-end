@@ -43,3 +43,35 @@ trig_insert_cart = """
     """
 
 run_sql(trig_insert_cart)
+
+
+trig_insert_orders_from_cart = """
+    CREATE TRIGGER trig_insert_orders_from_cart
+    ON orders INSTEAD OF INSERT
+    AS
+    BEGIN
+        DECLARE @customer_id char(10), @product_id char(10), @quantity int;
+        SELECT @customer_id=customer_id, @product_id=product_id, @quantity=quantity FROM inserted;
+    
+        IF EXISTS(
+        SELECT *
+        FROM product
+        WHERE product_id=@product_id AND remain>=@quantity
+        )
+    
+        BEGIN
+            DELETE
+            FROM cart
+            WHERE customer_id=@customer_id AND product_id=@product_id AND count=@quantity
+                
+            UPDATE product
+            SET remain=remain-@quantity
+            WHERE product_id=@product_id
+    
+            INSERT INTO orders
+            SELECT * FROM inserted
+        END
+    END
+    """
+
+run_sql(trig_insert_orders_from_cart)
