@@ -31,13 +31,13 @@ def register():
     VALUES('%s','%s','%s')
     """ % (customer_id_new, phone_number, password)
 
-    # register_info = """
-    # INSERT
-    # INTO info_customer
-    # VALUES('%s','%s','%s','%s')
-    # """ % (customer_id_new, "", nickName, phone_number)
+    register_info = """
+    INSERT 
+    INTO info_customer
+    VALUES('%s','%s','%s','%s')
+    """ % (customer_id_new, "", nickName, phone_number)
     _ = run_sql(register)
-    # _ = run_sql(register_info)
+    _ = run_sql(register_info)
     new_cust_info = {"ID": customer_id_new}
 
     return wrap_json_for_send(new_cust_info, "successful")
@@ -180,7 +180,7 @@ def select_cart(id):
 
 
 # 在购物车界面只能增加某件商品的数量(update)，在商品界面才可以向购物车增加新的商品(add)
-# /api/customer/"id"/shoppingCart/add【测试有问题，需要修改trigger为before】
+# /api/customer/"id"/shoppingCart/add【已测试】
 # input: base,{"productID":,"count":3}
 # output:base
 # 例子
@@ -194,42 +194,12 @@ def add_cart(id):
     product_id = request.json['productID']
     count = request.json['count']
 
-    add_cart_trigger = """
-    CREATE TRIGGER trig_insert_cart
-    ON cart AFTER INSERT
-    AS
-    BEGIN
-        DECLARE @customer_id char(10), @product_id char(10), @count int;
-        IF EXISTS(
-        SELECT *
-        FROM product
-        WHERE product_id=@product_id AND remain>=@count
-        )
-
-        BEGIN
-            SELECT @customer_id = customer_id, @product_id = product_id, @count = count FROM inserted;
-            IF EXISTS(
-            SELECT *
-            FROM cart
-            WHERE customer_id=@customer_id AND product_id=@product_id)
-
-            BEGIN
-                rollback transaction;
-                UPDATE cart
-                SET count=count+@count
-                WHERE customer_id=@customer_id AND product_id=@product_id;
-            END
-        END
-        ELSE
-        rollback transaction;
-    END 
-    """
-    run_sql(add_cart_trigger)
     add_cart = """
     INSERT
-    INTO cart
+    INTO cart(customer_id, product_id, count)
     VALUES(:customer_id, :product_id, :count)
     """
+
     run_sql(add_cart, {"customer_id": id, "product_id": product_id, "count": count})
     d = {}
     return wrap_json_for_send(d, 'successful')
