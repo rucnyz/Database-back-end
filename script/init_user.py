@@ -4,6 +4,7 @@ sys.path.append(".")
 from utils import run_sql
 
 create_login_customer = """
+    USE OnlineShopping;
     CREATE LOGIN customer WITH PASSWORD = 'PasswordForCustomer',
     CHECK_POLICY = OFF;
 """
@@ -11,6 +12,7 @@ create_login_customer = """
 run_sql(create_login_customer)
 
 create_login_supplier = """
+    USE OnlineShopping;
     CREATE LOGIN supplier WITH PASSWORD = 'PasswordForSupplier',
     CHECK_POLICY = OFF;
 """
@@ -18,6 +20,7 @@ create_login_supplier = """
 run_sql(create_login_supplier)
 
 create_login_admin = """
+    USE OnlineShopping;
     CREATE LOGIN admin WITH PASSWORD = 'PasswordForAdmin',
     CHECK_POLICY = OFF;
 """

@@ -75,3 +75,31 @@ trig_insert_orders_from_cart = """
     """
 
 run_sql(trig_insert_orders_from_cart)
+
+# 一个表不能重复建立触发器
+# trig_insert_orders_from_product = """
+#     CREATE TRIGGER trig_insert_orders_from_product
+#     ON orders INSTEAD OF INSERT
+#     AS
+#     BEGIN
+#         DECLARE @customer_id char(10), @product_id char(10), @quantity int;
+#         SELECT @customer_id=customer_id, @product_id=product_id, @quantity=quantity FROM inserted;
+#
+#         IF EXISTS(
+#         SELECT *
+#         FROM product
+#         WHERE product_id=@product_id AND remain>=@quantity
+#         )
+#
+#         BEGIN
+#             UPDATE product
+#             SET remain=remain-@quantity
+#             WHERE product_id=@product_id
+#
+#             INSERT INTO orders
+#             SELECT * FROM inserted
+#         END
+#     END
+#     """
+#
+# run_sql(trig_insert_orders_from_product)
