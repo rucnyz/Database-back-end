@@ -275,7 +275,7 @@ def set_is_return(id):  # 设置退货标记
     return wrap_json_for_send(d, "successful")
 
 
-# 从购物车里添加新订单。
+# 从购物车里添加新订单。[已测试]
 # /api/customer/<id>/orders/add_cart
 # input:base, {"orders": [" "productID", "order_date","price_sum", "quantity", "size","receive_address""]}
 # output:base,{"orderID":["xxx", "xxx", "xxx"]}
@@ -284,7 +284,7 @@ def set_is_return(id):  # 设置退货标记
 def orders_add_cart(id):  # 新订单添加
     orders = request.json["orders"]
     orderID = []
-    for i in range(orders):
+    for i in range(len(orders)):
         product_id = orders[i]["productID"]
         order_date = orders[i]["orderDate"]
         price_sum = orders[i]["priceSum"]
@@ -306,13 +306,13 @@ def orders_add_cart(id):  # 新订单添加
         from orders  
          """
         tuple_tmp = run_sql(getNum)
-        order_id_new = 'O' + str(int(tuple_tmp[0]['cnt'] + 1))  # 获得新的订单编号
+        order_id_new = 'O' + str(int(tuple_tmp[0]['cnt'] + 1)).zfill(9)  # 获得新的订单编号
 
         orders_add = """
         INSERT
         INTO orders
         VALUES(:order_id, :customer_id, :supplier_id, :product_id, :orderdate, 
-        :quantity, :price_sum, :deliver_address, :receive_address, :is_return, :comment)
+        :price_sum, :quantity, :deliver_address, :receive_address, :is_return, :comment)
         """
 
         run_sql(orders_add, {"order_id": order_id_new,
@@ -333,7 +333,7 @@ def orders_add_cart(id):  # 新订单添加
     return wrap_json_for_send(new_order_info, "successful")
 
 
-# 从商品界面里添加新订单。除接口外，与购物车添加订单均相同。
+# 从商品界面里添加新订单。除接口外，与购物车添加订单均相同。（从商品界面一次只可以订购一种商品，无批量操作）[已测试]
 # /api/customer/<id>/orders/add_product
 #  input:base,{"productID","orderDate","priceSum","quantity",“size”,"receiveAddress"}
 #  output:base, {"ordersID"}
@@ -365,7 +365,7 @@ def orders_add_product(id):  # 新订单添加
     """
 
     tuple_tmp = run_sql(getNum)
-    order_id_new = 'O' + str(int(tuple_tmp[0]['cnt'] + 1))  # 获得新的订单编号
+    order_id_new = 'O' + str(int(tuple_tmp[0]['cnt'] + 1)).zfill(9)  # 获得新的订单编号
 
     getInfo = """
     SELECT info_s.address_name da, s.supplier_id sid
@@ -379,56 +379,11 @@ def orders_add_product(id):  # 新订单添加
     supplier_id = t[0]['sid']
 
     orders_add = """
-    CREATE TRIGGER trig_insert
-    ON orders AFTER INSERT
-    AS
-    BEGIN
-        DECLARE @product_id char(10), @quantity int;
-        SELECT @product_id=product_id, @quantity=quantity FROM inserted;
-
-        IF NOT EXISTS(
-        SELECT *
-        FROM product
-        WHERE product_id=@product_id AND remain>=@quantity
-        )
-
-        BEGIN
-            rollback transaction
-        END
-    END
-
     INSERT
     INTO orders
     VALUES(:order_id, :customer_id, :supplier_id, :product_id, :orderdate, 
-    :quantity, :price_sum, :deliver_address, :receive_address, :is_return, :comment)
+    :price_sum, :quantity, :deliver_address, :receive_address, :is_return, :comment)
     """
-
-    remain_minus_quantity = """
-    CREATE TRIGGER trig_insert
-    ON product AFTER UPDATE
-    AS
-    BEGIN
-        DECLARE @product_id char(10);
-        SELECT @product_id=product_id FROM inserted;
-
-        IF NOT EXISTS(
-        SELECT *
-        FROM product
-        WHERE product_id=@product_id AND remain>=0
-        )
-
-        BEGIN
-            rollback transaction
-        END
-    END
-
-    UPDATE product
-    SET remain=remain-:quantity
-    WHERE product_id=:product_id
-    """
-
-    run_sql(remain_minus_quantity, {"product_id": product_id,
-                                    "quantity": quantity})
 
     run_sql(orders_add, {"order_id": order_id_new,
                          "customer_id": id,

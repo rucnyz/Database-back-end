@@ -210,7 +210,7 @@ def insert_cart():
 def insert_orders():
     get_number = """
     SELECT ISNULL(COUNT(*), 0) as number
-    FROM product
+    FROM orders
     """
     number = get_col(run_sql(get_number), "number")
 
