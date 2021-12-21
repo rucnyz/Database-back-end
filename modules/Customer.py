@@ -15,8 +15,8 @@ db = SQLAlchemy()
 def register():
     phone_number = request.json['phoneNumber']
     password = request.json['password'][:10]
-    # realName = request.json['realName']
-    # nickName = request.json['nickName']
+    realName = request.json['realName']
+    nickName = request.json['nickName']
 
     getNum = """
     SELECT COUNT(*) as cnt
@@ -43,7 +43,7 @@ def register():
     return wrap_json_for_send(new_cust_info, "successful")
 
 
-# 用户登录。用户提供登录名与密码，与数据库中内容进行匹配验证，返回登录成功与否。【已测试】
+# 用户登录。用户提供登录名与密码，与数据库中内容进行匹配验证，返回登录成功与否。[已测试]
 # /api/user/login
 # input: base, {"phoneNumber":"xxx","password:"xxx"}
 # output: base, {"ID":"xxx"}
@@ -60,17 +60,15 @@ def login():
     customer_id = run_sql(login, {"customer_phonenumber": phone_number,
                                   "customer_password": password})[0]['customer_id']
 
-    # info = """
-    # SELECT nickname, address_name
-    # FROM info_customer
-    # WHERE customer_id=:customer_id
-    # """
-    # c_info = run_sql(info, {"customer_id": customer_id})
-    # # c_info = loads(c_info)
-    # nickName = c_info[0]['nickname']
-    # address_name = c_info[0]['address_name']
-    cust_ID = {"ID": customer_id}
-    # , "phoneNumber": phone_number, "nickName": nickName, "addressName": address_name
+    info = """
+    SELECT nickname, address_name
+    FROM info_customer
+    WHERE customer_id=:customer_id
+    """
+    c_info = run_sql(info, {"customer_id": customer_id})
+    nickName = c_info[0]['nickname']
+    address_name = c_info[0]['address_name']
+    cust_ID = {"ID": customer_id, "phoneNumber": phone_number, "nickName": nickName, "addressName": address_name}
 
     return wrap_json_for_send(cust_ID, "successful")
 
@@ -79,7 +77,7 @@ def login():
 # /api/customer/ID:"xxx"/info
 # input : base, {"ID":"xxx"}
 # output: base, {"address":[{"nickName","phoneNumber","address"}]}
-@customer.route("/<id>/info", methods=['POST'])  # hcy#zzm修改
+@customer.route("/<id>/info", methods = ['POST', 'GET'])  # hcy#zzm修改
 def select_customer_info(id):
     select_customer_info = """
     SELECT nickname, phone, address_name
@@ -95,7 +93,7 @@ def select_customer_info(id):
     return wrap_json_for_send(d, 'successful')
 
 
-# /api/customer/"id"/address/add【已测试】
+# /api/customer/"id"/address/add[已测试]
 # input:base,{"customerID","nickName","phoneNumber","address"}
 # output: base
 @customer.route("/<customerID>/address/add", methods=['POST'])  # hcy#zzm修改
@@ -117,10 +115,10 @@ def add_customer_info(customerID):
     return wrap_json_for_send(d, "successful")
 
 
-# /api/customer/"id"/address/delete【已测试】
+# /api/customer/"id"/address/delete[已测试]
 # input: base,{"customerID","address"}
 # output: base
-@customer.route("/<customerID>/address/delete", methods=['POST'])  # hcy#zzm修改
+@customer.route("/<customerID>/address/delete", methods = ['POST','GET'])  # hcy#zzm修改
 def delete_customer_info(customerID):
     address = request.json['address']
     delete_customer_info = """
@@ -134,7 +132,7 @@ def delete_customer_info(customerID):
     return wrap_json_for_send(d, "successful")
 
 
-# /api/customer/"id"/address/update【已测试】
+# /api/customer/"id"/address/update[已测试]
 # input: base, {"customerID","nickName","phoneNumber","address"}
 # ouput: base
 @customer.route("/<customerID>/address/update", methods=['POST'])  # hcy　#　zzm修改
@@ -156,10 +154,10 @@ def update_customer_info(customerID):
 
 
 # 2. 用户购物车查询
-# /api/customer/"id"/shoppingCart【已测试】
+# /api/customer/"id"/shoppingCart[已测试]
 # input: base,"ID"
 # output: base,{"totalSize","address":[{"address_name", "nickname", "phone"}] ,"cart_detail":[{"productID","pic_url",”count“,"productName","price"},...,{...}]}
-@customer.route("/<id>/shoppingCart", methods=['POST'])  # hcy lsy(address)
+@customer.route("/<id>/shoppingCart", methods = ['POST', 'GET'])  # hcy lsy(address)
 def select_cart(id):
     select_cart = """
     SELECT p.product_id, pic_url, count, product_name, price, size
@@ -237,7 +235,7 @@ def add_cart(id):
     return wrap_json_for_send(d, 'successful')
 
 
-# /api/customer/id/shoppingCart/update  仅限更新数量【已测试】
+# /api/customer/id/shoppingCart/update  仅限更新数量[已测试]
 # input:base, {"count": "xxx", "productID":}
 # output:base
 @customer.route("/<id>/shoppingCart/update", methods=['POST'])  # hcy
@@ -256,7 +254,7 @@ def update_cart(id):
     return wrap_json_for_send(d, 'successful')
 
 
-# /api/customer/id/shoppingCart/delete  删除购买的这一整个商品【已测试】
+# /api/customer/id/shoppingCart/delete  删除购买的这一整个商品[已测试]
 # input: base,{"customerID": "xxx", "productID":[列表！！！]}
 # output: base
 # 下订单后，删除购物车中购买的商品
@@ -275,29 +273,28 @@ def delete_cart(id):
     return wrap_json_for_send(d, 'successful')
 
 
-# 3. 用户已有订单查询。返回用户已有订单。允许顾客进行退货处理。【测试中，待修改datetime格式】
-@customer.route("/<id>/orders", methods=['POST'])  # lsy
+# 3. 用户已有订单查询。返回用户已有订单。允许顾客进行退货处理。[已测试]
+@customer.route("/<id>/orders", methods = ['POST', 'GET'])  # lsy
 def get_orders(id):
     ## 提取信息
     get_orders = """
-    SELECT o.order_id, o.orderdate, p.product_name, p.pic_url, o.quantity, o.price_sum, o.receive_address, i.phone, i.nickname, o.comment, o.is_return
+    SELECT o.order_id, p.product_name, p.pic_url, o.quantity, o.price_sum, o.receive_address, i.phone, i.nickname, o.comment, o.is_return
     FROM product p, orders o, info_customer i
     WHERE o.customer_id=:customer_id 
     AND p.product_id = o.product_id AND o.customer_id = i.customer_id 
     AND o.receive_address = i.address_name;
     """
     t = run_sql(get_orders, {"customer_id": id})
-    column = ['order_id', 'orderdate', 'product_name', 'pic_url', 'quantity', 'priceSum', 'receive_address', 'phone', 'nickname', 'comment', 'is_return']
+    column = ['orderID', 'productName', 'picUrl', 'quantity', 'priceSum', 'receiveAddress', 'phone', 'nickname',
+              'comment', 'isReturn']
     d = [dict(zip(column, t[i].values())) for i in range(len(t))]
     d = {"number": len(t), "detail": d}
     return wrap_json_for_send(d, "successful")
 
-# /api/customer/id/orders/salesreturn 【已测试】
-# input:base, {"orderID"}
-# output: base
+
 @customer.route("/<id>/orders/salesreturn", methods=['POST'])  # lsy
 def set_is_return(id):  # 设置退货标记
-    order_id = request.json["orderID"]
+    order_id = request.json["orderId"]
     set_is_return = """
     UPDATE orders
     SET is_return = 1 
@@ -313,7 +310,6 @@ def set_is_return(id):  # 设置退货标记
 # input:base, {"orders": [" "productID", "order_date","price_sum", "quantity", "size","receive_address""]}
 # output:base,{"orderID":["xxx", "xxx", "xxx"]}
 # {version:0.1, statuscode:successful, orders: [{"productID","orderDate","priceSum","quantity","receiveAddress"}]}
-
 @customer.route("/<id>/orders/add_cart", methods=['POST', 'GET'])  # zzm # hcy增加批量提交订单
 def orders_add_cart(id):  # 新订单添加
     orders = request.json["orders"]
