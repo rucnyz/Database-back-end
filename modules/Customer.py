@@ -7,10 +7,11 @@ customer = Blueprint('customer', __name__)
 
 db = SQLAlchemy()
 
-# /api/customer/register
+
+# /api/customer/register[已测试]
 # input: base, { "phoneNumber":"xxx", "password": "xxx"}
 # output:base {"ID":"xxx"}
-@customer.route("/register", methods = ['POST', 'GET'])  # zzm
+@customer.route("/register", methods=['POST', 'GET'])  # zzm
 def register():
     phone_number = request.json['phoneNumber']
     password = request.json['password'][:10]
@@ -18,11 +19,11 @@ def register():
     nickName = request.json['nickName']
 
     getNum = """
-     SELECT COUNT(*) as cnt
+    SELECT COUNT(*) as cnt
     from customer   
-     """
+    """
     t = run_sql(getNum)
-    customer_id_new = 'C' + str(int(t[0]['cnt']) + 1)
+    customer_id_new = 'C' + str(int(t[0]['cnt']) + 1).zfill(9)
 
     register = """
     INSERT 
@@ -42,11 +43,11 @@ def register():
     return wrap_json_for_send(new_cust_info, "successful")
 
 
-# 用户登录。用户提供登录名与密码，与数据库中内容进行匹配验证，返回登录成功与否。
+# 用户登录。用户提供登录名与密码，与数据库中内容进行匹配验证，返回登录成功与否。[已测试]
 # /api/user/login
 # input: base, {"phoneNumber":"xxx","password:"xxx"}
 # output: base, {"ID":"xxx"}
-@customer.route("/login", methods = ['POST', 'GET'])
+@customer.route("/login", methods=['POST', 'GET'])
 def login():
     phone_number = request.json['phoneNumber']
     password = request.json['password'][:10]
@@ -65,7 +66,6 @@ def login():
     WHERE customer_id=:customer_id
     """
     c_info = run_sql(info, {"customer_id": customer_id})
-    # c_info = loads(c_info)
     nickName = c_info[0]['nickname']
     address_name = c_info[0]['address_name']
     cust_ID = {"ID": customer_id, "phoneNumber": phone_number, "nickName": nickName, "addressName": address_name}
@@ -77,7 +77,7 @@ def login():
 # /api/customer/ID:"xxx"/info
 # input : base, {"ID":"xxx"}
 # output: base, {"address":[{"nickName","phoneNumber","address"}]}
-@customer.route("/<id>/info", methods = ['POST'])  # hcy#zzm修改
+@customer.route("/<id>/info", methods = ['POST', 'GET'])  # hcy#zzm修改
 def select_customer_info(id):
     select_customer_info = """
     SELECT nickname, phone, address_name
@@ -93,12 +93,12 @@ def select_customer_info(id):
     return wrap_json_for_send(d, 'successful')
 
 
-# /api/customer/"id"/address/add
+# /api/customer/"id"/address/add[已测试]
 # input:base,{"customerID","nickName","phoneNumber","address"}
 # output: base
-@customer.route("/<customerID>/address/add", methods = ['POST'])  # hcy#zzm修改
+@customer.route("/<customerID>/address/add", methods=['POST'])  # hcy#zzm修改
 def add_customer_info(customerID):
-    nickname = request.json['nickname']
+    nickname = request.json['nickName']
     address = request.json['address']
     phone_number = request.json['phoneNumber']
 
@@ -115,10 +115,10 @@ def add_customer_info(customerID):
     return wrap_json_for_send(d, "successful")
 
 
-# /api/customer/"id"/address/delete
+# /api/customer/"id"/address/delete[已测试]
 # input: base,{"customerID","address"}
 # output: base
-@customer.route("/<customerID>/address/delete", methods = ['POST'])  # hcy#zzm修改
+@customer.route("/<customerID>/address/delete", methods = ['POST','GET'])  # hcy#zzm修改
 def delete_customer_info(customerID):
     address = request.json['address']
     delete_customer_info = """
@@ -132,18 +132,18 @@ def delete_customer_info(customerID):
     return wrap_json_for_send(d, "successful")
 
 
-# /api/customer/"id"/address/update
+# /api/customer/"id"/address/update[已测试]
 # input: base, {"customerID","nickName","phoneNumber","address"}
 # ouput: base
-@customer.route("/<customerID>/address/update", methods = ['POST'])  # hcy#zzm修改
+@customer.route("/<customerID>/address/update", methods=['POST'])  # hcy　#　zzm修改
 def update_customer_info(customerID):
-    nickname = request.json['nickname']
+    nickname = request.json['nickName']
     address = request.json['address']
     phone_number = request.json['phoneNumber']
     update_customer_info = """
     UPDATE info_customer
-    SET address_name=:address_name, nickname=:nickname, phone=:phone
-    WHERE customer_id=:customer_id
+    SET nickname=:nickname, phone=:phone
+    WHERE customer_id=:customer_id AND address_name=:address_name
     """
     _ = run_sql(update_customer_info, {"address_name": address,
                                        "nickname": nickname,
@@ -154,10 +154,10 @@ def update_customer_info(customerID):
 
 
 # 2. 用户购物车查询
-# /api/customer/"id"/shoppingCart
+# /api/customer/"id"/shoppingCart[已测试]
 # input: base,"ID"
 # output: base,{"totalSize","address":[{"address_name", "nickname", "phone"}] ,"cart_detail":[{"productID","pic_url",”count“,"productName","price"},...,{...}]}
-@customer.route("/<id>/shoppingCart", methods = ['POST'])  # hcy lsy(address)
+@customer.route("/<id>/shoppingCart", methods = ['POST', 'GET'])  # hcy lsy(address)
 def select_cart(id):
     select_cart = """
     SELECT p.product_id, pic_url, count, product_name, price, size
@@ -180,7 +180,7 @@ def select_cart(id):
 
 
 # 在购物车界面只能增加某件商品的数量(update)，在商品界面才可以向购物车增加新的商品(add)
-# /api/customer/"id"/shoppingCart/add
+# /api/customer/"id"/shoppingCart/add【已测试】
 # input: base,{"productID":,"count":3}
 # output:base
 # 例子
@@ -188,54 +188,27 @@ def select_cart(id):
 # "productID": "xx"
 # "count": 3
 # }
-@customer.route("/<id>/shoppingCart/add", methods = ['POST'])  # hcy
+# trigger的创建必须作为批处理中唯一的语句
+@customer.route("/<id>/shoppingCart/add", methods=['POST'])  # hcy
 def add_cart(id):
     product_id = request.json['productID']
     count = request.json['count']
 
     add_cart = """
-    CREATE TRIGGER trig_insert
-    ON cart AFTER INSERT
-    AS
-    BEGIN
-        DECLARE @customer_id char(10), @product_id char(10), @count int;
-        IF EXISTS(
-        SELECT *
-        FROM product
-        WHERE product_id=@product_id AND remain>=@count
-        )
-        
-        BEGIN
-            SELECT @customer_id = customer_id, @product_id = product_id, @count = count FROM inserted;
-            IF EXISTS(
-            SELECT *
-            FROM cart
-            WHERE customer_id=@customer_id AND product_id=@product_id)
-            
-            BEGIN
-                rollback transaction;
-                UPDATE cart
-                SET count=count+@count
-                WHERE customer_id=@customer_id AND product_id=@product_id;
-            END
-        END
-    END 
-    
     INSERT
-    INTO cart
+    INTO cart(customer_id, product_id, count)
     VALUES(:customer_id, :product_id, :count)
     """
-    run_sql(add_cart, {"customer_id": id,
-                       "product_id": product_id,
-                       "count": count})
+
+    run_sql(add_cart, {"customer_id": id, "product_id": product_id, "count": count})
     d = {}
     return wrap_json_for_send(d, 'successful')
 
 
-# /api/customer/id/shoppingCart/update  仅限更新数量
-# input:base, {"count": "xxx", "productID":,"count"}
+# /api/customer/id/shoppingCart/update  仅限更新数量[已测试]
+# input:base, {"count": "xxx", "productID":}
 # output:base
-@customer.route("/<id>/shoppingCart/update", methods = ['POST'])  # hcy
+@customer.route("/<id>/shoppingCart/update", methods=['POST'])  # hcy
 def update_cart(id):
     product_id = request.json['productID']
     count = request.json['count']
@@ -251,11 +224,11 @@ def update_cart(id):
     return wrap_json_for_send(d, 'successful')
 
 
-# /api/customer/id/shoppingCart/delete  删除购买的这一整个商品
-# input: base,{"customerID": "xxx", "productID":}
+# /api/customer/id/shoppingCart/delete  删除购买的这一整个商品[已测试]
+# input: base,{"customerID": "xxx", "productID":[列表！！！]}
 # output: base
 # 下订单后，删除购物车中购买的商品
-@customer.route("/<id>/shoppingCart/delete", methods = ['POST'])  # hcy
+@customer.route("/<id>/shoppingCart/delete", methods=['POST'])  # hcy
 def delete_cart(id):
     product_id = request.json['productID']
     for i in product_id:
@@ -270,28 +243,28 @@ def delete_cart(id):
     return wrap_json_for_send(d, 'successful')
 
 
-# 3. 用户已有订单查询。返回用户已有订单。允许顾客进行退货处理。
-@customer.route("/<id>/orders", methods = ['POST'])  # lsy
+# 3. 用户已有订单查询。返回用户已有订单。允许顾客进行退货处理。[已测试]
+@customer.route("/<id>/orders", methods = ['POST', 'GET'])  # lsy
 def get_orders(id):
     ## 提取信息
     get_orders = """
-    SELECT o.order_id, p.product_name, p.pic_url, o.quantity, o.price_sum, o.receive_address, i.phone, i.nickname, o.comment, o.is_return
+    SELECT o.order_id, o.orderdate, p.product_name, p.pic_url, o.quantity, o.price_sum, o.receive_address, i.phone, i.nickname, o.comment, o.is_return
     FROM product p, orders o, info_customer i
     WHERE o.customer_id=:customer_id 
     AND p.product_id = o.product_id AND o.customer_id = i.customer_id 
     AND o.receive_address = i.address_name;
     """
     t = run_sql(get_orders, {"customer_id": id})
-    column = ['orderID', 'productName', 'picUrl', 'quantity', 'priceSum', 'receiveAddress', 'phone', 'nickname',
+    column = ['orderID', 'orderdate', 'productName', 'picUrl', 'quantity', 'priceSum', 'receiveAddress', 'phone', 'nickname',
               'comment', 'isReturn']
     d = [dict(zip(column, t[i].values())) for i in range(len(t))]
     d = {"number": len(t), "detail": d}
     return wrap_json_for_send(d, "successful")
 
 
-@customer.route("/<id>/orders/salesreturn", methods = ['POST'])  # lsy
+@customer.route("/<id>/orders/salesreturn", methods=['POST'])  # lsy 【已测试】
 def set_is_return(id):  # 设置退货标记
-    order_id = request.json["orderId"]
+    order_id = request.json["orderID"]
     set_is_return = """
     UPDATE orders
     SET is_return = 1 
@@ -307,8 +280,7 @@ def set_is_return(id):  # 设置退货标记
 # input:base, {"orders": [" "productID", "order_date","price_sum", "quantity", "size","receive_address""]}
 # output:base,{"orderID":["xxx", "xxx", "xxx"]}
 # {version:0.1, statuscode:successful, orders: [{"productID","orderDate","priceSum","quantity","receiveAddress"}]}
-
-@customer.route("/<id>/orders/add_cart", methods = ['POST', 'GET'])  # zzm # hcy增加批量提交订单
+@customer.route("/<id>/orders/add_cart", methods=['POST', 'GET'])  # zzm # hcy增加批量提交订单
 def orders_add_cart(id):  # 新订单添加
     orders = request.json["orders"]
     orderID = []
@@ -336,58 +308,12 @@ def orders_add_cart(id):  # 新订单添加
         tuple_tmp = run_sql(getNum)
         order_id_new = 'O' + str(int(tuple_tmp[0]['cnt'] + 1))  # 获得新的订单编号
 
-        # 不确定触发器是不是建立在orders上
         orders_add = """
-        CREATE TRIGGER trig_insert
-        ON orders AFTER INSERT
-        AS
-        BEGIN
-            DECLARE @product_id char(10), @quantity int;
-            SELECT @product_id=product_id, @quantity=quantity FROM inserted;
-            
-            IF NOT EXISTS(
-            SELECT *
-            FROM product
-            WHERE product_id=@product_id AND remain>=@quantity
-            )
-                
-            BEGIN
-                rollback transaction
-            END
-        END
-        
         INSERT
         INTO orders
         VALUES(:order_id, :customer_id, :supplier_id, :product_id, :orderdate, 
         :quantity, :price_sum, :deliver_address, :receive_address, :is_return, :comment)
         """
-
-        remain_minus_quantity = """
-        CREATE TRIGGER trig_insert
-        ON product AFTER UPDATE
-        AS
-        BEGIN
-            DECLARE @product_id char(10);
-            SELECT @product_id=product_id FROM inserted;
-            
-            IF NOT EXISTS(
-            SELECT *
-            FROM product
-            WHERE product_id=@product_id AND remain>=0
-            )
-                
-            BEGIN
-                rollback transaction
-            END
-        END
-        
-        UPDATE product
-        SET remain=remain-:quantity
-        WHERE product_id=:product_id
-        """
-
-        run_sql(remain_minus_quantity, {"product_id": product_id,
-                                        "quantity": quantity})
 
         run_sql(orders_add, {"order_id": order_id_new,
                              "customer_id": id,
@@ -424,7 +350,7 @@ def orders_add_cart(id):  # 新订单添加
 
 # output:{"ordersID":"O1234"}
 
-@customer.route("/<id>/orders/add_product", methods = ['POST', 'GET'])  # zzm #hcy
+@customer.route("/<id>/orders/add_product", methods=['POST', 'GET'])  # zzm #hcy
 def orders_add_product(id):  # 新订单添加
 
     product_id = request.json['productID']
@@ -446,7 +372,7 @@ def orders_add_product(id):  # 新订单添加
     FROM product p,supplier s, info_supplier info_s
     WHERE p.product_id=:product_id AND p.supplier_id=s.supplier_id
           AND s.supplier_id=info_s.supplier_id
-        
+
     """
     t = run_sql(getInfo, {"product_id": product_id})
     deliver_address = t[0]['da']

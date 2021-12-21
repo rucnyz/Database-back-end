@@ -233,9 +233,10 @@ def insert_orders():
     # 生成50*n条订单数据
     for i in range(50 * n):
         # 先查人对应的地址
-        supplier_id_i = random.choice(get_col(need, "supplier_id"))  # 随机挑选1个
-        product_id_i = random.choice(get_col(need, "product_id"))
-        price_unit_i = random.choice(get_col(need, "price"))
+        need_pro_inf = random.choice(need)
+        supplier_id_i = need_pro_inf["supplier_id"] # 随机挑选1个,以下与他对应
+        product_id_i = need_pro_inf["product_id"]
+        price_unit_i = need_pro_inf["price"]
         customer_id_i = random.choice(get_col(need_customer_id, "customer_id"))
         get_address_c = """
         SELECT  address_name
@@ -290,7 +291,6 @@ def insert_fake():
     run_sql(delet)
 
     run_sql(use_db)
-    # insert_orders()
     insert_customer()
     insert_supplier()
     insert_info_customer()

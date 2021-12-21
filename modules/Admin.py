@@ -18,20 +18,20 @@ def top3_product():
     """
     tmp = run_sql(get_num)
     number = int(tmp[0]['cnt'])
-    final_info = {}
+    final_info = []
     for i in range(1, number+1):
-        spid = 'S' + str(i)
+        spid = 'S' + str(i).zfill(9)
         top3_product = """
         SELECT TOP 3 s.supplier_id, p.product_id, p.product_name, SUM(o.quantity)
         FROM supplier s , orders o , product p
-        WHERE s.supplier_id=o.supplier_id AND p.product_id=o.product_id AND s.supplier_id='%s'
+        WHERE s.supplier_id=o.supplier_id AND p.product_id=o.product_id AND s.supplier_id=:supplier_id
         GROUP BY s.supplier_id, p.product_id, p.product_name
         ORDER BY SUM(o.quantity) DESC
-        """ % spid
-        tuple_tmp = run_sql(top3_product)
+        """
+        tuple_tmp = run_sql(top3_product,{"supplier_id": spid})
         column = ['supplier_id', 'product_id', 'product_name', 'sum_quantity']
         tmp_info = [dict(zip(column, tuple_tmp[i].values())) for i in range(len(tuple_tmp))]
-        final_info.update(tmp_info)
+        final_info.append(tmp_info)
 
     d = {"detail": final_info}
 

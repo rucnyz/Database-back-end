@@ -34,7 +34,7 @@ def get_homePage():
     t = run_sql(getHomePage)
     size = run_sql(getSize)
     column = ["ID", "product_pic", "product_name", "price"]
-    d = {"total_size": size[0][''], "detail": [dict(zip(column, t[i].values())) for i in range(len(t))]}
+    d = {"totalSize": size[0][''], "detail": [dict(zip(column, t[i].values())) for i in range(len(t))]}
     return wrap_json_for_send(d, "successful")
 
 
