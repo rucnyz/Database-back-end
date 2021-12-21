@@ -308,58 +308,12 @@ def orders_add_cart(id):  # 新订单添加
         tuple_tmp = run_sql(getNum)
         order_id_new = 'O' + str(int(tuple_tmp[0]['cnt'] + 1))  # 获得新的订单编号
 
-        # 不确定触发器是不是建立在orders上
         orders_add = """
-        CREATE TRIGGER trig_insert
-        ON orders AFTER INSERT
-        AS
-        BEGIN
-            DECLARE @product_id char(10), @quantity int;
-            SELECT @product_id=product_id, @quantity=quantity FROM inserted;
-
-            IF NOT EXISTS(
-            SELECT *
-            FROM product
-            WHERE product_id=@product_id AND remain>=@quantity
-            )
-
-            BEGIN
-                rollback transaction
-            END
-        END
-
         INSERT
         INTO orders
         VALUES(:order_id, :customer_id, :supplier_id, :product_id, :orderdate, 
         :quantity, :price_sum, :deliver_address, :receive_address, :is_return, :comment)
         """
-
-        remain_minus_quantity = """
-        CREATE TRIGGER trig_insert
-        ON product AFTER UPDATE
-        AS
-        BEGIN
-            DECLARE @product_id char(10);
-            SELECT @product_id=product_id FROM inserted;
-
-            IF NOT EXISTS(
-            SELECT *
-            FROM product
-            WHERE product_id=@product_id AND remain>=0
-            )
-
-            BEGIN
-                rollback transaction
-            END
-        END
-
-        UPDATE product
-        SET remain=remain-:quantity
-        WHERE product_id=:product_id
-        """
-
-        run_sql(remain_minus_quantity, {"product_id": product_id,
-                                        "quantity": quantity})
 
         run_sql(orders_add, {"order_id": order_id_new,
                              "customer_id": id,
@@ -498,7 +452,7 @@ def orders_add_product(id):  # 新订单添加
 # input:base,{""}
 # output:base, {"address_name", "nickname", "phone"}
 #
-@customer.route("/<id>/orders/get_address", methods=['POST', 'GET'])  # lsy
+@customer.route("/<id>/orders/get_address", methods = ['POST', 'GET'])  # lsy
 def orders_get_address(id):  # 显示所有地址
     get_address = """
     SELECT address_name, nickname, phone 
