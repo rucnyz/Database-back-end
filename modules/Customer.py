@@ -181,7 +181,7 @@ def select_cart(id):
 
 
 # 在购物车界面只能增加某件商品的数量(update)，在商品界面才可以向购物车增加新的商品(add)
-# /api/customer/"id"/shoppingCart/add【测试有问题】
+# /api/customer/"id"/shoppingCart/add【已测试】
 # input: base,{"productID":,"count":3}
 # output:base
 # 例子

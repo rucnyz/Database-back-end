@@ -3,8 +3,12 @@ import sys
 sys.path.append(".")
 from utils import run_sql
 
+use_db = """
+USE OnlineShopping
+            """
+run_sql(use_db)
+
 trig_insert_cart = """
-    IF OBJECT_ID('trig_insert_cart','TR') IS NULL
     CREATE TRIGGER trig_insert_cart
     ON cart INSTEAD OF INSERT
     AS
@@ -26,7 +30,7 @@ trig_insert_cart = """
             BEGIN
                 UPDATE cart
                 SET count=count+@count
-                WHERE customer_id=@customer_id AND product_id=@product_id;
+                WHERE customer_id=@customer_id AND product_id=@product_id
             END
     
             ELSE
@@ -35,7 +39,7 @@ trig_insert_cart = """
                 SELECT * FROM inserted
             END
         END
-    END;
+    END
     """
 
 run_sql(trig_insert_cart)
