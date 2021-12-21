@@ -344,7 +344,6 @@ def orders_add_cart(id):  # 新订单添加
 #     "orderDate": "2020-07-14 11:21:08",
 #     "priceSum": "1000",
 #     "quantity": "5",
-#     "size": "M",
 #     "receiveAddress": "somewhere1234"
 # }
 
@@ -407,7 +406,7 @@ def orders_add_product(id):  # 新订单添加
 # input:base,{""}
 # output:base, {"address_name", "nickname", "phone"}
 #
-@customer.route("/<id>/orders/get_address", methods = ['POST', 'GET'])  # lsy
+@customer.route("/<id>/orders/get_address", methods = ['POST', 'GET'])  # lsy【zzm已测试】
 def orders_get_address(id):  # 显示所有地址
     get_address = """
     SELECT address_name, nickname, phone 
