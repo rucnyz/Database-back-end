@@ -5,3 +5,4 @@ test/*
 ^sample.dsn
 __pycache__
 !test/pressure_test
+!test/run.sh
