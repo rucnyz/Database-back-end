@@ -72,7 +72,7 @@ def get_homepage(id):
     # tuple = run_sql(login)
     # supp_ID = [{"ID": tuple[0]}]
     get_homepage = """
-    SELECT DISTINCT p.product_id, product_name, price, pic_url, ISNULL(sub.sales, 0) sales
+    SELECT DISTINCT p.product_id, product_name, price, pic_url, ISNULL(sub.sales, 0)
     FROM product p
     LEFT JOIN(
         SELECT product.product_id, count(*) sales
@@ -165,7 +165,7 @@ def add_product(id):
     INTO product
     VALUES('%s', '%s', %u, '%s', %u, '%s', %f, '%s', '%s')
     """ % (product_id_new, product_name, price, id, remain, size, discount, category, pic_url)
-    t = run_sql(add_product)
+    run_sql(add_product)
     d = {"ID": product_id_new}
     return wrap_json_for_send(d, "successful")
 
@@ -183,7 +183,7 @@ def delete_product(id):
     FROM product
     WHERE product_id = '%s' AND supplier_id = '%s'
     """ % (product_id, supplier_id)
-    t = run_sql(delete_product)
+    run_sql(delete_product)
     d = {}
     return wrap_json_for_send(d, "successful")
 
@@ -208,6 +208,6 @@ def update_product(id):
     SET product_name = '%s', price = %u, remain = %u, size = '%s', discount = %f,category = '%s', pic_url = '%s'
     WHERE product_id = '%s' AND supplier_id = '%s'
     """ % (product_name, price, remain, size, discount, category, pic_url, product_id, supplier_id)
-    t = run_sql(update_product)
+    run_sql(update_product)
     d = {}
     return wrap_json_for_send(d, "successful")
