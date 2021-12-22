@@ -26,7 +26,7 @@ db = SQLAlchemy()
 #   'category': '配饰',
 #   'pic_url': 'https://img14.360buyimg.com/n7/jfs/t1/168641/4/25410/143878/61a864c4E342d985c/5daf74ceca47577e.jpg',
 # }
-@product.route("/<id>", methods=['POST'])  # hcy
+@product.route("/<id>", methods = ['POST', 'GET'])  # hcy
 def product_info(id):
     product_info = """
     SELECT s.supplier_name, ifs.address_name, product_name, price, remain, size, category, pic_url
@@ -69,24 +69,28 @@ def product_info(id):
 #   ]
 # }
 
-@product.route("/<productID>/allcomments", methods=['POST'])  # hcy #zzm修改 【已测试】
+@product.route("/<productID>/allcomments", methods = ['POST', 'GET'])  # hcy #zzm修改 【已测试】
 def allcomments(productID):
-    need_number = request.json['needNumber']
-    page = request.json['page']
-    out_num = (int(page)-1)*int(need_number)
-
+    need_number = request.args['needNumber']
+    page = request.args['page']
+    out_num = (int(page) - 1) * int(need_number)
+    total = """
+    SELECT count(*) cnt
+    FROM orders o 
+    WHERE o.product_id=:productID AND o.comment!=''
+    """
     comment = """
         SELECT TOP %s o.comment, o.orderdate, c.customer_id
         FROM orders o, customer c
-        WHERE o.product_id=:productID AND c.customer_id=o.customer_id
+        WHERE o.product_id=:productID AND c.customer_id=o.customer_id AND o.comment!=''
             AND order_id NOT IN ( SELECT TOP %s o.order_id
                                   FROM orders o, customer c
                                   WHERE o.product_id=:productID AND c.customer_id=o.customer_id)
     """ % (need_number, out_num)
     # 数字直接传，不涉及安全，id放在run_sql里传
-
+    total_size = run_sql(total, {"productID": productID})
     c = run_sql(comment, {"productID": productID})
     column = ["comments", "date", "customerID"]
-    d = {"comments": [dict(zip(column, c[i].values())) for i in range(len(c))]}
+    d = {"totalSize": total_size[0]['cnt'], "comments": [dict(zip(column, c[i].values())) for i in range(len(c))]}
 
     return wrap_json_for_send(d, 'successful')
