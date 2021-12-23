@@ -274,7 +274,8 @@ def get_orders(id):
     FROM product p, orders o, info_customer i
     WHERE o.customer_id=:customer_id 
     AND p.product_id = o.product_id AND o.customer_id = i.customer_id 
-    AND o.receive_address = i.address_name;
+    AND o.receive_address = i.address_name
+    ORDER BY orderdate DESC;
     """
     t = run_sql(get_orders, {"customer_id": id})
     column = ['orderID', 'orderdate', 'productName', 'picUrl', 'quantity', 'priceSum', 'receiveAddress', 'phone', 'nickname',
