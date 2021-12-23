@@ -277,7 +277,8 @@ def delete_cart(id):
 def get_orders(id):
     ## 提取信息
     get_orders = """
-    SELECT o.order_id, o.orderdate, p.product_name, p.pic_url, o.quantity, o.price_sum, o.receive_address, i.phone, i.nickname, o.comment, o.is_return
+    SELECT o.order_id, o.orderdate, p.product_name, p.pic_url, o.quantity, o.price_sum, o.receive_address, i.phone, 
+    i.nickname, o.comment, o.is_return, o.product_id
     FROM product p, orders o, info_customer i
     WHERE o.customer_id=:customer_id 
     AND p.product_id = o.product_id AND o.customer_id = i.customer_id 
@@ -286,8 +287,7 @@ def get_orders(id):
     """
     t = run_sql(get_orders, {"customer_id": id})
     column = ['orderID', 'orderdate', 'productName', 'picUrl', 'quantity', 'priceSum', 'receiveAddress', 'phone',
-              'nickname',
-              'comment', 'isReturn']
+              'nickname', 'comment', 'isReturn', 'productID']
     d = [dict(zip(column, t[i].values())) for i in range(len(t))]
     d = {"number": len(t), "detail": d}
     return wrap_json_for_send(d, "successful")
