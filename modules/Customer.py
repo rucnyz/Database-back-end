@@ -18,6 +18,7 @@ def register():
     #    realName = request.json['realName']
     nickName = request.json['nickName']
 
+    message = None
     getNum = """
     SELECT COUNT(*) as cnt
     from customer   
@@ -44,9 +45,10 @@ def register():
         new_cust_info = {"ID": customer_id_new}
     except:
         statuscode = "failed"
+        message = "注册失败"
         new_cust_info = {}
 
-    return wrap_json_for_send(new_cust_info, statuscode)
+    return wrap_json_for_send(new_cust_info, statuscode, message)
 
 
 # 用户登录。用户提供登录名与密码，与数据库中内容进行匹配验证，返回登录成功与否。[已测试]
@@ -62,10 +64,12 @@ def login():
     FROM customer
     WHERE customer_phonenumber=:customer_phonenumber;
     """
+    message = None
     t = run_sql(check_reg, {"customer_phonenumber": phone_number})
     if (len(t) == 0):
         out = {}
-        statuscode = "failed:unregistered"  # 不存在用户，尚未注册
+        statuscode = "failed"  # 不存在用户，尚未注册
+        message = "该用户尚未注册！"
     else:
         login = """
         SELECT customer_id
@@ -76,7 +80,8 @@ def login():
                             "customer_password": password})
         if (len(t) == 0):
             out = {}
-            statuscode = "failed:wrong"  # 密码错误，提示用户名或密码错误
+            statuscode = "failed"  # 密码错误，提示用户名或密码错误
+            message = "用户名或密码错误！"
         else:
             customer_id = t[0]['customer_id']
             info = """
@@ -90,7 +95,7 @@ def login():
             out = {"ID": customer_id, "phoneNumber": phone_number, "nickName": nickName, "addressName": address_name}
             statuscode = "successful"
 
-    return wrap_json_for_send(out, statuscode)
+    return wrap_json_for_send(out, statuscode, message)
 
 
 # 用户个人信息查询[已测试]
@@ -213,7 +218,7 @@ def select_cart(id):
 def add_cart(id):
     product_id = request.json['productID']
     count = request.json['count']
-
+    message = None
     add_cart = """
     INSERT
     INTO cart(customer_id, product_id, count)
@@ -224,8 +229,9 @@ def add_cart(id):
         statuscode = 'successful'
     except:
         statuscode = 'failed'
+        message = "%s商品库存不足，添加购物车失败！" % product_id
     d = {}
-    return wrap_json_for_send(d, statuscode)
+    return wrap_json_for_send(d, statuscode, message)
 
 
 # /api/customer/id/shoppingCart/update  仅限更新数量[已测试]
