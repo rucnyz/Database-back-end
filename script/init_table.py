@@ -37,7 +37,7 @@ create_customer = """
 IF OBJECT_ID('customer', 'U') IS NULL
 CREATE TABLE customer(
     customer_id char(10) PRIMARY KEY,
-    customer_phonenumber varchar(20) NOT NULL,
+    customer_phonenumber varchar(20) UNIQUE,
     customer_password char(10) NOT NULL
 );
 """
@@ -51,7 +51,7 @@ CREATE TABLE supplier(
     supplier_password char(10) NOT NULL,
     supplier_name varchar(50) NOT NULL UNIQUE,
     owner_name varchar(20) NOT NULL,
-    owner_id char(18) NOT NULL UNIQUE
+    owner_id char(18) NOT NULL  -- UNIQUE
 );
 """
 # supplier_name：店铺名; owner：店铺负责人名字 ;

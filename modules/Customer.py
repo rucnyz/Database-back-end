@@ -45,7 +45,7 @@ def register():
         new_cust_info = {"ID": customer_id_new}
     except:
         statuscode = "failed"
-        message = "注册失败"
+        message = "注册失败，该手机号账户已存在！"
         new_cust_info = {}
 
     return wrap_json_for_send(new_cust_info, statuscode, message = message)
@@ -167,7 +167,7 @@ def update_customer_info(customerID):
     phone_number = request.json['phoneNumber']
     update_customer_info = """
     UPDATE info_customer
-    SET nickname=:nickname, phone=:phone
+    SET nickname=:nickname, phone=:phone, address_name=:address_name
     WHERE customer_id=:customer_id AND address_name=:address_name
     """
     _ = run_sql(update_customer_info, {"address_name": address,
@@ -277,7 +277,8 @@ def delete_cart(id):
 def get_orders(id):
     ## 提取信息
     get_orders = """
-    SELECT o.order_id, o.orderdate, p.product_name, p.pic_url, o.quantity, o.price_sum, o.receive_address, i.phone, i.nickname, o.comment, o.is_return
+    SELECT o.order_id, o.orderdate, p.product_name, p.pic_url, o.quantity, o.price_sum, o.receive_address, i.phone, 
+    i.nickname, o.comment, o.is_return, o.product_id
     FROM product p, orders o, info_customer i
     WHERE o.customer_id=:customer_id 
     AND p.product_id = o.product_id AND o.customer_id = i.customer_id 
@@ -286,8 +287,7 @@ def get_orders(id):
     """
     t = run_sql(get_orders, {"customer_id": id})
     column = ['orderID', 'orderdate', 'productName', 'picUrl', 'quantity', 'priceSum', 'receiveAddress', 'phone',
-              'nickname',
-              'comment', 'isReturn']
+              'nickname', 'comment', 'isReturn', 'productID']
     d = [dict(zip(column, t[i].values())) for i in range(len(t))]
     d = {"number": len(t), "detail": d}
     return wrap_json_for_send(d, "successful")
@@ -319,35 +319,50 @@ def orders_add_cart(id):  # 新订单添加
     message = None
     for i in range(len(orders)):
         product_id = orders[i]["productID"]
-        order_date = orders[i]["orderDate"]
-        price_sum = orders[i]["priceSum"]
         quantity = orders[i]["quantity"]
-        # supplierID、deliverAddress 需后端查询得到_____finished by lsy
-        # deliver_address = request.json["deliverAddress"]
-        receive_address = orders[i]["receiveAddress"]
-        get_need = """
-        SELECT ifs.supplier_id, ifs.address_name
-        FROM product p, info_supplier ifs
-        WHERE p.product_id=:product_id AND p.supplier_id = ifs.supplier_id;  
+        select_remain = """
+        SELECT remain
+        FROM product
+        WHERE product_id=:product_id
         """
-        need_info = run_sql(get_need, {"product_id": product_id})
-        supplier_id = need_info[0]['supplier_id']
-        deliver_address = need_info[0]['address_name']
+        remain = run_sql(select_remain, {"product_id": product_id})[0]['remain']
+        if remain < quantity:
+            statuscode = 'failed'
+            if message is None:
+                message = '%s' % product_id
+            else:
+                message += '、%s' % product_id
+    if statuscode == 'successful':
+        for i in range(len(orders)):
+            product_id = orders[i]["productID"]
+            order_date = orders[i]["orderDate"]
+            price_sum = orders[i]["priceSum"]
+            quantity = orders[i]["quantity"]
+            # supplierID、deliverAddress 需后端查询得到_____finished by lsy
+            # deliver_address = request.json["deliverAddress"]
+            receive_address = orders[i]["receiveAddress"]
+            get_need = """
+            SELECT ifs.supplier_id, ifs.address_name
+            FROM product p, info_supplier ifs
+            WHERE p.product_id=:product_id AND p.supplier_id = ifs.supplier_id;  
+            """
+            need_info = run_sql(get_need, {"product_id": product_id})
+            supplier_id = need_info[0]['supplier_id']
+            deliver_address = need_info[0]['address_name']
 
-        getNum = """
-        SELECT COUNT(*) as cnt
-        from orders  
-         """
-        tuple_tmp = run_sql(getNum)
-        order_id_new = 'O' + str(int(tuple_tmp[0]['cnt'] + 1)).zfill(9)  # 获得新的订单编号
+            getNum = """
+            SELECT COUNT(*) as cnt
+            from orders  
+             """
+            tuple_tmp = run_sql(getNum)
+            order_id_new = 'O' + str(int(tuple_tmp[0]['cnt'] + 101)).zfill(9)  # 获得新的订单编号
 
-        orders_add = """
-        INSERT
-        INTO orders
-        VALUES(:order_id, :customer_id, :supplier_id, :product_id, :orderdate, 
-        :price_sum, :quantity, :deliver_address, :receive_address, :is_return, :comment)
-        """
-        try:
+            orders_add = """
+            INSERT
+            INTO orders
+            VALUES(:order_id, :customer_id, :supplier_id, :product_id, :orderdate, 
+            :price_sum, :quantity, :deliver_address, :receive_address, :is_return, :comment)
+            """
             run_sql(orders_add, {"order_id": order_id_new,
                                  "customer_id": id,
                                  "supplier_id": supplier_id,
@@ -359,13 +374,11 @@ def orders_add_cart(id):  # 新订单添加
                                  "receive_address": receive_address,
                                  "is_return": 0,
                                  "comment": ""})
-        except:
-            statuscode = "failed"
-            message = "%s商品库存不足，购买失败！" % product_id
-        orderID.append(order_id_new)
-
-    new_order_info = {"orderID": orderID}
-
+            orderID.append(order_id_new)
+        new_order_info = {"orderID": orderID}
+    else:
+        message += "商品库存不足，购买失败！"
+        new_order_info = {}
     return wrap_json_for_send(new_order_info, statuscode, message = message)
 
 
@@ -385,8 +398,8 @@ def orders_add_cart(id):  # 新订单添加
 
 # output:{"ordersID":"O1234"}
 
-@customer.route("/<customerID>/orders/add_product", methods = ['POST', 'GET'])  # zzm #hcy
-def orders_add_product(customerID):  # 新订单添加
+@customer.route("/<id>/orders/add_product", methods = ['POST', 'GET'])  # zzm #hcy
+def orders_add_product(id):  # 新订单添加
 
     product_id = request.json['productID']
     order_date = request.json['orderDate']
@@ -395,34 +408,46 @@ def orders_add_product(customerID):  # 新订单添加
     receive_address = request.json['receiveAddress']
 
     message = None
-    getNum = """
-    SELECT COUNT(*) as cnt
-    FROM orders  
-    """
+    statuscode = "successful"
+    select_remain = """
+        SELECT remain
+        FROM product
+        WHERE product_id=:product_id
+        """
+    remain = run_sql(select_remain, {"product_id": product_id})[0]['remain']
 
-    tuple_tmp = run_sql(getNum)
-    order_id_new = 'O' + str(int(tuple_tmp[0]['cnt'] + 1)).zfill(9)  # 获得新的订单编号
+    if remain < quantity:
+        statuscode = 'failed'
+        message = "%s商品库存不足，购买失败！" % product_id
+        new_order_info = {}
+    else:
+        getNum = """
+        SELECT COUNT(*) as cnt
+        from orders  
+        """
 
-    getInfo = """
-    SELECT info_s.address_name da, s.supplier_id sid
-    FROM product p,supplier s, info_supplier info_s
-    WHERE p.product_id=:product_id AND p.supplier_id=s.supplier_id
-          AND s.supplier_id=info_s.supplier_id
+        tuple_tmp = run_sql(getNum)
+        order_id_new = 'O' + str(int(tuple_tmp[0]['cnt'] + 101)).zfill(9)  # 获得新的订单编号
 
-    """
-    t = run_sql(getInfo, {"product_id": product_id})
-    deliver_address = t[0]['da']
-    supplier_id = t[0]['sid']
+        getInfo = """
+        SELECT info_s.address_name da, s.supplier_id sid
+        FROM product p,supplier s, info_supplier info_s
+        WHERE p.product_id=:product_id AND p.supplier_id=s.supplier_id
+              AND s.supplier_id=info_s.supplier_id
+    
+        """
+        t = run_sql(getInfo, {"product_id": product_id})
+        deliver_address = t[0]['da']
+        supplier_id = t[0]['sid']
 
-    orders_add = """
-    INSERT
-    INTO orders
-    VALUES(:order_id, :customer_id, :supplier_id, :product_id, :orderdate, 
-    :price_sum, :quantity, :deliver_address, :receive_address, :is_return, :comment)
-    """
-    try:
+        orders_add = """
+        INSERT
+        INTO orders
+        VALUES(:order_id, :customer_id, :supplier_id, :product_id, :orderdate, 
+        :price_sum, :quantity, :deliver_address, :receive_address, :is_return, :comment)
+        """
         run_sql(orders_add, {"order_id": order_id_new,
-                             "customer_id": customerID,
+                             "customer_id": id,
                              "supplier_id": supplier_id,
                              "product_id": product_id,
                              "orderdate": order_date,
@@ -432,11 +457,7 @@ def orders_add_product(customerID):  # 新订单添加
                              "receive_address": receive_address,
                              "is_return": 0,
                              "comment": ""})
-        statuscode = "successful"
-    except:
-        statuscode = "failed"
-        message = "%s商品库存不足，购买失败！" % product_id
-    new_order_info = {"ID": order_id_new}
+        new_order_info = {"ID": order_id_new}
 
     return wrap_json_for_send(new_order_info, statuscode, message = message)
 
