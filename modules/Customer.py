@@ -1,6 +1,6 @@
 from flask import Blueprint, request
 from flask_sqlalchemy import SQLAlchemy
-
+import re
 from utils import run_sql, wrap_json_for_send
 
 customer = Blueprint('customer', __name__)
@@ -15,7 +15,7 @@ db = SQLAlchemy()
 def register():
     phone_number = request.json['phoneNumber']
     password = request.json['password'][:10]
-    realName = request.json['realName']
+#    realName = request.json['realName']
     nickName = request.json['nickName']
 
     getNum = """
@@ -28,19 +28,24 @@ def register():
     register = """
     INSERT 
     INTO customer
-    VALUES('%s','%s','%s')
-    """ % (customer_id_new, phone_number, password)
+    VALUES(:customer_id_new, :phone_number, :password)
+    """
 
     register_info = """
     INSERT 
     INTO info_customer
-    VALUES('%s','%s','%s','%s')
-    """ % (customer_id_new, "", nickName, phone_number)
-    _ = run_sql(register)
-    _ = run_sql(register_info)
-    new_cust_info = {"ID": customer_id_new}
+    VALUES(:customer_id_new, null , :nickName,:phone_number)
+    """
+    try:
+        _ = run_sql(register, {"customer_id_new":customer_id_new, "phone_number": phone_number, "password": password})
+        _ = run_sql(register_info,{"customer_id_new": customer_id_new,"nickName":nickName, "phone_number":phone_number})
+        statuscode = "successful"
+        new_cust_info = {"ID": customer_id_new}
+    except:
+        statuscode = "failed"
+        new_cust_info = {}
 
-    return wrap_json_for_send(new_cust_info, "successful")
+    return wrap_json_for_send(new_cust_info, statuscode)
 
 
 # 用户登录。用户提供登录名与密码，与数据库中内容进行匹配验证，返回登录成功与否。[已测试]
@@ -51,26 +56,30 @@ def register():
 def login():
     phone_number = request.json['phoneNumber']
     password = request.json['password'][:10]
-    print(password)
     login = """
     SELECT customer_id
     FROM customer
     WHERE customer_phonenumber=:customer_phonenumber AND customer_password=:customer_password
     """
-    customer_id = run_sql(login, {"customer_phonenumber": phone_number,
-                                  "customer_password": password})[0]['customer_id']
+    t = run_sql(login, {"customer_phonenumber": phone_number,
+                        "customer_password": password})
+    if (len(t) == 0):
+        out = {}
+        statuscode = "failed"
+    else:
+        customer_id = t[0]['customer_id']
+        info = """
+            SELECT nickname, address_name
+            FROM info_customer
+            WHERE customer_id=:customer_id
+            """
+        c_info = run_sql(info, {"customer_id": customer_id})
+        nickName = c_info[0]['nickname']
+        address_name = c_info[0]['address_name']
+        out = {"ID": customer_id, "phoneNumber": phone_number, "nickName": nickName, "addressName": address_name}
+        statuscode = "successful"
 
-    info = """
-    SELECT nickname, address_name
-    FROM info_customer
-    WHERE customer_id=:customer_id
-    """
-    c_info = run_sql(info, {"customer_id": customer_id})
-    nickName = c_info[0]['nickname']
-    address_name = c_info[0]['address_name']
-    cust_ID = {"ID": customer_id, "phoneNumber": phone_number, "nickName": nickName, "addressName": address_name}
-
-    return wrap_json_for_send(cust_ID, "successful")
+    return wrap_json_for_send(out, statuscode)
 
 
 # 用户个人信息查询[已测试]
