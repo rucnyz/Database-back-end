@@ -15,7 +15,7 @@ db = SQLAlchemy()
 def register():
     phone_number = request.json['phoneNumber']
     password = request.json['password'][:10]
-    #    realName = request.json['realName']
+    # realName = request.json['realName']
     nickName = request.json['nickName']
 
     message = None
