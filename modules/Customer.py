@@ -310,6 +310,7 @@ def orders_add_cart(id):  # 新订单添加
     orders = request.json["orders"]
     orderID = []
     statuscode = "successful"
+    message = None
     for i in range(len(orders)):
         product_id = orders[i]["productID"]
         order_date = orders[i]["orderDate"]
@@ -354,11 +355,12 @@ def orders_add_cart(id):  # 新订单添加
                                  "comment": ""})
         except:
             statuscode = "failed"
+            message = "%s商品库存不足，购买失败！" % product_id
         orderID.append(order_id_new)
 
     new_order_info = {"orderID": orderID}
 
-    return wrap_json_for_send(new_order_info, statuscode)
+    return wrap_json_for_send(new_order_info, statuscode, message)
 
 
 # 从商品界面里添加新订单。除接口外，与购物车添加订单均相同。（从商品界面一次只可以订购一种商品，无批量操作）[已测试]
