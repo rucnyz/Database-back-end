@@ -38,12 +38,14 @@ trig_insert_cart = """
                 INSERT cart
                 SELECT * FROM inserted
             END
+            raisERROR('successful',12,11)
         END
+        ELSE 
+            raisERROR('failed',12,11)
     END
     """
 
 run_sql(trig_insert_cart)
-
 
 trig_insert_orders_from_cart = """
     CREATE TRIGGER trig_insert_orders_from_cart
@@ -70,11 +72,38 @@ trig_insert_orders_from_cart = """
     
             INSERT INTO orders
             SELECT * FROM inserted
+            raisERROR('successful',12,11)
         END
+        
+        ELSE 
+            raisERROR('failed',12,11)
     END
     """
 
 run_sql(trig_insert_orders_from_cart)
+
+trig_insert_customer = """
+CREATE TRIGGER trig_insert_customer
+ON customer INSTEAD OF INSERT
+AS
+BEGIN
+    DECLARE @phone char(111);
+    SELECT @phone=i.customer_phonenumber FROM inserted i;
+    
+    IF NOT EXISTS(
+		SELECT *
+		FROM customer c
+		WHERE c.customer_phonenumber=@phone
+		)
+    
+		BEGIN
+			INSERT INTO customer
+			SELECT * FROM inserted
+		END
+	ELSE RAISERROR('already exist', 12, 11)
+END
+"""
+run_sql(trig_insert_customer)
 
 # 一个表不能重复建立触发器
 # trig_insert_orders_from_product = """

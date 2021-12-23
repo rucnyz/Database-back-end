@@ -31,7 +31,7 @@ class Database:
         engine_prarm = URL.create(
             "mssql+pyodbc", query = {"odbc_connect": f"FILEDSN={self.dsn}"})
         self.connect_pool = QueuePool(
-            self.__get_connection, pool_size = 100, max_overflow = 20, pre_ping = True)
+            self.__get_connection, pool_size = 200, max_overflow = 40, pre_ping = True)
         self.engine = create_engine(engine_prarm, pool = self.connect_pool)
 
     def __get_connection(self):

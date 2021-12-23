@@ -2,6 +2,7 @@ from json import dumps
 import json
 import datetime
 
+
 class DateEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, datetime.datetime):
@@ -12,11 +13,13 @@ class DateEncoder(json.JSONEncoder):
             return json.JSONEncoder.default(self, obj)
 
 
-def wrap_json_for_send(d:dict, status_code:str, version:str="0.1")->str:
+def wrap_json_for_send(d: dict, status_code: str, version: str = "0.1", message: str = None) -> str:
     """
 
     @rtype: object
     """
     d['version'] = version
     d['statusCode'] = status_code
-    return dumps(d, cls=DateEncoder)
+    if message is not None:
+        d['message'] = message
+    return dumps(d, cls = DateEncoder)
