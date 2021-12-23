@@ -326,7 +326,7 @@ def orders_add_cart(id):  # 新订单添加
         WHERE product_id=:product_id
         """
         remain = run_sql(select_remain, {"product_id": product_id})[0]['remain']
-        if remain < quantity:
+        if remain < int(quantity):
             statuscode = 'failed'
             if message is None:
                 message = '%s' % product_id
