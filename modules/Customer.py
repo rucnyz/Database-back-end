@@ -363,6 +363,18 @@ def orders_add_cart(id):  # 新订单添加
             VALUES(:order_id, :customer_id, :supplier_id, :product_id, :orderdate, 
             :price_sum, :quantity, :deliver_address, :receive_address, :is_return, :comment)
             """
+
+            delete_from_cart = """
+            DELETE
+            FROM cart
+            WHERE customer_id=:customer_id AND product_id=:product_id AND count=:quantity
+            """
+
+            remain_minus = """
+            UPDATE product
+            SET remain=remain-:quantity
+            WHERE product_id=:product_id
+            """
             run_sql(orders_add, {"order_id": order_id_new,
                                  "customer_id": id,
                                  "supplier_id": supplier_id,
@@ -374,6 +386,11 @@ def orders_add_cart(id):  # 新订单添加
                                  "receive_address": receive_address,
                                  "is_return": 0,
                                  "comment": ""})
+            run_sql(delete_from_cart, {"customer_id": id,
+                                       "product_id": product_id,
+                                       "quantity": quantity})
+            run_sql(remain_minus, {"quantity": quantity,
+                                   "product_id": product_id})
             orderID.append(order_id_new)
         new_order_info = {"orderID": orderID}
     else:
@@ -457,6 +474,13 @@ def orders_add_product(id):  # 新订单添加
                              "receive_address": receive_address,
                              "is_return": 0,
                              "comment": ""})
+        remain_minus = """
+                    UPDATE product
+                    SET remain=remain-:quantity
+                    WHERE product_id=:product_id
+                    """
+        run_sql(remain_minus, {"quantity": quantity,
+                               "product_id": product_id})
         new_order_info = {"ID": order_id_new}
 
     return wrap_json_for_send(new_order_info, statuscode, message = message)
