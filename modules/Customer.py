@@ -35,7 +35,7 @@ def register():
     register_info = """
     INSERT 
     INTO info_customer
-    VALUES(:customer_id_new, null , :nickName,:phone_number)
+    VALUES(:customer_id_new, null, :nickName,:phone_number)
     """
     try:
         _ = run_sql(register, {"customer_id_new": customer_id_new, "phone_number": phone_number, "password": password})
