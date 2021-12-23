@@ -47,7 +47,6 @@ trig_insert_cart = """
 
 run_sql(trig_insert_cart)
 
-
 trig_insert_orders_from_cart = """
     CREATE TRIGGER trig_insert_orders_from_cart
     ON orders INSTEAD OF INSERT
