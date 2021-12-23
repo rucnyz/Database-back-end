@@ -64,7 +64,7 @@ CREATE TABLE info_supplier(
     supplier_id char(10) REFERENCES supplier(supplier_id),
     address_name varchar(200) NOT NULL,
     nickname varchar(20) NOT NULL,
-    PRIMARY KEY(supplier_id, address_name),
+    PRIMARY KEY(supplier_id),
     phone varchar(11) NOT NULL
 );
 """
@@ -77,7 +77,7 @@ CREATE TABLE info_customer(
     address_name varchar(200) NOT NULL, -- 不用把地址拆成省市区，查询的时候直接模糊查"省"即可
     nickname varchar(20) NOT NULL,
     phone varchar(11) NOT NULL,
-    PRIMARY KEY(customer_id, address_name)
+    PRIMARY KEY(customer_id)
 );
 """
 run_sql(create_info_customer)
