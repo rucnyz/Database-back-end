@@ -15,9 +15,8 @@ import pandas as pd
 # hash+截取之后的存储在数据库中：17a21b26d7
 # phone：15204814455
 # 作为前端测试使用
-Faker.seed(135)
+Faker.seed(1)
 
-Faker.seed(135)
 fake = Faker(locale = 'zh_CN')
 
 n = 50  # 生成的数据数量
@@ -59,6 +58,8 @@ def insert_customer():
 
 
 def insert_supplier():
+    supplier_name = list(pd.read_csv("product_info.csv", encoding = "GBK")["商家店名"])
+    supplier_name = list(set(supplier_name))
     get_number = """
     SELECT ISNULL(COUNT(*),0) as number
     FROM supplier
@@ -72,14 +73,14 @@ def insert_supplier():
         supplier_id = 'S' + str(number[0] + i + 1).zfill(9)
         supplier_password = fake.password(length = 10, upper_case = True, lower_case = True)
         supplier_password_hashed = hash_password(supplier_password)
-        supplier_name = fake.company() + str(i)  # supplier_name是店铺名称
+        s_name = supplier_name[i]
         owner_name = fake.name()
-        owner_id = fake.ssn(min_age = 18, max_age = 90)  # owner_id 是店铺主的身份证号
-        df_insert_supplier.loc[i] = [supplier_id, supplier_password, supplier_password_hashed, supplier_name,
+        owner_id = fake.ssn()  # owner_id 是店铺主的身份证号
+        df_insert_supplier.loc[i] = [supplier_id, supplier_password, supplier_password_hashed, s_name,
                                      owner_name, owner_id]
         insert_supplier = """
         insert into supplier(supplier_id, supplier_password, supplier_name, owner_name, owner_id)
-        values(:supplier_id,:supplier_password,:supplier_name,:owner_name,:owner_id)
+        values(:supplier_id,:supplier_password,:s_name,:owner_name,:owner_id)
         """
         # % ('S' + str(number[0] + i + 1).zfill(9),
         #        hash_password(supplier_password),
@@ -88,7 +89,7 @@ def insert_supplier():
         #        fake.ssn(min_age = 18, max_age = 90))  # owner_id 是店铺主的身份证号
         run_sql(insert_supplier, {"supplier_id": supplier_id,
                                   "supplier_password": supplier_password_hashed,
-                                  "supplier_name": supplier_name,
+                                  "s_name": s_name,
                                   "owner_name": owner_name,
                                   "owner_id": owner_id
                                   })
@@ -151,6 +152,7 @@ def insert_product():
     product_name = product_info["商品名称"]
     pic_url = product_info["封面图链接"]
     price = product_info["价格"]
+    cat = product_info["搜索关键词"]
     get_number = """
     SELECT ISNULL(COUNT(*), 0) as number
     FROM product
@@ -161,20 +163,19 @@ def insert_product():
     SELECT supplier_id
     FROM supplier
     """
-
-    supplier_id = get_col(run_sql(get_id), "supplier_id")
-    for i in range(len(supplier_id)):
+    for i in range(len(product_info)):
+        supplier_id = random.choice(get_col(run_sql(get_id), "supplier_id"))
         insert_product = """
         INSERT INTO product(product_id, product_name, price, supplier_id, remain, size, discount, category, pic_url)
         values('%s','%s','%u','%s','%u','%s','%f','%s','%s')
         """ % ('P' + str(number[0] + i + 1).zfill(9),  # 编号
                product_name[i],
                price[i],
-               supplier_id[i],
+               supplier_id,
                random.randint(0, 9999),
                fake.word(ext_word_list = ['S', 'M', 'L', 'XL']),  # 尺寸SML XL
                round(random.random(), 2),
-               fake.word(ext_word_list = ['家用电器', '数码设备', '家居', '服装', '配饰', '美妆', '鞋类', '食品', '文娱', '其他']),
+               cat[i],
                pic_url[i])
         run_sql(insert_product)
 
