@@ -38,7 +38,10 @@ trig_insert_cart = """
                 INSERT cart
                 SELECT * FROM inserted
             END
+            raisERROR('successful',12,11)
         END
+        ELSE 
+            raisERROR('failed',12,11)
     END
     """
 
@@ -70,7 +73,11 @@ trig_insert_orders_from_cart = """
     
             INSERT INTO orders
             SELECT * FROM inserted
+            raisERROR('successful',12,11)
         END
+        
+        ELSE 
+            raisERROR('failed',12,11)
     END
     """
 

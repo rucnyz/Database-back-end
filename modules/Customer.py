@@ -208,10 +208,13 @@ def add_cart(id):
     INTO cart(customer_id, product_id, count)
     VALUES(:customer_id, :product_id, :count)
     """
-
-    run_sql(add_cart, {"customer_id": id, "product_id": product_id, "count": count})
+    try:
+        run_sql(add_cart, {"customer_id": id, "product_id": product_id, "count": count})
+        statuscode = 'successful'
+    except:
+        statuscode = 'failed'
     d = {}
-    return wrap_json_for_send(d, 'successful')
+    return wrap_json_for_send(d, statuscode)
 
 
 # /api/customer/id/shoppingCart/update  仅限更新数量[已测试]
@@ -293,6 +296,7 @@ def set_is_return(id):  # 设置退货标记
 def orders_add_cart(id):  # 新订单添加
     orders = request.json["orders"]
     orderID = []
+    statuscode = "successful"
     for i in range(len(orders)):
         product_id = orders[i]["productID"]
         order_date = orders[i]["orderDate"]
@@ -323,23 +327,25 @@ def orders_add_cart(id):  # 新订单添加
         VALUES(:order_id, :customer_id, :supplier_id, :product_id, :orderdate, 
         :price_sum, :quantity, :deliver_address, :receive_address, :is_return, :comment)
         """
-
-        run_sql(orders_add, {"order_id": order_id_new,
-                             "customer_id": id,
-                             "supplier_id": supplier_id,
-                             "product_id": product_id,
-                             "orderdate": order_date,
-                             "quantity": quantity,
-                             "price_sum": price_sum,
-                             "deliver_address": deliver_address,
-                             "receive_address": receive_address,
-                             "is_return": 0,
-                             "comment": ""})
+        try:
+            run_sql(orders_add, {"order_id": order_id_new,
+                                 "customer_id": id,
+                                 "supplier_id": supplier_id,
+                                 "product_id": product_id,
+                                 "orderdate": order_date,
+                                 "quantity": quantity,
+                                 "price_sum": price_sum,
+                                 "deliver_address": deliver_address,
+                                 "receive_address": receive_address,
+                                 "is_return": 0,
+                                 "comment": ""})
+        except:
+            statuscode = "failed"
         orderID.append(order_id_new)
 
     new_order_info = {"orderID": orderID}
 
-    return wrap_json_for_send(new_order_info, "successful")
+    return wrap_json_for_send(new_order_info, statuscode)
 
 
 # 从商品界面里添加新订单。除接口外，与购物车添加订单均相同。（从商品界面一次只可以订购一种商品，无批量操作）[已测试]
@@ -392,22 +398,24 @@ def orders_add_product(id):  # 新订单添加
     VALUES(:order_id, :customer_id, :supplier_id, :product_id, :orderdate, 
     :price_sum, :quantity, :deliver_address, :receive_address, :is_return, :comment)
     """
-
-    run_sql(orders_add, {"order_id": order_id_new,
-                         "customer_id": id,
-                         "supplier_id": supplier_id,
-                         "product_id": product_id,
-                         "orderdate": order_date,
-                         "quantity": quantity,
-                         "price_sum": price_sum,
-                         "deliver_address": deliver_address,
-                         "receive_address": receive_address,
-                         "is_return": 0,
-                         "comment": ""})
-
+    try:
+        run_sql(orders_add, {"order_id": order_id_new,
+                             "customer_id": id,
+                             "supplier_id": supplier_id,
+                             "product_id": product_id,
+                             "orderdate": order_date,
+                             "quantity": quantity,
+                             "price_sum": price_sum,
+                             "deliver_address": deliver_address,
+                             "receive_address": receive_address,
+                             "is_return": 0,
+                             "comment": ""})
+        statuscode = "successful"
+    except:
+        statuscode = "failed"
     new_order_info = {"ID": order_id_new}
 
-    return wrap_json_for_send(new_order_info, "successful")
+    return wrap_json_for_send(new_order_info, statuscode)
 
 
 # 显示此顾客所有的收货地址以供选择
