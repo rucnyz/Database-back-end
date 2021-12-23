@@ -11,11 +11,11 @@ db = SQLAlchemy()
 # /api/customer/register[已测试]
 # input: base, { "phoneNumber":"xxx", "password": "xxx"}
 # output:base {"ID":"xxx"}
-@customer.route("/register", methods=['POST', 'GET'])  # zzm
+@customer.route("/register", methods = ['POST', 'GET'])  # zzm
 def register():
     phone_number = request.json['phoneNumber']
     password = request.json['password'][:10]
-#    realName = request.json['realName']
+    #    realName = request.json['realName']
     nickName = request.json['nickName']
 
     getNum = """
@@ -37,8 +37,9 @@ def register():
     VALUES(:customer_id_new, null , :nickName,:phone_number)
     """
     try:
-        _ = run_sql(register, {"customer_id_new":customer_id_new, "phone_number": phone_number, "password": password})
-        _ = run_sql(register_info,{"customer_id_new": customer_id_new,"nickName":nickName, "phone_number":phone_number})
+        _ = run_sql(register, {"customer_id_new": customer_id_new, "phone_number": phone_number, "password": password})
+        _ = run_sql(register_info,
+                    {"customer_id_new": customer_id_new, "nickName": nickName, "phone_number": phone_number})
         statuscode = "successful"
         new_cust_info = {"ID": customer_id_new}
     except:
@@ -52,7 +53,7 @@ def register():
 # /api/user/login
 # input: base, {"phoneNumber":"xxx","password:"xxx"}
 # output: base, {"ID":"xxx"}
-@customer.route("/login", methods=['POST', 'GET'])
+@customer.route("/login", methods = ['POST', 'GET'])
 def login():
     phone_number = request.json['phoneNumber']
     password = request.json['password'][:10]
@@ -75,7 +76,7 @@ def login():
                             "customer_password": password})
         if (len(t) == 0):
             out = {}
-            statuscode = "failed:wrong" # 密码错误，提示用户名或密码错误
+            statuscode = "failed:wrong"  # 密码错误，提示用户名或密码错误
         else:
             customer_id = t[0]['customer_id']
             info = """
@@ -115,7 +116,7 @@ def select_customer_info(id):
 # /api/customer/"id"/address/add[已测试]
 # input:base,{"customerID","nickName","phoneNumber","address"}
 # output: base
-@customer.route("/<customerID>/address/add", methods=['POST'])  # hcy#zzm修改
+@customer.route("/<customerID>/address/add", methods = ['POST'])  # hcy#zzm修改
 def add_customer_info(customerID):
     nickname = request.json['nickName']
     address = request.json['address']
@@ -137,7 +138,7 @@ def add_customer_info(customerID):
 # /api/customer/"id"/address/delete[已测试]
 # input: base,{"customerID","address"}
 # output: base
-@customer.route("/<customerID>/address/delete", methods = ['POST','GET'])  # hcy#zzm修改
+@customer.route("/<customerID>/address/delete", methods = ['POST', 'GET'])  # hcy#zzm修改
 def delete_customer_info(customerID):
     address = request.json['address']
     delete_customer_info = """
@@ -154,7 +155,7 @@ def delete_customer_info(customerID):
 # /api/customer/"id"/address/update[已测试]
 # input: base, {"customerID","nickName","phoneNumber","address"}
 # ouput: base
-@customer.route("/<customerID>/address/update", methods=['POST'])  # hcy　#　zzm修改
+@customer.route("/<customerID>/address/update", methods = ['POST'])  # hcy　#　zzm修改
 def update_customer_info(customerID):
     nickname = request.json['nickName']
     address = request.json['address']
@@ -208,7 +209,7 @@ def select_cart(id):
 # "count": 3
 # }
 # trigger的创建必须作为批处理中唯一的语句
-@customer.route("/<id>/shoppingCart/add", methods=['POST'])  # hcy
+@customer.route("/<id>/shoppingCart/add", methods = ['POST'])  # hcy
 def add_cart(id):
     product_id = request.json['productID']
     count = request.json['count']
@@ -230,7 +231,7 @@ def add_cart(id):
 # /api/customer/id/shoppingCart/update  仅限更新数量[已测试]
 # input:base, {"count": "xxx", "productID":}
 # output:base
-@customer.route("/<id>/shoppingCart/update", methods=['POST'])  # hcy
+@customer.route("/<id>/shoppingCart/update", methods = ['POST'])  # hcy
 def update_cart(id):
     product_id = request.json['productID']
     count = request.json['count']
@@ -250,7 +251,7 @@ def update_cart(id):
 # input: base,{"customerID": "xxx", "productID":[列表！！！]}
 # output: base
 # 下订单后，删除购物车中购买的商品
-@customer.route("/<id>/shoppingCart/delete", methods=['POST'])  # hcy
+@customer.route("/<id>/shoppingCart/delete", methods = ['POST'])  # hcy
 def delete_cart(id):
     product_id = request.json['productID']
     for i in product_id:
@@ -278,14 +279,15 @@ def get_orders(id):
     ORDER BY orderdate DESC;
     """
     t = run_sql(get_orders, {"customer_id": id})
-    column = ['orderID', 'orderdate', 'productName', 'picUrl', 'quantity', 'priceSum', 'receiveAddress', 'phone', 'nickname',
+    column = ['orderID', 'orderdate', 'productName', 'picUrl', 'quantity', 'priceSum', 'receiveAddress', 'phone',
+              'nickname',
               'comment', 'isReturn']
     d = [dict(zip(column, t[i].values())) for i in range(len(t))]
     d = {"number": len(t), "detail": d}
     return wrap_json_for_send(d, "successful")
 
 
-@customer.route("/<id>/orders/salesreturn", methods=['POST'])  # lsy 【已测试】
+@customer.route("/<id>/orders/salesreturn", methods = ['POST'])  # lsy 【已测试】
 def set_is_return(id):  # 设置退货标记
     order_id = request.json["orderID"]
     set_is_return = """
@@ -303,7 +305,7 @@ def set_is_return(id):  # 设置退货标记
 # input:base, {"orders": [" "productID", "order_date","price_sum", "quantity", "size","receive_address""]}
 # output:base,{"orderID":["xxx", "xxx", "xxx"]}
 # {version:0.1, statuscode:successful, orders: [{"productID","orderDate","priceSum","quantity","receiveAddress"}]}
-@customer.route("/<id>/orders/add_cart", methods=['POST', 'GET'])  # zzm # hcy增加批量提交订单
+@customer.route("/<id>/orders/add_cart", methods = ['POST', 'GET'])  # zzm # hcy增加批量提交订单
 def orders_add_cart(id):  # 新订单添加
     orders = request.json["orders"]
     orderID = []
@@ -375,7 +377,7 @@ def orders_add_cart(id):  # 新订单添加
 
 # output:{"ordersID":"O1234"}
 
-@customer.route("/<id>/orders/add_product", methods=['POST', 'GET'])  # zzm #hcy
+@customer.route("/<id>/orders/add_product", methods = ['POST', 'GET'])  # zzm #hcy
 def orders_add_product(id):  # 新订单添加
 
     product_id = request.json['productID']
@@ -384,6 +386,7 @@ def orders_add_product(id):  # 新订单添加
     quantity = request.json['quantity']
     receive_address = request.json['receiveAddress']
 
+    message = None
     getNum = """
     SELECT COUNT(*) as cnt
     from orders  
@@ -424,9 +427,10 @@ def orders_add_product(id):  # 新订单添加
         statuscode = "successful"
     except:
         statuscode = "failed"
+        message = "%s商品库存不足，购买失败！" % product_id
     new_order_info = {"ID": order_id_new}
 
-    return wrap_json_for_send(new_order_info, statuscode)
+    return wrap_json_for_send(new_order_info, statuscode, message = message)
 
 
 # 显示此顾客所有的收货地址以供选择
