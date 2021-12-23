@@ -64,10 +64,10 @@ def return_product_in_category():
     returnProductInCategory = """
     select product_id, pic_url, product_name, price
     from product p       
-    where p.category='%s'
-    """ % cat
+    where p.category=:cat
+    """
 
-    t = run_sql(returnProductInCategory)
+    t = run_sql(returnProductInCategory, {"cat": cat})
     column = ["ID", "product_pic", "product_name", "price"]
     d = {"detail": [dict(zip(column, t[i].values())) for i in range(len(t))]}
 
@@ -84,31 +84,34 @@ def get_product_in_cond():
     keywords = request.args['keywords']
     number = request.args['needNumber']
     page = request.args['page']
+    product_name_vague = '%' + keywords + '%'
     if len(cat) == 0:
         get_product = """
             SELECT TOP %s product_id, pic_url, product_name, price
             FROM product p  
-            WHERE product_name LIKE '%%%s%%'     
-            """ % (number, keywords)
+            WHERE product_name LIKE :keywords    
+            """ % number
         get_size = """
                 SELECT count(*)
                     FROM product p  
-                    WHERE product_name LIKE '%%%s%%'     
-                    """ % keywords
+                    WHERE product_name LIKE :keywords     
+                    """
+        t = run_sql(get_product, {"keywords": product_name_vague})
+        size = run_sql(get_size, {"keywords": product_name_vague})
     else:
         get_product = """
                     SELECT TOP %s product_id, pic_url, product_name, price
                     FROM product p  
-                    WHERE product_name LIKE '%%%s%%' AND category = '%s'
-                    """ % (number, keywords, cat)
+                    WHERE product_name LIKE :keywords AND category = :category
+                    """ % number
         get_size = """
                         SELECT count(*)
                         FROM product p  
-                        WHERE product_name LIKE '%%%s%%' AND category = '%s'
-                   """ % (keywords, cat)
+                        WHERE product_name LIKE :keywords AND category = :category
+                   """
+        t = run_sql(get_product, {"keywords": product_name_vague, "category": cat})
+        size = run_sql(get_size, {"keywords": product_name_vague, "category": cat})
 
-    t = run_sql(get_product)
-    size = run_sql(get_size)
     column = ["ID", "product_pic", "product_name", "price"]
     d = {"totalSize": size[0][''], "detail": [dict(zip(column, t[i].values())) for i in range(len(t))]}
     return wrap_json_for_send(d, "successful")
