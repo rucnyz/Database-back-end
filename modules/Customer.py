@@ -56,28 +56,38 @@ def register():
 def login():
     phone_number = request.json['phoneNumber']
     password = request.json['password'][:10]
-    login = """
+    check_reg = """
     SELECT customer_id
     FROM customer
-    WHERE customer_phonenumber=:customer_phonenumber AND customer_password=:customer_password
+    WHERE customer_phonenumber=:customer_phonenumber;
     """
-    t = run_sql(login, {"customer_phonenumber": phone_number,
-                        "customer_password": password})
+    t = run_sql(check_reg, {"customer_phonenumber": phone_number})
     if (len(t) == 0):
         out = {}
-        statuscode = "failed"
+        statuscode = "failed:unregistered"  # 不存在用户，尚未注册
     else:
-        customer_id = t[0]['customer_id']
-        info = """
-            SELECT nickname, address_name
-            FROM info_customer
-            WHERE customer_id=:customer_id
-            """
-        c_info = run_sql(info, {"customer_id": customer_id})
-        nickName = c_info[0]['nickname']
-        address_name = c_info[0]['address_name']
-        out = {"ID": customer_id, "phoneNumber": phone_number, "nickName": nickName, "addressName": address_name}
-        statuscode = "successful"
+        login = """
+        SELECT customer_id
+        FROM customer
+        WHERE customer_phonenumber=:customer_phonenumber AND customer_password=:customer_password
+        """
+        t = run_sql(login, {"customer_phonenumber": phone_number,
+                            "customer_password": password})
+        if (len(t) == 0):
+            out = {}
+            statuscode = "failed:wrong" # 密码错误，提示用户名或密码错误
+        else:
+            customer_id = t[0]['customer_id']
+            info = """
+                SELECT nickname, address_name
+                FROM info_customer
+                WHERE customer_id=:customer_id
+                """
+            c_info = run_sql(info, {"customer_id": customer_id})
+            nickName = c_info[0]['nickname']
+            address_name = c_info[0]['address_name']
+            out = {"ID": customer_id, "phoneNumber": phone_number, "nickName": nickName, "addressName": address_name}
+            statuscode = "successful"
 
     return wrap_json_for_send(out, statuscode)
 
