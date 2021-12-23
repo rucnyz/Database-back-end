@@ -45,7 +45,7 @@ def register():
         new_cust_info = {"ID": customer_id_new}
     except:
         statuscode = "failed"
-        message = "注册失败"
+        message = "注册失败，该手机号账户已存在！"
         new_cust_info = {}
 
     return wrap_json_for_send(new_cust_info, statuscode, message = message)
