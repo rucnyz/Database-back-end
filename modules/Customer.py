@@ -339,7 +339,6 @@ def orders_add_cart(id):  # 新订单添加
             price_sum = orders[i]["priceSum"]
             quantity = orders[i]["quantity"]
             # supplierID、deliverAddress 需后端查询得到_____finished by lsy
-            # deliver_address = request.json["deliverAddress"]
             receive_address = orders[i]["receiveAddress"]
             get_need = """
             SELECT ifs.supplier_id, ifs.address_name
@@ -355,7 +354,7 @@ def orders_add_cart(id):  # 新订单添加
             from orders  
              """
             tuple_tmp = run_sql(getNum)
-            order_id_new = 'O' + str(int(tuple_tmp[0]['cnt'] + 101)).zfill(9)  # 获得新的订单编号
+            order_id_new = 'O' + str(int(tuple_tmp[0]['cnt'] + 1)).zfill(9)  # 获得新的订单编号
 
             orders_add = """
             INSERT
@@ -374,8 +373,16 @@ def orders_add_cart(id):  # 新订单添加
                                  "receive_address": receive_address,
                                  "is_return": 0,
                                  "comment": ""})
+            remain_update = """
+                     UPDATE product
+                     SET remain=remain-:quantity
+                     WHERE product_id=:product_id        
+                     """
+            run_sql(remain_update, {"quantity": quantity,
+                                    "product_id": product_id})
             orderID.append(order_id_new)
         new_order_info = {"orderID": orderID}
+
     else:
         message += "商品库存不足，购买失败！"
         new_order_info = {}
