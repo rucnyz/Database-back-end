@@ -458,6 +458,13 @@ def orders_add_product(id):  # 新订单添加
                              "is_return": 0,
                              "comment": ""})
         new_order_info = {"ID": order_id_new}
+        remain_update = """
+        UPDATE product
+        SET remain=remain-:quantity
+        WHERE product_id=:product_id        
+        """
+        run_sql(remain_update, {"quantity": quantity,
+                                "product_id": product_id})
 
     return wrap_json_for_send(new_order_info, statuscode, message = message)
 
