@@ -48,7 +48,7 @@ def register():
         message = "注册失败"
         new_cust_info = {}
 
-    return wrap_json_for_send(new_cust_info, statuscode, message)
+    return wrap_json_for_send(new_cust_info, statuscode, message = message)
 
 
 # 用户登录。用户提供登录名与密码，与数据库中内容进行匹配验证，返回登录成功与否。[已测试]
@@ -95,7 +95,7 @@ def login():
             out = {"ID": customer_id, "phoneNumber": phone_number, "nickName": nickName, "addressName": address_name}
             statuscode = "successful"
 
-    return wrap_json_for_send(out, statuscode, message)
+    return wrap_json_for_send(out, statuscode, message = message)
 
 
 # 用户个人信息查询[已测试]
@@ -231,7 +231,7 @@ def add_cart(id):
         statuscode = 'failed'
         message = "%s商品库存不足，添加购物车失败！" % product_id
     d = {}
-    return wrap_json_for_send(d, statuscode, message)
+    return wrap_json_for_send(d, statuscode, message = message)
 
 
 # /api/customer/id/shoppingCart/update  仅限更新数量[已测试]
@@ -366,7 +366,7 @@ def orders_add_cart(id):  # 新订单添加
 
     new_order_info = {"orderID": orderID}
 
-    return wrap_json_for_send(new_order_info, statuscode, message)
+    return wrap_json_for_send(new_order_info, statuscode, message = message)
 
 
 # 从商品界面里添加新订单。除接口外，与购物车添加订单均相同。（从商品界面一次只可以订购一种商品，无批量操作）[已测试]
