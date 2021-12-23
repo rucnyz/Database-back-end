@@ -69,7 +69,7 @@ def insert_supplier():
     df_insert_supplier = pd.DataFrame(
         columns = ["supplier_id", "supplier_password", "supplier_password_hashed", "supplier_name", "owner_name",
                    "owner_id"])
-    for i in range(n):
+    for i in range(len(supplier_name)):
         supplier_id = 'S' + str(number[0] + i + 1).zfill(9)
         supplier_password = fake.password(length = 10, upper_case = True, lower_case = True)
         supplier_password_hashed = hash_password(supplier_password)
