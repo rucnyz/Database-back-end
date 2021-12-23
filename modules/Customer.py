@@ -45,7 +45,7 @@ def register():
         new_cust_info = {"ID": customer_id_new}
     except:
         statuscode = "failed"
-        message = "注册失败"
+        message = "注册失败，该手机号账户已存在！"
         new_cust_info = {}
 
     return wrap_json_for_send(new_cust_info, statuscode, message = message)
@@ -167,7 +167,7 @@ def update_customer_info(customerID):
     phone_number = request.json['phoneNumber']
     update_customer_info = """
     UPDATE info_customer
-    SET nickname=:nickname, phone=:phone
+    SET nickname=:nickname, phone=:phone, address_name=:address_name
     WHERE customer_id=:customer_id AND address_name=:address_name
     """
     _ = run_sql(update_customer_info, {"address_name": address,
@@ -393,6 +393,7 @@ def orders_add_cart(id):  # 新订单添加
                                    "product_id": product_id})
             orderID.append(order_id_new)
         new_order_info = {"orderID": orderID}
+
     else:
         message += "商品库存不足，购买失败！"
         new_order_info = {}
@@ -444,7 +445,7 @@ def orders_add_product(id):  # 新订单添加
         """
 
         tuple_tmp = run_sql(getNum)
-        order_id_new = 'O' + str(int(tuple_tmp[0]['cnt'] + 1)).zfill(9)  # 获得新的订单编号
+        order_id_new = 'O' + str(int(tuple_tmp[0]['cnt'] + 101)).zfill(9)  # 获得新的订单编号
 
         getInfo = """
         SELECT info_s.address_name da, s.supplier_id sid

@@ -37,7 +37,7 @@ create_customer = """
 IF OBJECT_ID('customer', 'U') IS NULL
 CREATE TABLE customer(
     customer_id char(10) PRIMARY KEY,
-    customer_phonenumber varchar(20) NOT NULL,
+    customer_phonenumber varchar(20) UNIQUE,
     customer_password char(10) NOT NULL
 );
 """
@@ -51,7 +51,7 @@ CREATE TABLE supplier(
     supplier_password char(10) NOT NULL,
     supplier_name varchar(50) NOT NULL UNIQUE,
     owner_name varchar(20) NOT NULL,
-    owner_id char(18) NOT NULL UNIQUE
+    owner_id char(18) NOT NULL  -- UNIQUE
 );
 """
 # supplier_name：店铺名; owner：店铺负责人名字 ;
@@ -64,7 +64,7 @@ CREATE TABLE info_supplier(
     supplier_id char(10) REFERENCES supplier(supplier_id),
     address_name varchar(200) NOT NULL,
     nickname varchar(20) NOT NULL,
-    PRIMARY KEY(supplier_id, address_name),
+    PRIMARY KEY(supplier_id),
     phone varchar(11) NOT NULL
 );
 """
@@ -77,7 +77,7 @@ CREATE TABLE info_customer(
     address_name varchar(200) NOT NULL, -- 不用把地址拆成省市区，查询的时候直接模糊查"省"即可
     nickname varchar(20) NOT NULL,
     phone varchar(11) NOT NULL,
-    PRIMARY KEY(customer_id, address_name)
+    PRIMARY KEY(customer_id)
 );
 """
 run_sql(create_info_customer)
