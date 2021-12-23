@@ -38,7 +38,9 @@ IF OBJECT_ID('customer', 'U') IS NULL
 CREATE TABLE customer(
     customer_id char(10) PRIMARY KEY,
     customer_phonenumber varchar(20) UNIQUE,
-    customer_password char(10) NOT NULL
+    customer_password char(10) NOT NULL,
+    customer_nickname varchar(20),
+    customer_realname varchar(20) NOT NULL
 );
 """
 run_sql(create_customer)
@@ -112,8 +114,6 @@ CREATE TABLE orders(
     quantity INT NOT NULL,
     deliver_address VARCHAR(200),
     receive_address VARCHAR(200),
-    FOREIGN KEY(customer_id, receive_address) REFERENCES info_customer(customer_id, address_name),
-    FOREIGN KEY(supplier_id, deliver_address) REFERENCES info_supplier(supplier_id, address_name),
     is_return BIT NOT NULL,
     comment VARCHAR(200)
 );

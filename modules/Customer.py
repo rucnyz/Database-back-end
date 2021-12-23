@@ -15,7 +15,7 @@ db = SQLAlchemy()
 def register():
     phone_number = request.json['phoneNumber']
     password = request.json['password'][:10]
-    # realName = request.json['realName']
+    realName = request.json['realName']
     nickName = request.json['nickName']
 
     message = None
@@ -29,18 +29,19 @@ def register():
     register = """
     INSERT 
     INTO customer
-    VALUES(:customer_id_new, :phone_number, :password)
+    VALUES(:customer_id_new, :phone_number, :password, :nickname, :realname)
     """
 
-    register_info = """
-    INSERT 
-    INTO info_customer
-    VALUES(:customer_id_new, null, :nickName,:phone_number)
-    """
+    # register_info = """
+    # INSERT
+    # INTO info_customer
+    # VALUES(:customer_id_new, null, :nickName,:phone_number)
+    # """
     try:
-        _ = run_sql(register, {"customer_id_new": customer_id_new, "phone_number": phone_number, "password": password})
-        _ = run_sql(register_info,
-                    {"customer_id_new": customer_id_new, "nickName": nickName, "phone_number": phone_number})
+        _ = run_sql(register, {"customer_id_new": customer_id_new, "phone_number": phone_number, "password": password,
+                               "nickname": nickName, "realname": realName})
+        # _ = run_sql(register_info,
+        #             {"customer_id_new": customer_id_new, "nickName": nickName, "phone_number": phone_number})
         statuscode = "successful"
         new_cust_info = {"ID": customer_id_new}
     except:
@@ -85,14 +86,13 @@ def login():
         else:
             customer_id = t[0]['customer_id']
             info = """
-                SELECT nickname, address_name
-                FROM info_customer
+                SELECT customer_nickname nickname
+                FROM customer
                 WHERE customer_id=:customer_id
                 """
             c_info = run_sql(info, {"customer_id": customer_id})
             nickName = c_info[0]['nickname']
-            address_name = c_info[0]['address_name']
-            out = {"ID": customer_id, "phoneNumber": phone_number, "nickName": nickName, "addressName": address_name}
+            out = {"ID": customer_id, "phoneNumber": phone_number, "nickName": nickName, "addressName": ""}
             statuscode = "successful"
 
     return wrap_json_for_send(out, statuscode, message = message)

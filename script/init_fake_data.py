@@ -1,13 +1,12 @@
 # -*- coding: utf-8 -*-
 import sys
+
 sys.path.append("..")
 import random
 from utils import run_sql
 from faker import Faker
 import hashlib
 import pandas as pd
-
-
 
 # 注意
 # 顾客id：C000000051
@@ -40,20 +39,24 @@ def insert_customer():
     FROM customer
     """
     number = get_col(run_sql(get_number), "number")  # 数值型
-    df_insert_customer = pd.DataFrame(columns = ["customer_id", "phone_number", "password", "password_hashed"])
+    df_insert_customer = pd.DataFrame(
+        columns = ["customer_id", "phone_number", "password", "password_hashed", "nickname", "realname"])
     for i in range(n):
         customer_id = 'C' + str(number[0] + i + 1).zfill(9)
         phone_number = fake.phone_number()
         password = fake.password(length = 10, upper_case = True, lower_case = True)
         password_hashed = hash_password(password)
-        df_insert_customer.loc[i] = [customer_id, phone_number, password, password_hashed]
+        nickname = fake.name()
+        realname = fake.name()
+        df_insert_customer.loc[i] = [customer_id, phone_number, password, password_hashed, nickname, realname]
 
         insert_customer = """
-        insert into customer(customer_id, customer_phonenumber, customer_password)
-        values(:customer_id,:phone_number,:password);
+        insert into customer(customer_id, customer_phonenumber, customer_password, customer_nickname, customer_realname)
+        values(:customer_id,:phone_number,:password,:nickname,:realname);
         """
         run_sql(insert_customer,
-                {"customer_id": customer_id, "phone_number": phone_number, "password": password_hashed})
+                {"customer_id": customer_id, "phone_number": phone_number, "password": password_hashed,
+                 "nickname": nickname, "realname": realname})
     df_insert_customer.to_csv("../fake_data/insert_customer.csv")
 
 
@@ -235,7 +238,7 @@ def insert_orders():
     for i in range(50 * n):
         # 先查人对应的地址
         need_pro_inf = random.choice(need)
-        supplier_id_i = need_pro_inf["supplier_id"] # 随机挑选1个,以下与他对应
+        supplier_id_i = need_pro_inf["supplier_id"]  # 随机挑选1个,以下与他对应
         product_id_i = need_pro_inf["product_id"]
         price_unit_i = need_pro_inf["price"]
         customer_id_i = random.choice(get_col(need_customer_id, "customer_id"))
