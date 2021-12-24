@@ -354,8 +354,6 @@ def orders_add_cart(id):  # 新订单添加
             SELECT COUNT(*) as cnt
             from orders  
              """
-            tuple_tmp = run_sql(getNum)
-            order_id_new = 'O' + str(int(tuple_tmp[0]['cnt'] + 1)).zfill(9)  # 获得新的订单编号
 
             orders_add = """
             INSERT
@@ -399,8 +397,7 @@ def orders_add_cart(id):  # 新订单添加
                 print(@order_num)
             commit transaction add_delete_minus
                 """
-            print(run_sql(orders_add_cart_delete_remain_minus, {"order_id": order_id_new,
-                                    "customer_id": id,
+            print(run_sql(orders_add_cart_delete_remain_minus, {"customer_id": id,
                                     "supplier_id": supplier_id,
                                     "product_id": product_id,
                                     "orderdate": order_date,
@@ -410,7 +407,8 @@ def orders_add_cart(id):  # 新订单添加
                                     "receive_address": receive_address,
                                     "is_return": 0,
                                     "comment": ""}))
-            orderID.append(order_id_new) ## 现在返回的还是单独查的！不对！
+
+            orderID.append() # 现在没法返回
         new_order_info = {"orderID": orderID}
 
     else:
