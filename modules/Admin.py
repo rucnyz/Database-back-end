@@ -5,27 +5,27 @@ from utils import run_sql, wrap_json_for_send
 admin = Blueprint('admin', __name__)
 db = SQLAlchemy()
 
+
 # 管理员登录
-#/api/admin/login
+# /api/admin/login
 # input: base, {"adminName":"xxx", "password":"xxx"}
 # output:base
-@admin.route("/login", methods =['POST'])
+@admin.route("/login", methods = ['POST'])
 def login():
     admin_name = request.json['adminName']
     password = request.json['password']
     message = None
 
     login = """
-    SELECT admin_id
+    SELECT admin_id adminId
     FROM admin
-    WHERE admin_name=:admin_name AND password=:password
+    WHERE admin_name=:admin_name AND admin_password=:password
     """
 
-    run_sql(login,{"admin_name":admin_name,
-                   "password":password})
+    admin_info = run_sql(login, {"admin_name": admin_name,
+                                 "password": password})[0]
 
-    admin_info = {"admin_id": "A000000001"}
-    statuscode = "Successful"
+    statuscode = "successful"
     return wrap_json_for_send(admin_info, statuscode, message = message)
 
 
@@ -33,7 +33,7 @@ def login():
 # /api/admin/top3_product
 # input:base,{""}
 # output:base,{"supplier_id","product_id","product_name","sum_quantity"}
-@admin.route("/top3_product", methods=['POST', 'GET'])
+@admin.route("/top3_product", methods = ['POST', 'GET'])
 def top3_product():
     # 获取已有商家数量，进行循环
     get_num = """
@@ -66,10 +66,10 @@ def top3_product():
 # /api/admin/low5_supplier
 # input:base,{"keywords"}
 # output:base,{"keywords",'details': [{"price","product_id","product_name","supplier_id","supplier_name"{}},{},...,{}]}
-@admin.route("/low5_supplier", methods=['POST'])
+@admin.route("/low5_supplier", methods = ['POST'])
 def low5_supplier():
     key_words = request.json['keywords']
-    key_words_vague = '%'+key_words+'%'
+    key_words_vague = '%' + key_words + '%'
     get_low5_supplier = """
     SELECT TOP 5 p.price, p.product_id, p.product_name, s.supplier_id, s.supplier_name
     FROM product p, supplier s
@@ -87,7 +87,7 @@ def low5_supplier():
 # /api/admin/annual_sales
 # input:base,{"year"}
 # output:base, {"year":,"suppliers": list[{"supplier_id","supplier_name","annual_sales"}]}
-@admin.route("/annual_sales", methods=['POST', 'GET'])
+@admin.route("/annual_sales", methods = ['POST', 'GET'])
 def annual_sales():
     # 获取年份，进行循环
     get_years = """
@@ -123,7 +123,7 @@ def annual_sales():
 # /api/admin/top_product
 # input:base,{""}
 # output:base,{"customer_id","product_id","product_name","top_num"}
-@admin.route("/top_product", methods=['POST', 'GET'])
+@admin.route("/top_product", methods = ['POST', 'GET'])
 def top_product():
     get_top_product = """
     SELECT o_c.customer_id, o_c.product_id, p.product_name, MAX(pc_count) top_num
@@ -145,7 +145,7 @@ def top_product():
 # input:base,{""}
 # output:base,{"province", "count", "average_spending","max_spending","min_spending"}
 # 可以加功能：以不同方式排序
-@admin.route("/province_top", methods=['POST', 'GET'])
+@admin.route("/province_top", methods = ['POST', 'GET'])
 def province_top():
     provinces = ['安徽省', '澳门特别行政区', '北京市', '福建省', '甘肃省', '广东省', '广西壮族自治区', '贵州省', '海南省',
                  '河北省', '河南省', '黑龙江省', '湖北省', '湖南省', '吉林省', '江苏省', '江西省', '辽宁省', '内蒙古自治区',
@@ -164,7 +164,7 @@ def province_top():
         t = run_sql(get_province_top, {"province": i, "vague": vague})
         province_top.append(t)
     column = ["province", "count", "average", "max", "min"]
-    province_top = sorted(province_top, key=lambda province_top: [x['avg'] for x in province_top], reverse=True)
+    province_top = sorted(province_top, key = lambda province_top: [x['avg'] for x in province_top], reverse = True)
     # toTODO 降序排列
     d = {"details": [dict(zip(column, province_top[i])) for i in range(len(province_top))]}
     return wrap_json_for_send(d, "successful")

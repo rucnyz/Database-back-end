@@ -1,9 +1,9 @@
 import sys
+
 sys.path.append("..")
 import platform
 
 from utils import run_sql
-
 
 if platform.system() == 'Windows':
     create_db = """
@@ -148,24 +148,23 @@ CREATE TABLE cart(
 """
 run_sql(create_cart)
 
-#admin -zzm
-create_admin ="""
+# admin -zzm
+create_admin = """
 IF OBJECT_ID('admin', 'U') IS NULL
 CREATE TABLE admin(
-    admin_id char(10) NOT NULL
-    admin_name char(10)  
-    admin_password char(10)
+    admin_id char(10) NOT NULL,
+    admin_name char(10)  ,
+    admin_password char(10),
     PRIMARY KEY(admin_id)
 )
 """
-
+run_sql(create_admin)
 init_admin = """
 INSERT 
 INTO admin
 VALUES('A000000001', 'administer', 'administer')
 """
-
-
+run_sql(init_admin)
 
 # # comment -nyz 删掉了 合到订单表里
 # create_comment = """
