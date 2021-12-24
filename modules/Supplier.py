@@ -19,23 +19,33 @@ def register():
     owner_name = request.json['ownerName']
     owner_id = request.json['ownerID']
 
+
+    message = None
     getNum = """
      SELECT COUNT(*) as cnt
     from supplier   
      """
     tuple_tmp = run_sql(getNum)
-    supplier_id_new = 'S' + str(int(tuple_tmp['cnt'][0])+1)
+    supplier_id_new = 'S' + str(int(tuple_tmp[0]['cnt'])+1).zfill(9)
 
     register = """
     INSERT 
     INTO supplier
-    VALUES(%s, %s, %s, %s, %s)
-    """ % (supplier_id_new, password, supplier_name, owner_name, owner_id)
-
-    db.engine.execute(register)
-    new_supp_info = {"ID": supplier_id_new}
-
-    return wrap_json_for_send(new_supp_info, "successful")
+    VALUES(:supplier_id_new, :password, :supplier_name, :owner_name, :owner_id)
+    """
+    try:
+        _ =run_sql(register,{"supplier_id_new": supplier_id_new,
+                             "password": password,
+                             "supplier_name": supplier_name,
+                             "owner_name": owner_name,
+                             "owner_id": owner_id})
+        statuscode = 'successful'
+        new_supp_info = {"ID": supplier_id_new}
+    except:
+        statuscode = "failed"
+        message = "注册失败，该账户已被注册！"
+        new_supp_info = {}
+    return wrap_json_for_send(new_supp_info, statuscode, message = message)
 
 
 # 商家登录。用户提供登录名与密码，与数据库中内容进行匹配验证，返回登录成功与否。
