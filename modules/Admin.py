@@ -10,7 +10,7 @@ db = SQLAlchemy()
 # /api/admin/top3_product
 # input:base,{""}
 # output:base,{"supplier_id","product_id","product_name","sum_quantity"}
-@admin.route("/top3_product", methods=['POST'])
+@admin.route("/top3_product", methods=['POST', 'GET'])
 def top3_product():
     # 获取已有商家数量，进行循环
     get_num = """
@@ -30,11 +30,11 @@ def top3_product():
         ORDER BY SUM(o.quantity) DESC
         """
         tuple_tmp = run_sql(top3_product, {"supplier_id": spid})
-        column = ['supplier_id', 'product_id', 'product_name', 'sum_quantity']
+        column = ['supplierId', 'productId', 'productName', 'sumQuantity']
         tmp_info = [dict(zip(column, tuple_tmp[i].values())) for i in range(len(tuple_tmp))]
         final_info.append(tmp_info)
 
-    d = {"detail": final_info}
+    d = {"details": final_info}
 
     return wrap_json_for_send(d, "successful")
 
@@ -42,7 +42,7 @@ def top3_product():
 # 2. 给定一个商品，显示售卖此商品价格最低的5个商家。”（商品名字模糊搜索) # zzm   hcy修改【lsy已测试】
 # /api/admin/low5_supplier
 # input:base,{"keywords"}
-# output:base,{"keywords",'detail': [{"price","product_id","product_name","supplier_id","supplier_name"{}},{},...,{}]}
+# output:base,{"keywords",'details': [{"price","product_id","product_name","supplier_id","supplier_name"{}},{},...,{}]}
 @admin.route("/low5_supplier", methods=['POST'])
 def low5_supplier():
     key_words = request.json['keywords']
@@ -54,8 +54,8 @@ def low5_supplier():
     ORDER BY price 
     """
     t = run_sql(get_low5_supplier, {"vague": key_words_vague})
-    column = ["price", "product_id", "product_name", "supplier_id", "supplier_name"]
-    d = {'keywords': key_words, 'detail': [dict(zip(column, t[i].values())) for i in range(len(t))]}
+    column = ["price", "productId", "productName", "supplierId", "supplierName"]
+    d = {'keywords': key_words, 'details': [dict(zip(column, t[i].values())) for i in range(len(t))]}
 
     return wrap_json_for_send(d, "successful")
 
@@ -64,7 +64,7 @@ def low5_supplier():
 # /api/admin/annual_sales
 # input:base,{"year"}
 # output:base, {"year":,"suppliers": list[{"supplier_id","supplier_name","annual_sales"}]}
-@admin.route("/annual_sales", methods=['POST'])
+@admin.route("/annual_sales", methods=['POST', 'GET'])
 def annual_sales():
     # 获取年份，进行循环
     get_years = """
@@ -92,7 +92,7 @@ def annual_sales():
         dtmp['suppliers'] = ltmp
         l_all.append(dtmp)
 
-    d = {"detail": l_all}
+    d = {"details": l_all}
     return wrap_json_for_send(d, "successful")
 
 
@@ -100,7 +100,7 @@ def annual_sales():
 # /api/admin/top_product
 # input:base,{""}
 # output:base,{"customer_id","product_id","product_name","top_num"}
-@admin.route("/top_product", methods=['POST'])
+@admin.route("/top_product", methods=['POST', 'GET'])
 def top_product():
     get_top_product = """
     SELECT o_c.customer_id, o_c.product_id, p.product_name, MAX(pc_count) top_num
@@ -112,8 +112,8 @@ def top_product():
     GROUP BY  o_c.customer_id, o_c.product_id, p.product_name;
     """
     t = run_sql(get_top_product)
-    column = ["customer_id", "product_id", "product_name", "top_num"]
-    d = {"detail": [dict(zip(column, t[i].values())) for i in range(len(t))]}
+    column = ["customerId", "productId", "productName", "topNum"]
+    d = {"details": [dict(zip(column, t[i].values())) for i in range(len(t))]}
     return wrap_json_for_send(d, "successful")
 
 
@@ -122,7 +122,7 @@ def top_product():
 # input:base,{""}
 # output:base,{"province", "count", "average_spending","max_spending","min_spending"}
 # 可以加功能：以不同方式排序
-@admin.route("/province_top", methods=['POST'])
+@admin.route("/province_top", methods=['POST', 'GET'])
 def province_top():
     provinces = ['安徽省', '澳门特别行政区', '北京市', '福建省', '甘肃省', '广东省', '广西壮族自治区', '贵州省', '海南省',
                  '河北省', '河南省', '黑龙江省', '湖北省', '湖南省', '吉林省', '江苏省', '江西省', '辽宁省', '内蒙古自治区',
@@ -143,5 +143,5 @@ def province_top():
     column = ["province", "count", "average", "max", "min"]
     province_top = sorted(province_top, key=lambda province_top: [x['avg'] for x in province_top], reverse=True)
     # toTODO 降序排列
-    d = {"detail": [dict(zip(column, province_top[i])) for i in range(len(province_top))]}
+    d = {"details": [dict(zip(column, province_top[i])) for i in range(len(province_top))]}
     return wrap_json_for_send(d, "successful")
