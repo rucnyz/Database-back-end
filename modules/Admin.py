@@ -5,6 +5,7 @@ from utils import run_sql, wrap_json_for_send
 admin = Blueprint('admin', __name__)
 db = SQLAlchemy()
 
+# 管理员登录
 #/api/admin/login
 # input: base, {"adminName":"xxx", "password":"xxx"}
 # output:base
