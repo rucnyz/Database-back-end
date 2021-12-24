@@ -133,7 +133,7 @@ def insert_info_customer():
     customer_id = get_col(run_sql(get_id), "customer_id")
     df_insert_info_customer = pd.DataFrame(columns = ["customer_id", "address_name", "nickname", "phone"])
     # customer_id = random.sample(cursor.fetchall(), n)
-    for i in range(len(customer_id)):
+    for i in range(n):  # len(customer_id)
         customer_id_i = customer_id[i]
         address_name = fake.address()
         nickname = fake.first_name()
