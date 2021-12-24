@@ -5,6 +5,29 @@ from utils import run_sql, wrap_json_for_send
 admin = Blueprint('admin', __name__)
 db = SQLAlchemy()
 
+# 管理员登录
+#/api/admin/login
+# input: base, {"adminName":"xxx", "password":"xxx"}
+# output:base
+@admin.route("/login", methods =['POST'])
+def login():
+    admin_name = request.json['adminName']
+    password = request.json['password']
+    message = None
+
+    login = """
+    SELECT admin_id
+    FROM admin
+    WHERE admin_name=:admin_name AND password=:password
+    """
+
+    run_sql(login,{"admin_name":admin_name,
+                   "password":password})
+
+    admin_info = {"admin_id": "A000000001"}
+    statuscode = "Successful"
+    return wrap_json_for_send(admin_info, statuscode, message = message)
+
 
 # 1. 显示每个商家最热卖的top 3个商品。 # zzm  # hcy修改【lsy已测试】
 # /api/admin/top3_product
