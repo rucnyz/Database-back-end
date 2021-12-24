@@ -1,4 +1,4 @@
- import multiprocessing
+import multiprocessing
 bind = '127.0.0.1:5000'
 worker_class = 'gevent'
 # # 设置进程文件目录
