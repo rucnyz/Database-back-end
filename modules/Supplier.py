@@ -18,9 +18,8 @@ def register():
     supplier_name = request.json['supplierName']
     owner_name = request.json['ownerName']
     owner_id = request.json['ownerID']
-
-
     message = None
+
     getNum = """
      SELECT COUNT(*) as cnt
     from supplier   
@@ -55,18 +54,45 @@ def register():
 @supplier.route("/login", methods=['POST', 'GET'])  # zzm
 def login():
     owner_id = request.json['ownerID']
-    password = request.json['password']
-    login = """
+    password = request.json['password'][:10]
+    check_regi = """
     SELECT supplier_id
     FROM supplier
-    WHERE owner_id = %s AND supplier_password = %s
-    
-    """ % (owner_id, password)
+    WHERE owner_id=:owner_id
+    """
+    message = None
+    t = run_sql(check_regi,{"owner_id":owner_id})
+    if(len(t) == 0):
+        out = {}
+        statuscode = "failed"
+        message = "用户尚未注册!"
+    else:
+        login = """
+         SELECT supplier_id
+         FROM supplier
+         WHERE owner_id=:owner_id AND supplier_password=:supplier_password
+         """
+        t = run_sql(login,{"owner_id":owner_id,
+                           "supplier_password":password})
+        if (len(t) == 0):
+            out = {}
+            statuscode = "failed"
+            message = "用户名或密码错误！"
+        else:
+            supplier_id = t[0]['supplier_id']
+            info = """
+                SELECT supplier_name suppname
+                FROM supplier
+                WHERE supplier_id=:supplier_id
+                """
+            s_info = run_sql(info,{"supplier_id":supplier_id})
+            suppname =s_info[0]['suppname']
+            out = {"suppID":supplier_id}
+            statuscode = "successful"
 
-    t = run_sql(login)
-    supp_ID = {"ID": t[0]}
 
-    return wrap_json_for_send(supp_ID, "successful")
+
+    return wrap_json_for_send(out,statuscode , message = message )
 
 
 # 应该为return wrap_json_for_send(supp_ID, "successful")
@@ -87,17 +113,20 @@ def get_homepage(id):
     LEFT JOIN(
         SELECT product.product_id, count(*) sales
         FROM product, orders
-        WHERE product.product_id = orders.product_id 
+        WHERE product.product_id=orders.product_id 
         GROUP BY orders.product_id
         ) sub
-        ON p.product_id = sub.product_id
-    WHERE p.supplier_id = '%s'  AND remain >0 
+        ON p.product_id=sub.product_id
+    WHERE p.supplier_id=:supplier_id  AND remain >0 
     ORDER BY p.product_id;
-    """ % supplier_id
-    t = run_sql(get_homepage)
+    """
+    t = run_sql(get_homepage,{"supplier_id":supplier_id})
     column = ["商品ID", "商品名称", "商品价格", "商品图片", "商品销量"]
-    d = {"detail": [dict(zip(column, t[i].values())) for i in range(len(t))]}
-    return wrap_json_for_send(d, "successful")
+
+    list = [dict(zip(column, t[i].values())) for i in range(len(t))]
+    d = {"details": list}
+
+    return wrap_json_for_send(d, 'successful')
 
 
 # 2. 已有订单管理。返回以商品and以日期为组的全部订单。两种排序方式。-以时间为组
@@ -110,10 +139,10 @@ def get_orders(id):
     SELECT orderdate, customer_id, sum(price_sum) sum_price, 
     count(*) count, deliver_address, receive_address
     FROM orders
-    WHERE supplier_id = '%s' 
+    WHERE supplier_id=:supplier_id 
     GROUP BY orderdate, customer_id, deliver_address, receive_address
     ORDER BY orderdate, customer_id;
-    """ % id
+    """
     ## count 是一共购买了多少件商品。每个商品又可能买了很多件(quantity),但在这一页面不展示。
     # 以上是不建立视图的情况
     # 若建立视图，则为：
@@ -124,7 +153,7 @@ def get_orders(id):
     #    WHERE supplier_id = '%s'
     #    GROUP BY orderdate, customer_id, deliver_address, receive_address
     #    """ % id
-    t = run_sql(get_orders)
+    t = run_sql(get_orders, {"supplier_id": id})
     column = ["下单时间", "顾客名称", "订单总额", "商品数量", "发货地址", "收货地址"]
     d = {"detail": [dict(zip(column, t[i].values())) for i in range(len(t))]}
     return wrap_json_for_send(d, "successful")
@@ -141,10 +170,12 @@ def get_order_items(id):
     get_items = """
     SELECT o.product_id, p.product_name, o.price_sum, o.quantity
     FROM orders o, product p
-    WHERE o.supplier_id = '%s' AND o.orderdate = '%s' AND o.customer_id = '%s'
-        AND o.product_id = p.product_id;
-    """ % (id, time, customer_id)
-    t = run_sql(get_items)
+    WHERE o.supplier_id=:supplier_id AND o.orderdate=orderdate AND o.customer_id=customer_id
+        AND o.product_id=p.product_id;
+    """
+    t = run_sql(get_items,{"supplier_id":id,
+                           "orderdate":time,
+                           "customer_id":customer_id})
     column = ["商品id", "商品名称", "商品总价", "商品数量"]
     d = {"detail": [dict(zip(column, t[i].values())) for i in range(len(t))]}
     return wrap_json_for_send(d, "successful")
@@ -169,13 +200,22 @@ def add_product(id):
     FROM product;
     """
     num = run_sql(getNum)
-    product_id_new = 'P' + str(int(num['cnt'][0])+1)
+    product_id_new = 'P' + str(int(num['cnt'][0])+1).zfill(9)
     add_product = """
     INSERT 
     INTO product
-    VALUES('%s', '%s', %u, '%s', %u, '%s', %f, '%s', '%s')
-    """ % (product_id_new, product_name, price, id, remain, size, discount, category, pic_url)
-    run_sql(add_product)
+    VALUES(:product_id_new, :product_name, :price, :id, :remain, :size, :discount, :category, :pic_url)
+    """
+    _ = run_sql(add_product,{"product_id_new": product_id_new,
+                             "product_name": product_name,
+                             "price":price,
+                             "id":id,
+                             "remain":remain,
+                             "size":size,
+                             "discount":discount,
+                             "category":category,
+                             "pic_url":pic_url})
+
     d = {"ID": product_id_new}
     return wrap_json_for_send(d, "successful")
 
@@ -191,9 +231,10 @@ def delete_product(id):
     delete_product = """
     DELETE
     FROM product
-    WHERE product_id = '%s' AND supplier_id = '%s'
-    """ % (product_id, supplier_id)
-    run_sql(delete_product)
+    WHERE product_id=:product_id AND supplier_id=:supplier_id
+    """
+    run_sql(delete_product,{"product_id":product_id,
+                            "supplier_id":supplier_id})
     d = {}
     return wrap_json_for_send(d, "successful")
 
@@ -213,11 +254,20 @@ def update_product(id):
     discount = request.json['discount']
     category = request.json['category']
     pic_url = request.json['pic_url']
+
     update_product = """
     UPDATE product
     SET product_name = '%s', price = %u, remain = %u, size = '%s', discount = %f,category = '%s', pic_url = '%s'
     WHERE product_id = '%s' AND supplier_id = '%s'
     """ % (product_name, price, remain, size, discount, category, pic_url, product_id, supplier_id)
-    run_sql(update_product)
+    _ = run_sql(update_product,{"product_name":product_name,
+                                "price":price,
+                                "remain":remain,
+                                "size":size,
+                                "discount":discount,
+                                "category":category,
+                                "pic_url":pic_url
+                                "product_id":product_id,
+                                "supplier_id":supplier_id})
     d = {}
     return wrap_json_for_send(d, "successful")
