@@ -445,7 +445,7 @@ def orders_add_product(id):  # 新订单添加
         """
 
         tuple_tmp = run_sql(getNum)
-        order_id_new = 'O' + str(int(tuple_tmp[0]['cnt'] + 101)).zfill(9)  # 获得新的订单编号
+        order_id_new = 'O' + str(int(tuple_tmp[0]['cnt'] + 1)).zfill(9)  # 获得新的订单编号
 
         getInfo = """
         SELECT info_s.address_name da, s.supplier_id sid
