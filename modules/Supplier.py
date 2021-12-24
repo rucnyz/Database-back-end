@@ -266,7 +266,7 @@ def update_product(id):
                                 "size":size,
                                 "discount":discount,
                                 "category":category,
-                                "pic_url":pic_url
+                                "pic_url":pic_url,
                                 "product_id":product_id,
                                 "supplier_id":supplier_id})
     d = {}

@@ -1,6 +1,6 @@
 from flask import Blueprint, request
 from flask_sqlalchemy import SQLAlchemy
-import re
+
 from utils import run_sql, wrap_json_for_send
 
 customer = Blueprint('customer', __name__)
