@@ -21,15 +21,18 @@ def show():
 def get_homePage():
     number = request.args['needNumber']
     page = request.args['page']
+    out_num = (int(page) - 1) * int(number)
     getSize = """
     SELECT count(*) 
     FROM product
     """
     getHomePage = """
-    SELECT TOP %s product_id, pic_url, product_name, price 
-    FROM product p 
+    SELECT TOP %s p1.product_id, p1.pic_url, p1.product_name, p1.price 
+    FROM product p1
+    WHERE p1.product_id NOT IN ( SELECT TOP %s p2.product_id
+                                  FROM product p2)
     ORDER BY NewID()
-    """ % number
+    """ % (number, out_num)
 
     t = run_sql(getHomePage)
     size = run_sql(getSize)
@@ -84,13 +87,15 @@ def get_product_in_cond():
     keywords = request.args['keywords']
     number = request.args['needNumber']
     page = request.args['page']
+    out_num = (int(page) - 1) * int(number)
     product_name_vague = '%' + keywords + '%'
     if len(cat) == 0:
         get_product = """
-            SELECT TOP %s product_id, pic_url, product_name, price
-            FROM product p  
-            WHERE product_name LIKE :keywords    
-            """ % number
+            SELECT TOP %s p1.product_id, p1.pic_url, p1.product_name, p1.price 
+            FROM product p1
+            WHERE p1.product_name LIKE :keywords AND p1.product_id NOT IN ( SELECT TOP %s p2.product_id
+                                          FROM product p2 WHERE p2.product_name LIKE :keywords)
+            """ % (number, out_num)
         get_size = """
                 SELECT count(*)
                     FROM product p  
@@ -100,10 +105,12 @@ def get_product_in_cond():
         size = run_sql(get_size, {"keywords": product_name_vague})
     else:
         get_product = """
-                    SELECT TOP %s product_id, pic_url, product_name, price
-                    FROM product p  
-                    WHERE product_name LIKE :keywords AND category = :category
-                    """ % number
+                    SELECT TOP %s p1.product_id, p1.pic_url, p1.product_name, p1.price
+                    FROM product p1  
+                    WHERE product_name LIKE :keywords AND category = :category 
+                    AND p1.product_id NOT IN ( SELECT TOP %s p2.product_id
+                                          FROM product p2 WHERE p2.product_name LIKE :keywords AND category = :category)
+                    """ % (number, out_num)
         get_size = """
                         SELECT count(*)
                         FROM product p  
@@ -120,7 +127,7 @@ def get_product_in_cond():
 #  /api/HomePage/search_product   用于返回特定关键词商品。
 # input: base,{"keywords", ”category“}
 # output: base, {{"商品id":id, "商品图片":图片url, "商品名称":名称, "商品价格"：价格},{……},{……}}
-@homepage.route("/search_product ", methods=['POST', 'GET'])  # zzm
+@homepage.route("/search_product ", methods = ['POST', 'GET'])  # zzm
 def search_product():
     cat = request.json['category']
     keywords = request.json['keywords']
@@ -141,4 +148,3 @@ def search_product():
     column = ["商品ID", "商品图片", "商品名称", "商品价格"]
     d = {"detail": [dict(zip(column, t[i])) for i in range(len(t))]}
     return wrap_json_for_send(d, "successful")
-
