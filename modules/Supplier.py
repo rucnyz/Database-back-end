@@ -131,16 +131,17 @@ def get_homepage(id):
 
 # 2. 已有订单管理。返回以商品and以日期为组的全部订单。两种排序方式。-以时间为组
 # /api/supplier/"id"/orders
+# output: base, {detail:[{下单时间：time，顾客id：id，商品名称：name，商品数量：quantity，订单总额:sumprice}]}
 @supplier.route("/<id>/orders", methods=['POST', 'GET'])  # lsy
 def get_orders(id):
     # tuple = run_sql(login)
     # supp_ID = [{"ID": tuple[0]}]
     get_orders = """
-    SELECT orderdate, customer_id, sum(price_sum) sum_price, 
+    SELECT o.orderdate, o.customer_id, p.product_name, o.quantity,  sum(price_sum) sum_price, 
     count(*) count, deliver_address, receive_address
-    FROM orders
-    WHERE supplier_id=:supplier_id 
-    GROUP BY orderdate, customer_id, deliver_address, receive_address
+    FROM orders o, product p
+    WHERE o.supplier_id=:supplier_id AND o.product_id=p.product_id
+    GROUP BY o.orderdate, o.customer_id, p.product_name, o.quantity
     ORDER BY orderdate, customer_id;
     """
     ## count 是一共购买了多少件商品。每个商品又可能买了很多件(quantity),但在这一页面不展示。
@@ -154,7 +155,7 @@ def get_orders(id):
     #    GROUP BY orderdate, customer_id, deliver_address, receive_address
     #    """ % id
     t = run_sql(get_orders, {"supplier_id": id})
-    column = ["下单时间", "顾客名称", "订单总额", "商品数量", "发货地址", "收货地址"]
+    column = ["下单时间", "顾客ID","商品名称", "商品数量", "订单总额"]
     d = {"detail": [dict(zip(column, t[i].values())) for i in range(len(t))]}
     return wrap_json_for_send(d, "successful")
 
