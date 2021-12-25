@@ -36,7 +36,7 @@ def login():
 @admin.route("/top3_product", methods = ['POST', 'GET'])
 def top3_product():
     # 获取已有商家数量，进行循环
-    get_id= """
+    get_id = """
     SELECT supplier_id
     FROM supplier
     """
@@ -45,10 +45,10 @@ def top3_product():
     for i in range(len(tmp)):
         splid = tmp[i]['supplier_id']
         top3_product = """
-        SELECT TOP 3 supplier_name, product_id, product_name, sales
+        SELECT TOP 3 supplier_name, product_id, product_name, sum_quantity
         FROM SUM_QUANTITY
         WHERE supplier_id = :supplier_id
-        ORDER BY sales DESC;
+        ORDER BY sum_quantity DESC;
         """
         tuple_tmp = run_sql(top3_product, {"supplier_id": splid})
         column = ['supplierName', 'productId', 'productName', 'sumQuantity']
@@ -101,6 +101,7 @@ def annual_sales():
     FROM supplier s, orders o
     WHERE s.supplier_id=o.supplier_id
     GROUP BY s.supplier_id, s.supplier_name, DatePart(yyyy, o.orderdate)
+    ORDER BY year, annualSales DESC
     """
     t = run_sql(get_annual_sales)
 
@@ -136,27 +137,27 @@ def top_product():
     statuscode = "successful"
     if id[0] == "A":
         get_top_product = """
-        SELECT o_c.customer_id customerId, o_c.product_id productId, product_name, top_num
+        SELECT o_c.customer_id customerId, o_c.customer_nickname, o_c.product_id productId, product_name, top_num
         FROM SUM_QUANTITY_EACHCUST_EACHPRO o_c, (SELECT customer_id, MAX(sum_quantity) top_num
                                                FROM SUM_QUANTITY_EACHCUST_EACHPRO
                                                GROUP BY customer_id) AS tmp
         WHERE tmp.top_num=o_c.sum_quantity AND tmp.customer_id=o_c.customer_id
-        ORDER BY o_c.customer_id
+        ORDER BY top_num DESC
         """
         t = run_sql(get_top_product)
-        column = ["customerId", "productId", "productName", "topNum"]
+        column = ["customerId", "customerName", "productId", "productName", "topNum"]
         d = {"details": [dict(zip(column, t[i].values())) for i in range(len(t))]}
     elif id[0] == "C":
         get_top_product_customer = """
-        SELECT o_c.customer_id customerId, o_c.product_id productId, product_name, top_num
+        SELECT o_c.customer_id customerId, o_c.customer_nickname, o_c.product_id productId, product_name, top_num
         FROM SUM_QUANTITY_EACHCUST_EACHPRO o_c, (SELECT customer_id, MAX(sum_quantity) top_num
                                                FROM SUM_QUANTITY_EACHCUST_EACHPRO
                                                GROUP BY customer_id) AS tmp
         WHERE tmp.top_num=o_c.sum_quantity AND tmp.customer_id=o_c.customer_id AND o_c.customer_id = :id
-        ORDER BY o_c.customer_id;
+        ORDER BY top_num DESC 
                 """
         t = run_sql(get_top_product_customer, {"id": id})
-        column = ["customerId", "productId", "productName", "topNum"]
+        column = ["customerId", "customerName", "productId", "productName", "topNum"]
         d = {"details": [dict(zip(column, t[i].values())) for i in range(len(t))]}
     else:
         d = {}
@@ -183,7 +184,8 @@ def province_top():
         SELECT :province province, round(ISNULL(COUNT(*),0), 0) count, round(ISNULL(AVG(price_sum),0),2) avg, round(ISNULL(MAX(price_sum),0),2) max, round(ISNULL(MIN(price_sum),0),2) min
         FROM (SELECT o.price_sum
               FROM orders o
-	          WHERE o.receive_address LIKE :vague) AS pvs;
+	          WHERE o.receive_address LIKE :vague) AS pvs
+	    ORDER BY avg DESC, max DESC 
         """
         t = run_sql(get_province_top, {"province": i, "vague": vague})
         province_top.append(t)
@@ -204,26 +206,26 @@ def top_customer():
     statuscode = "successful"
     if id[0] == "A":
         get_top_customer = """
-        SELECT s.supplier_id, s.supplier_name, s.customer_id, sum_consume
+        SELECT s.supplier_id, s.supplier_name, s.customer_id,s.customer_nickname, sum_consume
         FROM SUM_CONSUME_EACHSUPP_EACHCUST s, (SELECT supplier_id, supplier_name, MAX(sum_consume) max_sum_consume
                                                FROM SUM_CONSUME_EACHSUPP_EACHCUST
                                                GROUP BY supplier_id, supplier_name) AS tmp
         WHERE tmp.max_sum_consume=s.sum_consume AND tmp.supplier_id=s.supplier_id
-        ORDER BY s.supplier_id
+        ORDER BY max_sum_consume DESC 
         """
         t = run_sql(get_top_customer)
-        column = ["supplierId", "supplierName", "customerId", "sumConsume"]
+        column = ["supplierId", "supplierName", "customerId", "customerName", "sumConsume"]
         d = {"details": [dict(zip(column, t[i].values())) for i in range(len(t))]}
     elif id[0] == "S":
         get_top_customer_supp = """
-                SELECT s.supplier_id, s.supplier_name, s.customer_id, sum_consume
+                SELECT s.supplier_id, s.supplier_name, s.customer_id,s.customer_nickname, sum_consume
                 FROM SUM_CONSUME_EACHSUPP_EACHCUST s, (SELECT supplier_id, supplier_name, MAX(sum_consume) max_sum_consume
                                                        FROM SUM_CONSUME_EACHSUPP_EACHCUST
                                                        GROUP BY supplier_id, supplier_name) AS tmp
                 WHERE tmp.max_sum_consume=s.sum_consume AND tmp.supplier_id=s.supplier_id AND s.supplier_id=:id
                 """
         t = run_sql(get_top_customer_supp, {"id": id})
-        column = ["supplierId", "supplierName", "customerId", "sumConsume"]
+        column = ["supplierId", "supplierName", "customerID", "customerName", "sumConsume"]
         d = {"details": [dict(zip(column, t[i].values())) for i in range(len(t))]}
     else:
         d = {}
@@ -247,11 +249,11 @@ def annual_consume():
     list_year = run_sql(get_years)
     list_year = [i[''] for i in list_year]
     get_annual_consume = """
-    SELECT DatePart(yyyy, o.orderdate) year, c.customer_id customerId, round(SUM(o.price_sum),2) annualConsume
+    SELECT DatePart(yyyy, o.orderdate) year, c.customer_id customerId,c.customer_nickname customerName, round(SUM(o.price_sum),2) annualConsume
     FROM customer c, orders o
     WHERE c.customer_id=o.customer_id
-    GROUP BY c.customer_id, DatePart(yyyy, o.orderdate)
-    ORDER BY c.customer_id
+    GROUP BY c.customer_id, DatePart(yyyy, o.orderdate), c.customer_nickname
+    ORDER BY annualConsume DESC 
     """
     t = run_sql(get_annual_consume)
 
@@ -279,7 +281,7 @@ def annual_consume():
 # 8. 给定一个商品，显示售卖此商品最多的5个商家。”（商品名字模糊搜索) #hcy [后端已完成][已测试]
 # /api/admin/top5_supplier
 # input:base,{"keywords"}
-# output:base,{"keywords",'details': [{"product_id","product_name","supplier_id","supplier_name","sum_quantity"},{},{}]}
+# output:base,{"keywords",'details': [{"productId","productName","supplierId","supplierName","sumQuantity"},{},{}]}
 @admin.route("/top5_supplier", methods = ['POST'])
 def top5_supplier():
     key_words = request.json['keywords']
