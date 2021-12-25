@@ -45,13 +45,12 @@ def top3_product():
     for i in range(len(tmp)):
         splid = tmp[i]['supplier_id']
         top3_product = """
-        SELECT TOP 3 supplier_name, product_id, product_name, sum_quantity
-        FROM SUM_QUANTITY
-        WHERE supplier_id = :supplier_id
-        ORDER BY sum_quantity DESC;
+        SELECT top 3 supplier_name, rank() over(order by sum_quantity DESC) rank, product_id, product_name, sum_quantity
+        FROM SUM_QUANTITY 
+        WHERE supplier_id = :supplier_id;
         """
         tuple_tmp = run_sql(top3_product, {"supplier_id": splid})
-        column = ['supplierName', 'productId', 'productName', 'sumQuantity']
+        column = ['supplierName', 'rank', 'productId', 'productName', 'sumQuantity']
         tmp_info = [dict(zip(column, tuple_tmp[i].values())) for i in range(len(tuple_tmp))]
         final_info.append(tmp_info)
 

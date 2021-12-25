@@ -28,17 +28,17 @@ sum_quantity = """
     CREATE VIEW SUM_QUANTITY
     AS
         SELECT  p.supplier_id, supplier_name, p.product_id, p.product_name, ISNULL(sub.sales, 0) sum_quantity
-        FROM product p 
+        FROM product p
         INNER JOIN supplier s ON  s.supplier_id =p.supplier_id
         LEFT JOIN(
             SELECT orders.product_id, sum(orders.quantity) sales
             FROM product, orders
-            WHERE product.product_id=orders.product_id 
+            WHERE product.product_id=orders.product_id
             GROUP BY orders.product_id
             ) sub
             ON p.product_id=sub.product_id
-    
-    
+
+
 """
 
 run_sql(sum_quantity)
@@ -59,5 +59,5 @@ GROUP BY o.customer_id, p.product_id, product_name, customer_nickname
 run_sql(sum_quantity_eachcust_eachpro)
 
 # run_sql("DROP VIEW SUM_QUANTITY")
-# run_sql("DROP VIEW sum_consume_eachsupp_eachcust")
+# run_sql("DROP VIEW SUM_CONSUME_EACHSUPP_EACHCUST")
 # run_sql("DROP VIEW SUM_QUANTITY_EACHCUST_EACHPRO")
