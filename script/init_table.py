@@ -106,14 +106,14 @@ create_orders = """
 IF OBJECT_ID('orders', 'U') IS NULL
 CREATE TABLE orders(
     order_id CHAR(10) PRIMARY KEY,
-    customer_id CHAR(10),
-    supplier_id CHAR(10),
+    customer_id CHAR(10) REFERENCES customer(customer_id),
+    supplier_id CHAR(10) REFERENCES supplier(supplier_id),
     product_id CHAR(10) REFERENCES product(product_id),
     orderdate DATETIME NOT NULL,
     price_sum REAL NOT NULL,
     quantity INT NOT NULL,
-    deliver_address VARCHAR(200),
-    receive_address VARCHAR(200),
+    deliver_address VARCHAR(200) NOT NULL,
+    receive_address VARCHAR(200) NOT NULL,
     is_return BIT NOT NULL,
     comment VARCHAR(200)
 );
@@ -153,8 +153,8 @@ create_admin = """
 IF OBJECT_ID('admin', 'U') IS NULL
 CREATE TABLE admin(
     admin_id char(10) NOT NULL,
-    admin_name char(10)  ,
-    admin_password char(10),
+    admin_name char(10) NOT NULL,
+    admin_password char(10) NOT NULL,
     PRIMARY KEY(admin_id)
 )
 """
