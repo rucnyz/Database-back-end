@@ -46,14 +46,14 @@ def top3_product():
     for i in range(1, number + 1):
         spid = 'S' + str(i).zfill(9)
         top3_product = """
-        SELECT TOP 3 s.supplier_id, p.product_id, p.product_name, SUM(o.quantity)
+        SELECT TOP 3 s.supplier_name, p.product_id, p.product_name, SUM(o.quantity)
         FROM supplier s , orders o , product p
         WHERE s.supplier_id=o.supplier_id AND p.product_id=o.product_id AND s.supplier_id=:supplier_id
-        GROUP BY s.supplier_id, p.product_id, p.product_name
+        GROUP BY s.supplier_name, p.product_id, p.product_name
         ORDER BY SUM(o.quantity) DESC
         """
         tuple_tmp = run_sql(top3_product, {"supplier_id": spid})
-        column = ['supplierId', 'productId', 'productName', 'sumQuantity']
+        column = ['supplierName', 'productId', 'productName', 'sumQuantity']
         tmp_info = [dict(zip(column, tuple_tmp[i].values())) for i in range(len(tuple_tmp))]
         final_info.append(tmp_info)
 
