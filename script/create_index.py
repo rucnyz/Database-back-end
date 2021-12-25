@@ -55,3 +55,9 @@ index_admin = """
     ON admin(admin_id)
 """
 run_sql(index_admin)
+
+index_product_order = """
+    CREATE INDEX index_ordertime ON orders(orderdate)
+    CREATE INDEX index_product ON product(product_name)
+"""
+run_sql(index_product_order)
