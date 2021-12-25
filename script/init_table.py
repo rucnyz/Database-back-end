@@ -106,14 +106,14 @@ create_orders = """
 IF OBJECT_ID('orders', 'U') IS NULL
 CREATE TABLE orders(
     order_id CHAR(10) PRIMARY KEY,
-    customer_id CHAR(10),
-    supplier_id CHAR(10),
+    customer_id CHAR(10) REFERENCES customer(customer_id),
+    supplier_id CHAR(10) REFERENCES supplier(supplier_id),
     product_id CHAR(10) REFERENCES product(product_id),
     orderdate DATETIME NOT NULL,
     price_sum REAL NOT NULL,
     quantity INT NOT NULL,
-    deliver_address VARCHAR(200),
-    receive_address VARCHAR(200),
+    deliver_address VARCHAR(200) NOT NULL,
+    receive_address VARCHAR(200) NOT NULL,
     is_return BIT NOT NULL,
     comment VARCHAR(200)
 );
