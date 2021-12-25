@@ -186,7 +186,7 @@ def get_order_items(id):
 # input:base,{"product_name","price","remain","size","discount","category",pic_url"}
 # output:base,{"product_id"}
 
-@supplier.route("/<id>/homepage", methods=['POST', 'GET'])  # lsy
+@supplier.route("/<id>/product/add", methods=['POST', 'GET'])  # lsy
 def add_product(id):
     product_name = request.json['product_name']
     price = request.json['price']
