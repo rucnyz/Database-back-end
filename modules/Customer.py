@@ -406,7 +406,7 @@ def orders_add_cart(id):  # 新订单添加
                                                                 "is_return": 0,
                                                                 "comment": ""})
 
-            orderID.append(tmp[0]['order_id'])  # 现在没法返回
+            orderID.append(tmp[0]['order_id'])  # 现在可以返回了
         new_order_info = {"orderID": orderID}
 
     else:
