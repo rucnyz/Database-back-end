@@ -36,23 +36,28 @@ def login():
 @admin.route("/top3_product", methods = ['POST', 'GET'])
 def top3_product():
     # 获取已有商家数量，进行循环
-    get_num = """
-    SELECT COUNT(*) as cnt
+    get_id= """
+    SELECT supplier_id
     FROM supplier
     """
-    tmp = run_sql(get_num)
-    number = int(tmp[0]['cnt'])
+    tmp = run_sql(get_id)
     final_info = []
-    for i in range(1, number + 1):
-        spid = 'S' + str(i).zfill(9)
+    for i in range(len(tmp)):
+        splid = tmp[i]['supplier_id']
         top3_product = """
-        SELECT TOP 3 s.supplier_name, p.product_id, p.product_name, SUM(o.quantity)
-        FROM supplier s , orders o , product p
-        WHERE s.supplier_id=o.supplier_id AND p.product_id=o.product_id AND s.supplier_id=:supplier_id
-        GROUP BY s.supplier_name, p.product_id, p.product_name
-        ORDER BY SUM(o.quantity) DESC
+        SELECT TOP 3 supplier_name, p.product_id, p.product_name, ISNULL(sub.sales, 0) sales
+        FROM product p 
+        INNER JOIN supplier s ON s.supplier_id = :supplier_id  AND s.supplier_id =p.supplier_id
+        LEFT JOIN(
+            SELECT orders.product_id, sum(orders.quantity) sales
+            FROM product, orders
+            WHERE product.product_id=orders.product_id 
+            GROUP BY orders.product_id
+            ) sub
+            ON p.product_id=sub.product_id
+        ORDER BY sales DESC;
         """
-        tuple_tmp = run_sql(top3_product, {"supplier_id": spid})
+        tuple_tmp = run_sql(top3_product, {"supplier_id": splid})
         column = ['supplierName', 'productId', 'productName', 'sumQuantity']
         tmp_info = [dict(zip(column, tuple_tmp[i].values())) for i in range(len(tuple_tmp))]
         final_info.append(tmp_info)
