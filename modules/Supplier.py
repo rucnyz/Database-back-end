@@ -111,7 +111,7 @@ def get_homepage(id):
     SELECT DISTINCT p.product_id, product_name, price, pic_url, ISNULL(sub.sales, 0)
     FROM product p
     LEFT JOIN(
-        SELECT product.product_id, count(*) sales
+        SELECT orders.product_id, count(*) sales
         FROM product, orders
         WHERE product.product_id=orders.product_id 
         GROUP BY orders.product_id
@@ -186,7 +186,7 @@ def get_order_items(id):
 # input:base,{"product_name","price","remain","size","discount","category",pic_url"}
 # output:base,{"product_id"}
 
-@supplier.route("/<id>/homepage", methods=['POST', 'GET'])  # lsy
+@supplier.route("/<id>/product/add", methods=['POST', 'GET'])  # lsy
 def add_product(id):
     product_name = request.json['product_name']
     price = request.json['price']

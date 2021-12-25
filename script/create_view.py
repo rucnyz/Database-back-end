@@ -12,7 +12,7 @@ run_sql(use_db)
 sum_consume_eachsupp_eachcust = """
     CREATE VIEW SUM_CONSUME_EACHSUPP_EACHCUST
     AS
-    SELECT o.supplier_id supplier_id, supplier_name, customer_id, round(SUM(price_sum),2) sum_consume
+    SELECT o.supplier_id, supplier_name, customer_id, round(SUM(price_sum),2) sum_consume
     FROM supplier s, orders o
     WHERE s.supplier_id=o.supplier_id
     GROUP BY o.supplier_id, supplier_name, customer_id
@@ -24,7 +24,7 @@ run_sql(sum_consume_eachsupp_eachcust)
 sum_quantity = """
     CREATE VIEW SUM_QUANTITY
     AS
-    SELECT o.product_id product_id, product_name, o.supplier_id supplier_id, supplier_name, SUM(quantity) sum_quantity
+    SELECT o.product_id, product_name, o.supplier_id, supplier_name, SUM(quantity) sum_quantity
     FROM orders o, supplier s, product p
     WHERE s.supplier_id=o.supplier_id AND p.product_id=o.product_id
     GROUP BY o.supplier_id, supplier_name, o.product_id, product_name
@@ -36,7 +36,7 @@ run_sql(sum_quantity)
 sum_quantity_eachcust_eachpro = """
     CREATE VIEW SUM_QUANTITY_EACHCUST_EACHPRO
     AS
-    SELECT o.customer_id customer_id, p.product_id product_id, product_name, SUM(quantity) sum_quantity
+    SELECT o.customer_id, p.product_id, product_name, SUM(quantity) sum_quantity
     FROM orders o, product p
     WHERE o.product_id = p.product_id
     GROUP BY o.customer_id, p.product_id, product_name
