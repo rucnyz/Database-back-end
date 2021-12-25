@@ -80,7 +80,7 @@ def allcomments(productID):
     WHERE o.product_id=:productID AND o.comment!=''
     """
     comment = """
-        SELECT TOP %s o.comment, o.orderdate, c.customer_id
+        SELECT TOP %s o.comment, o.orderdate, c.customer_nickname
         FROM orders o, customer c
         WHERE o.product_id=:productID AND c.customer_id=o.customer_id AND o.comment!=''
             AND order_id NOT IN ( SELECT TOP %s o.order_id
@@ -90,7 +90,7 @@ def allcomments(productID):
     # 数字直接传，不涉及安全，id放在run_sql里传
     total_size = run_sql(total, {"productID": productID})
     c = run_sql(comment, {"productID": productID})
-    column = ["comments", "date", "customerID"]
+    column = ["comments", "date", "nickname"]
     d = {"totalSize": total_size[0]['cnt'], "comments": [dict(zip(column, c[i].values())) for i in range(len(c))]}
 
     return wrap_json_for_send(d, 'successful')

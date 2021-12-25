@@ -6,11 +6,34 @@ admin = Blueprint('admin', __name__)
 db = SQLAlchemy()
 
 
+# 管理员登录
+# /api/admin/login
+# input: base, {"adminName":"xxx", "password":"xxx"}
+# output:base
+@admin.route("/login", methods = ['POST'])
+def login():
+    admin_name = request.json['adminName']
+    password = request.json['password']
+    message = None
+
+    login = """
+    SELECT admin_id adminId
+    FROM admin
+    WHERE admin_name=:admin_name AND admin_password=:password
+    """
+
+    admin_info = run_sql(login, {"admin_name": admin_name,
+                                 "password": password})[0]
+
+    statuscode = "successful"
+    return wrap_json_for_send(admin_info, statuscode, message = message)
+
+
 # 1. 显示每个商家最热卖的top 3个商品。 # zzm  # hcy修改【lsy已测试】
 # /api/admin/top3_product
 # input:base,{""}
 # output:base,{"supplier_id","product_id","product_name","sum_quantity"}
-@admin.route("/top3_product", methods=['POST'])
+@admin.route("/top3_product", methods = ['POST', 'GET'])
 def top3_product():
     # 获取已有商家数量，进行循环
     get_num = """
@@ -30,11 +53,11 @@ def top3_product():
         ORDER BY SUM(o.quantity) DESC
         """
         tuple_tmp = run_sql(top3_product, {"supplier_id": spid})
-        column = ['supplier_id', 'product_id', 'product_name', 'sum_quantity']
+        column = ['supplierId', 'productId', 'productName', 'sumQuantity']
         tmp_info = [dict(zip(column, tuple_tmp[i].values())) for i in range(len(tuple_tmp))]
         final_info.append(tmp_info)
 
-    d = {"detail": final_info}
+    d = {"details": final_info}
 
     return wrap_json_for_send(d, "successful")
 
@@ -42,11 +65,11 @@ def top3_product():
 # 2. 给定一个商品，显示售卖此商品价格最低的5个商家。”（商品名字模糊搜索) # zzm   hcy修改【lsy已测试】
 # /api/admin/low5_supplier
 # input:base,{"keywords"}
-# output:base,{"keywords",'detail': [{"price","product_id","product_name","supplier_id","supplier_name"{}},{},...,{}]}
-@admin.route("/low5_supplier", methods=['POST'])
+# output:base,{"keywords",'details': [{"price","product_id","product_name","supplier_id","supplier_name"{}},{},...,{}]}
+@admin.route("/low5_supplier", methods = ['POST'])
 def low5_supplier():
     key_words = request.json['keywords']
-    key_words_vague = '%'+key_words+'%'
+    key_words_vague = '%' + key_words + '%'
     get_low5_supplier = """
     SELECT TOP 5 p.price, p.product_id, p.product_name, s.supplier_id, s.supplier_name
     FROM product p, supplier s
@@ -54,8 +77,8 @@ def low5_supplier():
     ORDER BY price 
     """
     t = run_sql(get_low5_supplier, {"vague": key_words_vague})
-    column = ["price", "product_id", "product_name", "supplier_id", "supplier_name"]
-    d = {'keywords': key_words, 'detail': [dict(zip(column, t[i].values())) for i in range(len(t))]}
+    column = ["price", "productId", "productName", "supplierId", "supplierName"]
+    d = {'keywords': key_words, 'details': [dict(zip(column, t[i].values())) for i in range(len(t))]}
 
     return wrap_json_for_send(d, "successful")
 
@@ -109,7 +132,7 @@ def annual_sales():
 # /api/admin/top_product
 # input:base,{"ID": "xxx"}
 # output:base,{"customer_id","product_id","product_name","top_num"}
-@admin.route("/top_product", methods=['POST'])
+@admin.route("/top_product", methods = ['POST', 'GET'])
 def top_product():
     id = request.json['ID']
     statuscode = "successful"
@@ -167,7 +190,7 @@ def province_top():
         t = run_sql(get_province_top, {"province": i, "vague": vague})
         province_top.append(t)
     column = ["province", "count", "average", "max", "min"]
-    province_top = sorted(province_top, key=lambda province_top: [x['avg'] for x in province_top], reverse=True)
+    province_top = sorted(province_top, key = lambda province_top: [x['avg'] for x in province_top], reverse = True)
     # toTODO 降序排列
     d = {"detail": [dict(zip(column, province_top[i])) for i in range(len(province_top))]}
     return wrap_json_for_send(d, "successful")

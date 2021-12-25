@@ -1,9 +1,9 @@
 import sys
+
 sys.path.append("..")
 import platform
 
 from utils import run_sql
-
 
 if platform.system() == 'Windows':
     create_db = """
@@ -38,7 +38,9 @@ IF OBJECT_ID('customer', 'U') IS NULL
 CREATE TABLE customer(
     customer_id char(10) PRIMARY KEY,
     customer_phonenumber varchar(20) UNIQUE,
-    customer_password char(10) NOT NULL
+    customer_password char(10) NOT NULL,
+    customer_nickname varchar(20),
+    customer_realname varchar(20) NOT NULL
 );
 """
 run_sql(create_customer)
@@ -112,8 +114,6 @@ CREATE TABLE orders(
     quantity INT NOT NULL,
     deliver_address VARCHAR(200),
     receive_address VARCHAR(200),
-    FOREIGN KEY(customer_id, receive_address) REFERENCES info_customer(customer_id, address_name),
-    FOREIGN KEY(supplier_id, deliver_address) REFERENCES info_supplier(supplier_id, address_name),
     is_return BIT NOT NULL,
     comment VARCHAR(200)
 );
@@ -147,6 +147,24 @@ CREATE TABLE cart(
 );
 """
 run_sql(create_cart)
+
+# admin -zzm
+create_admin = """
+IF OBJECT_ID('admin', 'U') IS NULL
+CREATE TABLE admin(
+    admin_id char(10) NOT NULL,
+    admin_name char(10)  ,
+    admin_password char(10),
+    PRIMARY KEY(admin_id)
+)
+"""
+run_sql(create_admin)
+init_admin = """
+INSERT 
+INTO admin
+VALUES('A000000001', 'administer', 'administer')
+"""
+run_sql(init_admin)
 
 # # comment -nyz 删掉了 合到订单表里
 # create_comment = """

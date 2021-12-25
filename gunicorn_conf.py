@@ -10,7 +10,7 @@ worker_class = 'gevent'
 loglevel = 'warning'
 
 # 并行工作进程数
-workers = multiprocessing.cpu_count() * 2 + 1
+workers = multiprocessing.cpucount() * 2 + 1
 # 处理请求的工作线程数，使用指定数量的线程运行每个worker。为正整数，默认为1。
 worker_connections = 2000
 # 设置守护进程,将进程交给supervisor管理
