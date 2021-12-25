@@ -378,26 +378,24 @@ def orders_add_cart(id):  # 新订单添加
                 declare @order_num char(10)
                 select @order_num = 'O'+right('0000000000' + CONVERT(VARCHAR,COUNT(*)+1),9)
                 from orders 
-                
+                SELECT @order_num order_id;                 
+                 
                 INSERT
                 INTO orders
                 VALUES(@order_num, :customer_id, :supplier_id, :product_id, :orderdate, 
-                :price_sum, :quantity, :deliver_address, :receive_address, :is_return, :comment)
-                
+                :price_sum, :quantity, :deliver_address, :receive_address, :is_return, :comment);
+                             
                 DELETE
                 FROM cart
-                WHERE customer_id=:customer_id AND product_id=:product_id AND count=:quantity
+                WHERE customer_id=:customer_id AND product_id=:product_id AND count=:quantity;
                 
                 UPDATE product
                 SET remain=remain-:quantity
-                WHERE product_id=:product_id
-                
-                SELECT order_id FROM orders
-                 ---WHERE order_id = @order_num
-                print(@order_num)
+                WHERE product_id=:product_id;
+
             commit transaction add_delete_minus
                 """
-            print(run_sql(orders_add_cart_delete_remain_minus, {"customer_id": id,
+            tmp = run_sql(orders_add_cart_delete_remain_minus, {"customer_id": id,
                                                                 "supplier_id": supplier_id,
                                                                 "product_id": product_id,
                                                                 "orderdate": order_date,
@@ -406,9 +404,9 @@ def orders_add_cart(id):  # 新订单添加
                                                                 "deliver_address": deliver_address,
                                                                 "receive_address": receive_address,
                                                                 "is_return": 0,
-                                                                "comment": ""}))
+                                                                "comment": ""})
 
-            orderID.append()  # 现在没法返回
+            orderID.append(tmp[0]['order_id'])  # 现在没法返回
         new_order_info = {"orderID": orderID}
 
     else:
