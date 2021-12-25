@@ -24,10 +24,18 @@ run_sql(sum_consume_eachsupp_eachcust)
 sum_quantity = """
     CREATE VIEW SUM_QUANTITY
     AS
-    SELECT o.product_id, product_name, o.supplier_id, supplier_name, SUM(quantity) sum_quantity
-    FROM orders o, supplier s, product p
-    WHERE s.supplier_id=o.supplier_id AND p.product_id=o.product_id
-    GROUP BY o.supplier_id, supplier_name, o.product_id, product_name
+        SELECT  p.supplier_id, supplier_name, p.product_id, p.product_name, ISNULL(sub.sales, 0) sales
+        FROM product p 
+        INNER JOIN supplier s ON  s.supplier_id =p.supplier_id
+        LEFT JOIN(
+            SELECT orders.product_id, sum(orders.quantity) sales
+            FROM product, orders
+            WHERE product.product_id=orders.product_id 
+            GROUP BY orders.product_id
+            ) sub
+            ON p.product_id=sub.product_id
+    
+    
 """
 
 run_sql(sum_quantity)

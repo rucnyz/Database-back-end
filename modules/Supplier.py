@@ -109,9 +109,9 @@ def get_homepage(id):
     # supp_ID = [{"ID": tuple[0]}]
     get_homepage = """
     SELECT DISTINCT p.product_id, product_name, price, pic_url, ISNULL(sub.sales, 0)
-    FROM product p
+    FROM product p 
     LEFT JOIN(
-        SELECT orders.product_id, count(*) sales
+        SELECT orders.product_id, sum(orders.quantity) sales
         FROM product, orders
         WHERE product.product_id=orders.product_id 
         GROUP BY orders.product_id

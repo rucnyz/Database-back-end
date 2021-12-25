@@ -45,16 +45,9 @@ def top3_product():
     for i in range(len(tmp)):
         splid = tmp[i]['supplier_id']
         top3_product = """
-        SELECT TOP 3 supplier_name, p.product_id, p.product_name, ISNULL(sub.sales, 0) sales
-        FROM product p 
-        INNER JOIN supplier s ON s.supplier_id = :supplier_id  AND s.supplier_id =p.supplier_id
-        LEFT JOIN(
-            SELECT orders.product_id, sum(orders.quantity) sales
-            FROM product, orders
-            WHERE product.product_id=orders.product_id 
-            GROUP BY orders.product_id
-            ) sub
-            ON p.product_id=sub.product_id
+        SELECT TOP 3 supplier_name, product_id, product_name, sales
+        FROM SUM_QUANTITY
+        WHERE supplier_id = :supplier_id
         ORDER BY sales DESC;
         """
         tuple_tmp = run_sql(top3_product, {"supplier_id": splid})
