@@ -7,21 +7,19 @@ fake = Faker(locale='zh_CN')
 
 class QuickstartUser(FastHttpUser):
 
-    # @task
-    # def home_page(self):
-    #     cat = ['家用电器', '数码设备', '家居', '服装', '配饰', '美妆', '鞋类', '食品', '文娱', '其他']
-    #     self.client.get("/api/HomePage/getProduct?needNumber=20&page=%s" % random.randint(1, 5))
-    #     self.client.get("/api/HomePage/getCategory")
-    #     self.client.post("/api/HomePage/getProductInCat",
-    #                      json={"keywords": "美食",
-    #                            "category": random.choice(cat),
-    #                            "needNumber": 20,
-    #                            "page": random.randint(1, 5)})
-    #
-    #     cat.append("")
-    #     self.client.post("/api/HomePage/search_product",
-    #                      json={"category": "其他",
-    #                            "keywords": "食品"})
+    @task
+    def home_page(self):
+        cat = ['家用电器', '数码设备', '家居', '服装', '配饰', '美妆', '鞋类', '食品', '文娱', '其他']
+        self.client.get("/api/HomePage/getProduct?needNumber=20&page=%s" % random.randint(1, 5))
+        self.client.get("/api/HomePage/getCategory")
+        cat.append("")
+        self.client.post("/api/HomePage/getProductInCat",
+                         json={"keywords": "美食",
+                               "category": random.choice(cat),
+                               "needNumber": 20,
+                               "page": random.randint(1, 5)})
+
+
 
     @task
     def customer_info(self):
@@ -60,10 +58,7 @@ class QuickstartUser(FastHttpUser):
     @task
     def product(self):
         self.client.post(f"/api/product/P{'{:0>9d}'.format(random.randint(1, 100))}")
-        self.client.post(f"/api/product/P{'{:0>9d}'.format(random.randint(1, 100))}",
-                         json={"productID": f"P{'{:0>9d}'.format(random.randint(1, 100))}",
-                               "needNumber": 20,
-                               "page": random.randint(1,5)})
+
 
     @task
     def comment(self):

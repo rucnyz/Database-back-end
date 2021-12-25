@@ -36,8 +36,20 @@ run_sql(create_user_customer)
 
 grant_customer_1 = """
     GRANT ALL PRIVILEGES
-    ON customer, info_customer, orders, cart
-    TO customer
+    ON customer
+    TO customer;
+    
+    GRANT ALL PRIVILEGES
+    ON info_customer
+    TO customer;
+    
+    GRANT ALL PRIVILEGES
+    ON orders
+    TO customer;
+    
+    GRANT ALL PRIVILEGES
+    ON  cart
+    TO customer;
 """
 run_sql(grant_customer_1)
 
@@ -58,8 +70,16 @@ run_sql(create_user_supplier)
 
 grant_supplier_1 = """
     GRANT ALL PRIVILEGES
-    ON supplier, info_supplier,product
-    TO supplier
+    ON supplier
+    TO supplier;
+    
+    GRANT ALL PRIVILEGES
+    ON info_supplier
+    TO supplier;
+    
+    GRANT ALL PRIVILEGES
+    ON product
+    TO supplier;
 """
 grant_supplier_2 = """
     GRANT SELECT
@@ -79,8 +99,47 @@ run_sql(create_user_admin)
 
 grant_admin = """
     GRANT ALL PRIVILEGES
-    ON TABLE customer, supplier, info_customer, info_supplier, product, orders, cart, admin
+    ON supplier
     TO admin
-    WITH GRANT OPTION
+    WITH GRANT OPTION;
+    
+    GRANT ALL PRIVILEGES
+    ON customer
+    TO admin
+    WITH GRANT OPTION;
+    
+    GRANT ALL PRIVILEGES
+    ON info_customer
+    TO admin
+    WITH GRANT OPTION;
+    
+    GRANT ALL PRIVILEGES
+    ON info_supplier
+    TO admin
+    WITH GRANT OPTION;
+
+    GRANT ALL PRIVILEGES
+    ON product
+    TO admin
+    WITH GRANT OPTION;
+    
+    GRANT ALL PRIVILEGES
+    ON orders
+    TO admin
+    WITH GRANT OPTION;
+    
+    GRANT ALL PRIVILEGES
+    ON cart
+    TO admin
+    WITH GRANT OPTION;
+    
+    GRANT ALL PRIVILEGES
+    ON  admin
+    TO admin
+    WITH GRANT OPTION;
+
+
+
+
 """
 run_sql(grant_admin)
