@@ -60,12 +60,14 @@ def low5_supplier():
     return wrap_json_for_send(d, "successful")
 
 
-# 3. 显示每个商家的年销售总额。 # hcy 【lsy已测试】
+# 3. 显示每个商家的年销售总额。 # hcy 【lsy已测试】[已添加input ID]
 # /api/admin/annual_sales
-# input:base,{"year"}
-# output:base, {"year":,"suppliers": list[{"supplier_id","supplier_name","annual_sales"}]}
+# input:base,{"ID": "xxx"}
+# output:base, {detail:[{"year":,"suppliers": list[{"supplier_id","supplier_name","annual_sales"}},{}]}
 @admin.route("/annual_sales", methods=['POST'])
 def annual_sales():
+    id = request.json['ID']
+    statuscode = "successful"
     # 获取年份，进行循环
     get_years = """
     SELECT DISTINCT DatePart(yyyy, orderdate)
@@ -74,7 +76,7 @@ def annual_sales():
     list_year = run_sql(get_years)
     list_year = [i[''] for i in list_year]
     get_annual_sales = """
-    SELECT DatePart(yyyy, o.orderdate) year, s.supplier_id, s.supplier_name, round(SUM(o.price_sum),2) annual_sales
+    SELECT DatePart(yyyy, o.orderdate) year, s.supplier_id supplier_id, s.supplier_name, round(SUM(o.price_sum),2) annual_sales
     FROM supplier s, orders o
     WHERE s.supplier_id=o.supplier_id
     GROUP BY s.supplier_id, s.supplier_name, DatePart(yyyy, o.orderdate)
@@ -87,39 +89,63 @@ def annual_sales():
         ltmp = []
         for item_ in t:
             if item_['year'] == item:
-                ltmp.append(item_)
+                if id[0] == "A":
+                    ltmp.append(item_)
+                elif id[0] == "S":
+                    if item_['supplier_id'] == id:
+                        ltmp.append(item_)
         dtmp['year'] = item
         dtmp['suppliers'] = ltmp
         l_all.append(dtmp)
 
     d = {"detail": l_all}
-    return wrap_json_for_send(d, "successful")
+    if id[0] != "S" and id[0] != "A":
+        d = {}
+        statuscode = "failed"
+    return wrap_json_for_send(d, statuscode)
 
 
-# 4.显示每个会员购买次数最多的商品。  # lsy【已测试】
+# 4.显示每个会员购买次数最多的商品。  # lsy【已测试】[已添加input ID][hcy 加视图]
 # /api/admin/top_product
-# input:base,{""}
+# input:base,{"ID": "xxx"}
 # output:base,{"customer_id","product_id","product_name","top_num"}
 @admin.route("/top_product", methods=['POST'])
 def top_product():
-    get_top_product = """
-    SELECT o_c.customer_id, o_c.product_id, p.product_name, MAX(pc_count) top_num
-    FROM product p, 
-    (SELECT customer_id, product_id, COUNT(*) pc_count
-    FROM orders
-    GROUP BY customer_id, product_id) o_c
-    WHERE p.product_id = o_c.product_id
-    GROUP BY  o_c.customer_id, o_c.product_id, p.product_name;
-    """
-    t = run_sql(get_top_product)
-    column = ["customer_id", "product_id", "product_name", "top_num"]
-    d = {"detail": [dict(zip(column, t[i].values())) for i in range(len(t))]}
-    return wrap_json_for_send(d, "successful")
+    id = request.json['ID']
+    statuscode = "successful"
+    if id[0] == "A":
+        get_top_product = """
+        SELECT o_c.customer_id customer_id, o_c.product_id product_id, product_name, top_num
+        FROM SUM_QUANTITY_EACHCUST_EACHPRO o_c, (SELECT customer_id, MAX(sum_quantity) top_num
+                                               FROM SUM_QUANTITY_EACHCUST_EACHPRO
+                                               GROUP BY customer_id) AS tmp
+        WHERE tmp.top_num=o_c.sum_quantity AND tmp.customer_id=o_c.customer_id
+        ORDER BY o_c.customer_id
+        """
+        t = run_sql(get_top_product)
+        column = ["customer_id", "product_id", "product_name", "top_num"]
+        d = {"detail": [dict(zip(column, t[i].values())) for i in range(len(t))]}
+    elif id[0] == "C":
+        get_top_product_customer = """
+        SELECT o_c.customer_id customer_id, o_c.product_id product_id, product_name, top_num
+        FROM SUM_QUANTITY_EACHCUST_EACHPRO o_c, (SELECT customer_id, MAX(sum_quantity) top_num
+                                               FROM SUM_QUANTITY_EACHCUST_EACHPRO
+                                               GROUP BY customer_id) AS tmp
+        WHERE tmp.top_num=o_c.sum_quantity AND tmp.customer_id=o_c.customer_id AND o_c.customer_id = :id
+        ORDER BY o_c.customer_id;
+                """
+        t = run_sql(get_top_product_customer, {"id": id})
+        column = ["customer_id", "product_id", "product_name", "top_num"]
+        d = {"detail": [dict(zip(column, t[i].values())) for i in range(len(t))]}
+    else:
+        d = {}
+        statuscode = "failed"
+    return wrap_json_for_send(d, statuscode)
 
 
 # 5. 显示每个省份会员的平均消费额、最大消费额和最小消费额，并按平均消费额降序排列。   # lsy【已测试】
 # /api/admin/province_top
-# input:base,{""}
+# input:base,{"ID": "xxx"}
 # output:base,{"province", "count", "average_spending","max_spending","min_spending"}
 # 可以加功能：以不同方式排序
 @admin.route("/province_top", methods=['POST'])
@@ -135,8 +161,8 @@ def province_top():
         get_province_top = """
         SELECT :province province, round(ISNULL(COUNT(*),0), 0) count, round(ISNULL(AVG(price_sum),0),2) avg, round(ISNULL(MAX(price_sum),0),2) max, round(ISNULL(MIN(price_sum),0),2) min
         FROM (SELECT o.price_sum
-                FROM orders o
-	            WHERE o.receive_address LIKE :vague) AS pvs;
+              FROM orders o
+	          WHERE o.receive_address LIKE :vague) AS pvs;
         """
         t = run_sql(get_province_top, {"province": i, "vague": vague})
         province_top.append(t)
@@ -144,4 +170,107 @@ def province_top():
     province_top = sorted(province_top, key=lambda province_top: [x['avg'] for x in province_top], reverse=True)
     # toTODO 降序排列
     d = {"detail": [dict(zip(column, province_top[i])) for i in range(len(province_top))]}
+    return wrap_json_for_send(d, "successful")
+
+
+# 6. 显示每个商家消费最高的会员 # hcy [后端已完成][已测试]
+# /api/admin/top_customer
+# input:base,{"ID": "xxx"}
+# output:base,{"detail":{"supplier_id","supplier_name","customer_id","sum_consume"},{}}
+@admin.route("/top_customer", methods=['POST'])
+def top_customer():
+    id = request.json['ID']
+    statuscode = "successful"
+    if id[0] == "A":
+        get_top_customer = """
+        SELECT s.supplier_id, s.supplier_name, s.customer_id, sum_consume
+        FROM SUM_CONSUME_EACHSUPP_EACHCUST s, (SELECT supplier_id, supplier_name, MAX(sum_consume) max_sum_consume
+                                               FROM SUM_CONSUME_EACHSUPP_EACHCUST
+                                               GROUP BY supplier_id, supplier_name) AS tmp
+        WHERE tmp.max_sum_consume=s.sum_consume AND tmp.supplier_id=s.supplier_id
+        ORDER BY s.supplier_id
+        """
+        t = run_sql(get_top_customer)
+        column = ["supplier_id", "supplier_name", "customer_id", "sum_consume"]
+        d = {"detail": [dict(zip(column, t[i].values())) for i in range(len(t))]}
+    elif id[0] == "S":
+        get_top_customer_supp = """
+                SELECT s.supplier_id, s.supplier_name, s.customer_id, sum_consume
+                FROM SUM_CONSUME_EACHSUPP_EACHCUST s, (SELECT supplier_id, supplier_name, MAX(sum_consume) max_sum_consume
+                                                       FROM SUM_CONSUME_EACHSUPP_EACHCUST
+                                                       GROUP BY supplier_id, supplier_name) AS tmp
+                WHERE tmp.max_sum_consume=s.sum_consume AND tmp.supplier_id=s.supplier_id AND s.supplier_id=:id
+                """
+        t = run_sql(get_top_customer_supp, {"id": id})
+        column = ["supplier_id", "supplier_name", "customer_id", "sum_consume"]
+        d = {"detail": [dict(zip(column, t[i].values())) for i in range(len(t))]}
+    else:
+        d = {}
+        statuscode = "failed"
+    return wrap_json_for_send(d, statuscode)
+
+
+# 7. 显示每个会员年消费额。 # hcy [后端已完成][已测试]
+# /api/admin/annual_consume
+# input:base,{"ID": "xxx"}
+# output:base,{"detail": [{"year": xxx, "customers": list[{"customer_id","annual_consume"}]},{}]}
+@admin.route("/annual_consume", methods=['POST'])
+def annual_consume():
+    id = request.json['ID']
+    statuscode = "successful"
+    # 获取年份，进行循环
+    get_years = """
+    SELECT DISTINCT DatePart(yyyy, orderdate)
+    from orders 
+    """
+    list_year = run_sql(get_years)
+    list_year = [i[''] for i in list_year]
+    get_annual_consume = """
+    SELECT DatePart(yyyy, o.orderdate) year, c.customer_id customer_id, round(SUM(o.price_sum),2) annual_consume
+    FROM customer c, orders o
+    WHERE c.customer_id=o.customer_id
+    GROUP BY c.customer_id, DatePart(yyyy, o.orderdate)
+    ORDER BY c.customer_id
+    """
+    t = run_sql(get_annual_consume)
+
+    l_all = []
+    for item in list_year:
+        dtmp = {}
+        ltmp = []
+        for item_ in t:
+            if item_['year'] == item:
+                if id[0] == "A":
+                    ltmp.append(item_)
+                elif id[0] == "C":
+                    if item_['customer_id'] == id:
+                        ltmp.append(item_)
+        dtmp['year'] = item
+        dtmp['customers'] = ltmp
+        l_all.append(dtmp)
+    d = {"detail": l_all}
+    if id[0] != "C" and id[0] != "A":
+        d = {}
+        statuscode = "failed"
+    return wrap_json_for_send(d, statuscode)
+
+
+# 8. 给定一个商品，显示售卖此商品最多的5个商家。”（商品名字模糊搜索) #hcy [后端已完成][已测试]
+# /api/admin/top5_supplier
+# input:base,{"keywords"}
+# output:base,{"keywords",'detail': [{"product_id","product_name","supplier_id","supplier_name","sum_quantity"},{},{}]}
+@admin.route("/top5_supplier", methods=['POST'])
+def top5_supplier():
+    key_words = request.json['keywords']
+    key_words_vague = '%'+key_words+'%'
+    get_top5_supplier = """
+    SELECT TOP 5 product_id, product_name, supplier_id, supplier_name, sum_quantity
+    FROM SUM_QUANTITY
+    WHERE product_name LIKE :vague
+    ORDER BY sum_quantity DESC 
+    """
+    t = run_sql(get_top5_supplier, {"vague": key_words_vague})
+    column = ["product_id", "product_name", "supplier_id", "supplier_name", "sum_quantity"]
+    d = {'keywords': key_words, 'detail': [dict(zip(column, t[i].values())) for i in range(len(t))]}
+
     return wrap_json_for_send(d, "successful")
