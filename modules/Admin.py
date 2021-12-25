@@ -101,6 +101,7 @@ def annual_sales():
     FROM supplier s, orders o
     WHERE s.supplier_id=o.supplier_id
     GROUP BY s.supplier_id, s.supplier_name, DatePart(yyyy, o.orderdate)
+    ORDER BY year, annualSales DESC
     """
     t = run_sql(get_annual_sales)
 
@@ -141,7 +142,7 @@ def top_product():
                                                FROM SUM_QUANTITY_EACHCUST_EACHPRO
                                                GROUP BY customer_id) AS tmp
         WHERE tmp.top_num=o_c.sum_quantity AND tmp.customer_id=o_c.customer_id
-        ORDER BY o_c.customer_id
+        ORDER BY top_num DESC
         """
         t = run_sql(get_top_product)
         column = ["customerId", "customerName", "productId", "productName", "topNum"]
@@ -153,7 +154,7 @@ def top_product():
                                                FROM SUM_QUANTITY_EACHCUST_EACHPRO
                                                GROUP BY customer_id) AS tmp
         WHERE tmp.top_num=o_c.sum_quantity AND tmp.customer_id=o_c.customer_id AND o_c.customer_id = :id
-        ORDER BY o_c.customer_id;
+        ORDER BY top_num DESC 
                 """
         t = run_sql(get_top_product_customer, {"id": id})
         column = ["customerId", "customerName", "productId", "productName", "topNum"]
@@ -183,7 +184,8 @@ def province_top():
         SELECT :province province, round(ISNULL(COUNT(*),0), 0) count, round(ISNULL(AVG(price_sum),0),2) avg, round(ISNULL(MAX(price_sum),0),2) max, round(ISNULL(MIN(price_sum),0),2) min
         FROM (SELECT o.price_sum
               FROM orders o
-	          WHERE o.receive_address LIKE :vague) AS pvs;
+	          WHERE o.receive_address LIKE :vague) AS pvs
+	    ORDER BY avg DESC, max DESC 
         """
         t = run_sql(get_province_top, {"province": i, "vague": vague})
         province_top.append(t)
@@ -209,7 +211,7 @@ def top_customer():
                                                FROM SUM_CONSUME_EACHSUPP_EACHCUST
                                                GROUP BY supplier_id, supplier_name) AS tmp
         WHERE tmp.max_sum_consume=s.sum_consume AND tmp.supplier_id=s.supplier_id
-        ORDER BY s.supplier_id
+        ORDER BY max_sum_consume DESC 
         """
         t = run_sql(get_top_customer)
         column = ["supplierId", "supplierName", "customerId", "customerName", "sumConsume"]
@@ -251,7 +253,7 @@ def annual_consume():
     FROM customer c, orders o
     WHERE c.customer_id=o.customer_id
     GROUP BY c.customer_id, DatePart(yyyy, o.orderdate), c.customer_nickname
-    ORDER BY c.customer_id
+    ORDER BY annualConsume DESC 
     """
     t = run_sql(get_annual_consume)
 
