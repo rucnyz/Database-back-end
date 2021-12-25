@@ -153,8 +153,8 @@ create_admin = """
 IF OBJECT_ID('admin', 'U') IS NULL
 CREATE TABLE admin(
     admin_id char(10) NOT NULL,
-    admin_name char(10)  ,
-    admin_password char(10),
+    admin_name char(10) NOT NULL,
+    admin_password char(10) NOT NULL,
     PRIMARY KEY(admin_id)
 )
 """
