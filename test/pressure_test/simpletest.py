@@ -47,12 +47,12 @@ class QuickstartUser(FastHttpUser):
                          json={"orders": [
                              {"productID": "P000000024", "orderDate": "2021-08-18 14:59:21.000", "priceSum": 111,
                               "quantity": 29, "receiveAddress": "黑龙江省宜都县梁平桂街d座 772017"}]})
-        self.client.post(f"/api/customer/C{'{:0>9d}'.format(random.randint(1, 50))}/orders/add_product",
-                         json={"productID": "P000000001",
-                               "orderDate": "2020-07-14 11:21:08",
-                               "priceSum": 100,
-                               "quantity": 10,
-                               "receiveAddress": "somewhere1234"})
+        # self.client.post(f"/api/customer/C{'{:0>9d}'.format(random.randint(1, 50))}/orders/add_product",
+        #                  json={"productID": "P000000001",
+        #                        "orderDate": "2020-07-14 11:21:08",
+        #                        "priceSum": 100,
+        #                        "quantity": 10,
+        #                        "receiveAddress": "somewhere1234"})
         self.client.post(f"/api/customer/C{'{:0>9d}'.format(random.randint(1, 50))}/orders/get_address")
 
     @task
