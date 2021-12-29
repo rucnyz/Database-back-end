@@ -1,1 +1,1 @@
-locust -f pressure_test/simpletest.py --host=http://127.0.0.1:5000 --web-host="127.0.0.1"
+locust -f pressure_test/simpletest.py --host=http://192.168.1.2:8080 --web-host="127.0.0.1"
