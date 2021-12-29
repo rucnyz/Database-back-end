@@ -1,8 +1,8 @@
 import sys
-
+sys.path.append("..")
 from utils import run_sql
 
-sys.path.append(".")
+
 use_db = """
 USE OnlineShopping
             """

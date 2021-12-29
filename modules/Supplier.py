@@ -14,7 +14,7 @@ db = SQLAlchemy()
 
 @supplier.route("/register", methods=['POST', 'GET'])  # zzm
 def register():
-    password = request.json['password']
+    password = request.json['password'][:10]
     supplier_name = request.json['supplierName']
     owner_name = request.json['ownerName']
     owner_id = request.json['ownerID']
@@ -137,8 +137,7 @@ def get_orders(id):
     # tuple = run_sql(login)
     # supp_ID = [{"ID": tuple[0]}]
     get_orders = """
-    SELECT o.orderdate, o.customer_id, p.product_name, o.quantity,  sum(price_sum) sum_price, 
-    count(*) count, deliver_address, receive_address
+    SELECT o.orderdate, o.customer_id, p.product_name, o.quantity,  sum(price_sum) sum_price
     FROM orders o, product p
     WHERE o.supplier_id=:supplier_id AND o.product_id=p.product_id
     GROUP BY o.orderdate, o.customer_id, p.product_name, o.quantity
